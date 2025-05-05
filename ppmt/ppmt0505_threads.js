@@ -12,9 +12,9 @@ let config = {
    */
   frequency: "NORMAL",
   singleMode: false, // single模式
-  sixMode: true, // 6模式
-  sendToHome: false, // 送到家模式
-  goMarkGet: true, // 到店取模式
+  sixMode: false, // 6模式
+  sendToHome: true, // 送到家模式
+  goMarkGet: false, // 到店取模式
   orcSleepTime: 200, // orc 刷新频率  根据调试机型设置
 };
 
@@ -44,9 +44,10 @@ let point = {
   originalQuickBtnPointWithCarPoint: { x: 986.5, y: 2619.5 }, // 立即购买按钮(有加入购物车) ojbk
   originSurePoint: { x: 631.5, y: 2504.0 }, // 选择购买方式页面有货时 确定按钮 ojbk
   originThisMarkPoint: { x: 631.5, y: 1799.0 }, // 确定订单页面 确认稳点信息  就是这家按钮 ojbk
-  originNoProdPoint: { x: 631.5, y: 1468.5 }, // 没货提示 我知道了按钮  ojbk
-  originknowMailPoint: { x: 236.0, y: 1716.0 },
+  originNoProdPoint: { x: 631.5, y: 1468.5 }, // 没货提示 <我知道了>按钮  ojbk
+  originknowMailPoint: { x: 631.5, y: 1716.0 }, // 请确认收货地址  确认无误按钮  ojbk
   originSureInfoAndPayPoint: { x: 980, y: 2627.0 }, //确认订单页面 确认信息并支付 ojbk
+  originBackScreenPoint: { x: 75, y: 214.0 },
   //  按钮信息 ------end -----
 };
 
@@ -63,12 +64,13 @@ let main = () => {
     onePlus_ace_3_pro_device.width,
     onePlus_ace_3_pro_device.height
   );
+
   startToBuy(); // 寻找立即购买按钮
 
   // 查找立即购买按钮 存在便点击
   function startToBuy() {
     console.log("程序开始执行");
-    console.log("当前用户设置的初始化购买配置", { config, point, state });
+    console.log("当前用户设置的初始化购买配置", { config, state });
     console.log("查找立即购买按钮");
     threads.start(function () {
       log("刷新确定按钮自动点击线程已启动");
@@ -76,9 +78,22 @@ let main = () => {
       // 直到进入选择规格/购买方式页面才停止该线程
       while (true) {
         i++;
-        let currentScreenOcr = handleoOrcScreen();
-        let { hasQuickBuyBtn, quickBuyScreen, chooseDetailScreen } =
-          patchScreen(currentScreenOcr);
+        let currentScreenOcr = handleoOrcScreen(100);
+        let {
+          hasQuickBuyBtn,
+          quickBuyScreen,
+          chooseDetailScreen,
+          markListScreen,
+        } = patchScreen(currentScreenOcr);
+
+        console.log(
+          "立即购买,即将进入选择规格和购买方式页面",
+          i,
+          currentScreenOcr,
+          hasQuickBuyBtn,
+          quickBuyScreen,
+          chooseDetailScreen
+        );
         // 进入选择规格/购买方式页面  break
         if (chooseDetailScreen) {
           console.log(
@@ -87,26 +102,27 @@ let main = () => {
           initBuyMethod(); //初始化购买配置页面
           break;
         }
+        // 误点进入自提门店列表页面 马上退出F
+        if (markListScreen) {
+          click(point.originBackScreenPoint);
+        }
         // 监听到有立即购买按钮  点击
         if (hasQuickBuyBtn && quickBuyScreen) {
           // 有购物车模式
           if (currentScreenOcr.includes("加入购物车")) {
-            run(point.originalQuickBtnPointWithCarPoint);
+            click(point.originalQuickBtnPointWithCarPoint);
+            sleep(config.orcSleepTime);
           }
           // 无购物车模式
           if (!currentScreenOcr.includes("加入购物车")) {
-            run(point.originalQuickBtnPointWithOutCarPoint);
+            click(point.originalQuickBtnPointWithOutCarPoint);
+            sleep(config.orcSleepTime);
           }
         }
         // 看自行测试结果 判断是否 控制刷新频率 默认不控制
         // sleep(100);
       }
     });
-
-    function run(point, i) {
-      console.log("立即购买,即将进入选择规格和购买方式页面", point);
-      click(point.x, point.y);
-    }
   }
 
   //初始化购买配置页面
@@ -145,16 +161,7 @@ let main = () => {
         run({ _point: point.originGoMarkGetPoint, buyMethod: "mark" });
       }
     }
-
-    screenIsLoadedWithOcr({
-      callBack: (mode) => {
-        console.log(mode, "开始初始化");
-        if (mode === "initBuyConfig") {
-          init && init();
-        }
-      },
-      patchStep: "chooseDetail",
-    });
+    init();
   }
 
   function handleBuyMethod() {
@@ -265,6 +272,7 @@ let main = () => {
 
   function patchScreen(currentScreenOcr) {
     let quickBuyScreen = currentScreenOcr.includes("购物车");
+    let markListScreen = currentScreenOcr.includes("自堤门店列表");
     let chooseDetailScreen = currentScreenOcr.includes("购买方式");
     let makeSureOrderScreen = currentScreenOcr.some((item) =>
       item.includes("确认信息")
@@ -275,13 +283,18 @@ let main = () => {
       chooseDetailScreen,
       makeSureOrderScreen,
       hasQuickBuyBtn,
+      markListScreen,
     };
   }
 
   function screenIsLoadedWithOcr({ callBack, patchStep, _wait }) {
     let currentScreenOcr = handleoOrcScreen();
-    let { quickBuyScreen, chooseDetailScreen, makeSureOrderScreen } =
-      patchScreen(currentScreenOcr);
+    let {
+      quickBuyScreen,
+      chooseDetailScreen,
+      makeSureOrderScreen,
+      markListScreen,
+    } = patchScreen(currentScreenOcr);
     let wait = _wait ? _wait : 0;
     // 兜底逻辑 需要
     function fallbackLogic() {
@@ -301,6 +314,11 @@ let main = () => {
       chooseDetailScreen,
       makeSureOrderScreen,
     });
+
+    if (markListScreen) {
+      // 误点进入自提门店列表页面 马上退出
+      click(point.originBackScreenPoint);
+    }
 
     // 匹配立即购买页面
     if (patchStep === "quickBuy") {
