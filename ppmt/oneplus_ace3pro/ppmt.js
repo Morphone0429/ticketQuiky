@@ -79,6 +79,7 @@ let main = () => {
           quickBuyScreen,
           chooseDetailScreen,
           markListScreen,
+          makeSureOrderScreen,
         } = patchScreen(currentScreenOcr);
 
         console.log(
@@ -87,14 +88,19 @@ let main = () => {
           currentScreenOcr,
           hasQuickBuyBtn,
           quickBuyScreen,
-          chooseDetailScreen
+          chooseDetailScreen,
+          makeSureOrderScreen
         );
         // 进入选择规格/购买方式页面  break
         if (chooseDetailScreen) {
-          console.log(
-            "存在购买方式文字，说明已经进入购买页面，开始初始化购买配置，并打断当前子线程"
-          );
+          console.log("进入购买页面，开始初始化购买配置，并打断当前子线程");
           initBuyMethod(); //初始化购买配置页面
+          break;
+        }
+        // 确认信息页面
+        if (makeSureOrderScreen) {
+          console.log("开始确认订单循环，并打断当前子线程");
+          handleToPayLoop();
           break;
         }
         // 误点进入自提门店列表页面 马上退出F
@@ -446,4 +452,4 @@ let main = () => {
   }
 };
 
-main();
+main();;
