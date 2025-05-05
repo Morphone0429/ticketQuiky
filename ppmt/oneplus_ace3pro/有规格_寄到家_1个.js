@@ -11,11 +11,11 @@ auto();
    */
 let config = {
   frequency: "NORMAL",
-  singleMode: false, // single模式
-  sixMode: false, // 6模式
-  sendToHome: true, // 送到家模式
-  goMarkGet: false, // 到店取模式
-  orcSleepTime: 200, // orc 刷新频率  根据调试机型设置
+  singleMode: true,
+  sixMode: false,
+  sendToHome: true,
+  goMarkGet: false,
+  orcSleepTime: 200,
 };
 
 let onePlus_ace_3_pro_device = {
