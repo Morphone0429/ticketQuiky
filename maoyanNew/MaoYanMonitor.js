@@ -12,11 +12,11 @@ const webHookNoticeUrl = '';
 const isRingingBell = true;
 
 //是否在测试调试，测试时不会点击支付按钮，避免生成过多订单
-var isDebug = false;
+var isDebug = true;
 
 //默认参数收集，如果设置了默认值，可以直接使用默认值，不再需要弹窗输入，加快脚本启动进程
 //默认场次信息，例如：05-18,05-19
-var defaultPlayEtcStr = '06-14';
+var defaultPlayEtcStr = '05-18';
 //默认最高票价，例如：800
 var defaultMaxTicketPrice = '700';
 //默认观演人，例如：观演人a,观演人b
@@ -66,6 +66,7 @@ function main() {
     //等待一小会儿，避免上个弹窗还没关闭，无法正确判断票档区布局元素是否存在
     sleep(50);
     if (!textContains('¥').exists()) {
+        console.log(textContains('¥'), '======')
         refresh_ticket_dom();
     }
     if (!textContains('¥').exists()) {
@@ -128,7 +129,6 @@ function cycleMonitor(maxTicketPrice, viewers) {
 
 function doSubmit(amount, viewers) {
     let viewersArr = viewers.split(',');
-    console.log({ amount, viewers }, '=====')
     textContains('¥' + amount)
         .findOne()
         .click();
@@ -152,7 +152,6 @@ function doSubmit(amount, viewers) {
         console.log('票数不足，继续刷新');
         return true;
     }
-
 
     let attemptCnt = 0;
     let attemptMaxCnt = 150;
@@ -189,13 +188,14 @@ function doSubmit(amount, viewers) {
         }
     }
 
-    return
+
 
     if (!isDebug) {
         console.log('准备点击 ');
-        const payNowBtn = className('android.widget.Button')
-        console.log(payNowBtn, 'payNowBtn')
+        const payNowBtn = className('android.widget.Button');
         for (let cnt = 0; payNowBtn.exists(); cnt++) {
+            console.log(payNowBtn, 'payNowBtn');
+
             //直接猛点就完事了
             var c = payNowBtn.findOne().click();
             sleep(50);
@@ -226,7 +226,7 @@ function doSubmit(amount, viewers) {
  * 当默认人不在观演人列表中时，取消默认人的选中状态
  */
 function uncheckIfDefaultUserNotInViewer(viewersArr) {
-    let defaultUserObj = text('默认').findOne().parent().children()[0];
+    let defaultUserObj = text('默认').findOne().parent().children()[1];
     let defaultUser = defaultUserObj.text();
     if (!viewersArr.includes(defaultUser)) {
         uncheckViewer(defaultUserObj);
@@ -249,7 +249,6 @@ function uncheckViewer(viewerObj) {
 function clickViewerCheckBox(viewerObj, isChecked) {
     viewerObj
         .parent()
-        .parent()
         .children()
         .forEach(function (child) {
             // console.log(child.className()+" "+child.text());
@@ -257,12 +256,12 @@ function clickViewerCheckBox(viewerObj, isChecked) {
                 //当前目标操作为选中 且 当前当前状态为未选中
                 if (isChecked && child.text() == 'wc0GRRGh2f2pQAAAABJRU5ErkJggg==') {
                     console.log('选中观演人：' + viewerObj.text());
-                    child.click();
+                    click(child.bounds().centerX(), child.bounds().centerY());
                 }
                 //当前目标操作为取消选中 且 当前当前状态为选中
                 if (!isChecked && child.text() == 'B85bZ04Z1b5tAAAAAElFTkSuQmCC') {
                     console.log('取消选中观演人：' + viewerObj.text());
-                    child.click();
+                    click(child.bounds().centerX(), child.bounds().centerY());
                 }
             }
         });
