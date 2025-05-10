@@ -12,16 +12,21 @@ let webHookNoticeUrl = "";
 let isRingingBell = true;
 
 //是否在测试调试，测试时不会点击支付按钮，避免生成过多订单
-let isDebug = true;
+let isDebug = false;
 
 //默认参数收集，如果设置了默认值，可以直接使用默认值，不再需要弹窗输入，加快脚本启动进程
 let user = {
   //默认场次信息，例如：05-18,05-19
-  playEtcStr: "05-17,05-18",
+  // playEtcStr: "05-23,05-24,05-25,05-27,05-28",
+  playEtcStr: "06-14",
   //默认最高票价，例如：800
   maxTicketPrice: "700",
   //默认观演人，例如：观演人a,观演人b
   viewers: "楼超强,林彤彤",
+};
+
+let state = {
+  isChooseTicketRangeing: false, //是否正在选择档位
 };
 
 main();
@@ -31,10 +36,11 @@ main();
  */
 function main() {
   getBaseInfo();
+
   // 1. 判断是否正常获取到节点
-  initChooseTicketRangeWeight({
-    callback: watchTicketRange,
-  });
+  // initChooseTicketRangeWeight({
+  //   callback: watchTicketRange,
+  // });
 }
 
 //
@@ -55,7 +61,7 @@ function watchTicketRange() {
     console.log("开启票档扫描线程");
     while (true) {
       //当前还在票档界面，就持续扫描
-      while (textContains("¥").exists()) {
+      while (textContains(RMB).exists()) {
         cycleMonitor();
         //50ms扫描一次
         sleep(50);
@@ -88,18 +94,82 @@ function watchTicketRange() {
 function cycleMonitor() {
   //获取符合条件的票档数组
   let targetTickets = get_less_than_tickets();
+  console.log(targetTickets);
   for (let amount of targetTickets) {
-    log("开冲一个：" + amount);
-    // doSubmit(amount, viewers);
+    doSubmit({ amount });
   }
 }
 
+function doSubmit({ amount }) {
+  if (state.isChooseTicketRangeing) return;
+  log("开冲一个：" + amount);
+  state.isChooseTicketRangeing = true; // 选择数量后点击确认
+  let viewersArr = user.viewers.split(",");
+  // 点击对应的挡位
+  textContains(RMB + amount)
+    .findOne()
+    .click();
+  // 增加人员数量
+  plusViewers(viewersArr);
+  if (!text(viewersArr.length + "份").exists()) {
+    console.log("票数不足，继续刷新");
+    state.isChooseTicketRangeing = false;
+    return true;
+  }
+  loopClickSureBtn();
+  handleSureTicketInfoThenToPay();
+}
+
+// 确认购票信息并立即支付
+function handleSureTicketInfoThenToPay() {}
+
+// 循环点击寻找票档页面的 确认按钮
+function loopClickSureBtn() {
+  let attemptCnt = 0;
+  let attemptMaxCnt = 200;
+  while (text("确认").exists() && attemptCnt <= attemptMaxCnt) {
+    let sureBtn = className("android.widget.TextView").text("确认").findOne();
+    sureBtn.click();
+    isDebug && console.log("点击确认");
+    attemptCnt++;
+  }
+  if (
+    attemptCnt >= attemptMaxCnt &&
+    !className("android.widget.Button").exists()
+  ) {
+    isDebug && console.log("尝试次数过多，继续刷新");
+    state.isChooseTicketRangeing = false;
+    return false;
+  }
+}
+
+// 选中票档后 增加人员数量
+function plusViewers(viewersArr) {
+  textContains("数量").waitFor();
+  if (textMatches("\\d+份").exists()) {
+    let curCount = parseInt(
+      textMatches("\\d+份").findOne().text().replace("份", "")
+    );
+    //根据观演人数点+1
+    let plusObj;
+    for (let i = curCount; i < viewersArr.length; i++) {
+      if (!plusObj) {
+        let ticketNumParent = textMatches("/\\d+份/").findOne().parent();
+        plusObj = ticketNumParent.children()[ticketNumParent.childCount() - 1];
+      }
+      plusObj.click();
+    }
+  }
+  //plus点击后，等待数量组件框刷新，很重要
+  textMatches("\\d+份").waitFor();
+}
+
+// 获取符合条件的票档数组
 function get_less_than_tickets() {
   var targetTickets = [];
-  textContains("¥")
+  textContains(RMB)
     .find()
     .forEach(function (btn) {
-      log(btn.text());
       if (btn.parent().childCount() >= 1 && !btn.text().includes("缺货")) {
         let match = btn.text().match(/\¥(\d+)/);
         let amount;
@@ -111,10 +181,7 @@ function get_less_than_tickets() {
   targetTickets.sort(function (a, b) {
     return a - b;
   });
-
-  if (isDebug) {
-    log("符合条件:" + targetTickets);
-  }
+  isDebug && log("符合条件:" + targetTickets);
   return targetTickets;
 }
 
@@ -139,14 +206,71 @@ function initChooseTicketRangeWeight({ callback }) {
 
 // 异常节点处理
 function getNodeWithFallback({ layoutFinish }) {
-  let orcResult = internalApiForPaddleOcr().filter(
+  let orcResult = internalApiForPaddleOcr();
+  let timeRangeArea = orcResult.filter((i) =>
+    /周[一二三四五六日]/.test(i.label)
+  ); // 场次
+  let ticketRangeArea = orcResult.filter(
     (i) => i.label.includes("元") || i.label.includes(RMB)
-  );
-  if (orcResult.length === 0) return;
-  console.log(orcResult);
+  ); // 票档
+  // 先处理场次
+  handleSessionsChoose({
+    timeRangeArea,
+    callback: () => {
+      // 再处理票档
+      handleTicketRange({
+        timeRangeArea,
+        _ticketRangeArea: ticketRangeArea,
+        callback: layoutFinish,
+      });
+    },
+  });
+}
+
+// 处理场次
+function handleSessionsChoose({ timeRangeArea, callback }) {
+  if (timeRangeArea.length === 0) return;
+  if (timeRangeArea.length === 1) {
+    callback();
+    return;
+  }
+  let hasProd = timeRangeArea.find((i) => !i.label.includes("缺货"));
+  console.log(hasProd);
+  if (hasProd) {
+    // 场次有货
+    let point = getPoint({ index: 0, bounds: hasProd.bounds });
+    click(point.x, point.y);
+    callback();
+  } else {
+    // 场次没货
+    const cur = timeRangeArea[0];
+    let point = getPoint({ index: 0, bounds: cur.bounds });
+    click(point.x, point.y);
+    callback();
+  }
+}
+
+// 处理票档
+// 当场次 length === 1 时 会默认选中该场次，所以会有票档的orc信息
+// length> 1 时  选中场次之后才会有票档的orc信息
+function handleTicketRange({ timeRangeArea, _ticketRangeArea, callback }) {
+  let ticketRangeArea =
+    timeRangeArea.length === 1
+      ? _ticketRangeArea
+      : internalApiForPaddleOcr().filter(
+          (i) => i.label.includes("元") || i.label.includes(RMB)
+        );
+  if (ticketRangeArea.length === 0) {
+    handleTicketRange({
+      timeRangeArea,
+      _ticketRangeArea: ticketRangeArea,
+      callback,
+    });
+    return;
+  }
   let weights = [];
-  for (let i = 0; i < orcResult.length; i++) {
-    let cur = orcResult[i];
+  for (let i = 0; i < ticketRangeArea.length; i++) {
+    let cur = ticketRangeArea[i];
     // 缺货出现的次数
     let noProdNum = countSubstringOccurrences(cur.label, "缺货");
     // ¥出现的次数 代表一行中有几档票
@@ -182,15 +306,21 @@ function getNodeWithFallback({ layoutFinish }) {
   if (hasProd) {
     // 存在，点击某一票档 进行缺货登记
     click(hasProd.point.x, hasProd.point.y);
-    layoutFinish();
+    callback();
   } else {
     // 不存在，点击某一票档 进行缺货登记
     let firstNoProd = weights[0];
     click(firstNoProd.point.x, firstNoProd.point.y);
     className("android.widget.TextView").text("缺货登记").findOne().click();
     className("android.view.View").clickable(true).depth(9).findOne().click();
-    layoutFinish();
+    callback();
   }
+}
+
+function screenIsLoadedWithOcr({ callBack, patchStep }) {
+  console.log(isWeightFound("选择票档"), "选择票档");
+  console.log(isWeightFound("确认购票"), "确认购买");
+  console.log(isWeightFound("猫眼演出详情"), "猫眼演出详情");
 }
 
 // ocr获取节点信息
@@ -220,7 +350,7 @@ function internalApiForPaddleOcr() {
 
 // 判断节点是否存在
 function isWeightFound(testDesc) {
-  return textContains("¥").exists();
+  return textContains(testDesc).exists();
 }
 
 // 获取用户基础信息
