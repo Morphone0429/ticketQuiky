@@ -20,7 +20,7 @@ let user = {
   // playEtcStr: "05-23,05-24,05-25,05-27,05-28",
   playEtcStr: "06-14",
   //默认最高票价，例如：800
-  maxTicketPrice: "700",
+  maxTicketPrice: "2700",
   //默认观演人，例如：观演人a,观演人b
   viewers: "楼超强,林彤彤",
 };
@@ -36,14 +36,63 @@ main();
  */
 function main() {
   getBaseInfo();
-
-  // 1. 判断是否正常获取到节点
-  // initChooseTicketRangeWeight({
-  //   callback: watchTicketRange,
-  // });
+  loopScreen();
 }
 
-//
+function loopScreen() {
+  screenIsLoadedWithOcr({
+    callback: (mode) => {
+      if (mode === "loop_page0") {
+        // 猫眼演出详情页面
+        startPlayDetail();
+      }
+      if (mode === "loop_page1") {
+        // 选择票档页面
+        startChooseTicketRangePage();
+      }
+      if (mode === "loop_page2") {
+        // 确认购票页面
+        startSureTicketInfoThenToPay();
+      }
+    },
+  });
+}
+
+// 猫眼演出详情
+function startPlayDetail() {
+  screenIsLoadedWithOcr({
+    patchStep: "page0",
+    callback: (mode) => {
+      if (mode === "playDetailIKnown") {
+        className("android.widget.TextView").text("知道了").findOne().click();
+        startPlayDetail();
+      }
+      if (mode === "jumpToChooseTicketRange") {
+        className("android.widget.TextView").text("立即预订").findOne().click();
+        startChooseTicketRangePage();
+        sleep(200);
+      }
+    },
+  });
+}
+
+// 选择票档
+function startChooseTicketRangePage() {
+  screenIsLoadedWithOcr({
+    patchStep: "page1",
+    callback: (mode) => {
+      console.log(mode);
+      if (mode === "chooseTicketRange") {
+        // 判断是否正常获取到节点
+        initChooseTicketRangeWeight({
+          callback: watchTicketRange,
+        });
+      }
+    },
+  });
+}
+
+// 监控选中票档页面
 function watchTicketRange() {
   //出现刷新按钮时点击刷新
   threads.start(function () {
@@ -77,7 +126,7 @@ function watchTicketRange() {
       className("android.widget.TextView").text("场次").exists() &&
       !textContains("数量").exists()
     ) {
-      const playEtcArr = user.playEtcStr.split(",");
+      let playEtcArr = user.playEtcStr.split(",");
       for (let playEtc of playEtcArr) {
         if (isDebug) {
           log("刷新场次余票信息：" + playEtc);
@@ -94,13 +143,16 @@ function watchTicketRange() {
 function cycleMonitor() {
   //获取符合条件的票档数组
   let targetTickets = get_less_than_tickets();
-  console.log(targetTickets);
+  console.log({
+    targetTickets,
+    isChooseTicketRangeing: state.isChooseTicketRangeing,
+  });
   for (let amount of targetTickets) {
-    doSubmit({ amount });
+    handleConfigTicket({ amount });
   }
 }
 
-function doSubmit({ amount }) {
+function handleConfigTicket({ amount }) {
   if (state.isChooseTicketRangeing) return;
   log("开冲一个：" + amount);
   state.isChooseTicketRangeing = true; // 选择数量后点击确认
@@ -117,11 +169,52 @@ function doSubmit({ amount }) {
     return true;
   }
   loopClickSureBtn();
-  handleSureTicketInfoThenToPay();
+  startSureTicketInfoThenToPay();
 }
 
-// 确认购票信息并立即支付
-function handleSureTicketInfoThenToPay() {}
+function startSureTicketInfoThenToPay() {
+  screenIsLoadedWithOcr({
+    patchStep: "page2",
+    callback: (mode) => {
+      if (mode === "enterSureTicket") {
+        state.isChooseTicketRangeing = false;
+        chooseViewers();
+        console.log(mode, "==============");
+      }
+    },
+  });
+}
+
+function handleQuickPay() {
+  if (isDebug) return;
+  // if()
+  console.log("准备点击 ");
+  for (let cnt = 0; className("android.widget.Button").exists(); cnt++) {
+    //直接猛点就完事了
+    className("android.widget.Button").findOne().click();
+    sleep(50);
+    if (cnt % 20 == 0) {
+      log("点支付次数:" + cnt + " 可继续等待或返回上一个界面继续刷新其他票档");
+    }
+    //TODO 出现类似【票已经卖完了】退出循环，继续刷新票档
+  }
+}
+
+//选择对应的观演人
+function chooseViewers() {
+  let viewersArr = user.viewers.split(",");
+  console.log(viewersArr);
+  if (viewersArr.length !== 1 || user.viewers !== "默认人") {
+    uncheckIfDefaultUserNotInViewer(viewersArr);
+    for (let i = 0; i < viewersArr.length; i++) {
+      let _viewer = viewersArr[i];
+      let viewerObj = className("android.widget.TextView")
+        .text(_viewer)
+        .findOne();
+      checkViewer(viewerObj);
+    }
+  }
+}
 
 // 循环点击寻找票档页面的 确认按钮
 function loopClickSureBtn() {
@@ -181,8 +274,8 @@ function get_less_than_tickets() {
   targetTickets.sort(function (a, b) {
     return a - b;
   });
-  isDebug && log("符合条件:" + targetTickets);
-  return targetTickets;
+  log("符合条件:" + unique(targetTickets));
+  return unique(targetTickets);
 }
 
 /**
@@ -199,29 +292,43 @@ function initChooseTicketRangeWeight({ callback }) {
   } else {
     log("布局不正常,刷新当前页面");
     getNodeWithFallback({
-      layoutFinish: callback,
+      callback: callback,
     });
   }
 }
 
 // 异常节点处理
-function getNodeWithFallback({ layoutFinish }) {
+function getNodeWithFallback({ callback }) {
   let orcResult = internalApiForPaddleOcr();
   let timeRangeArea = orcResult.filter((i) =>
     /周[一二三四五六日]/.test(i.label)
   ); // 场次
+  // console.log({ orcResult, timeRangeArea }, "--------------");
+  if (timeRangeArea.length === 0) {
+    // sleep(200);
+    getNodeWithFallback({ callback });
+    return;
+  }
   let ticketRangeArea = orcResult.filter(
     (i) => i.label.includes("元") || i.label.includes(RMB)
   ); // 票档
+  // 情况1 只开了一场  场次会自动选中 且票档会有内容
+  // 情况2 开了多场    场次不会自动选中  且票档需要选中场次后显示
+  // console.log({ timeRangeArea, ticketRangeArea }, "票档");
   // 先处理场次
   handleSessionsChoose({
     timeRangeArea,
     callback: () => {
-      // 再处理票档
+      console.log("场次已选中，开始处理票档部分");
+      if (ticketRangeArea.length === 0) {
+        // sleep(200);
+        getNodeWithFallback({ callback });
+        return;
+      }
+      // 确保ticketRangeArea 长度 > 0, 再处理票档
       handleTicketRange({
-        timeRangeArea,
-        _ticketRangeArea: ticketRangeArea,
-        callback: layoutFinish,
+        ticketRangeArea,
+        callback,
       });
     },
   });
@@ -229,7 +336,6 @@ function getNodeWithFallback({ layoutFinish }) {
 
 // 处理场次
 function handleSessionsChoose({ timeRangeArea, callback }) {
-  if (timeRangeArea.length === 0) return;
   if (timeRangeArea.length === 1) {
     callback();
     return;
@@ -243,7 +349,7 @@ function handleSessionsChoose({ timeRangeArea, callback }) {
     callback();
   } else {
     // 场次没货
-    const cur = timeRangeArea[0];
+    let cur = timeRangeArea[0];
     let point = getPoint({ index: 0, bounds: cur.bounds });
     click(point.x, point.y);
     callback();
@@ -253,21 +359,7 @@ function handleSessionsChoose({ timeRangeArea, callback }) {
 // 处理票档
 // 当场次 length === 1 时 会默认选中该场次，所以会有票档的orc信息
 // length> 1 时  选中场次之后才会有票档的orc信息
-function handleTicketRange({ timeRangeArea, _ticketRangeArea, callback }) {
-  let ticketRangeArea =
-    timeRangeArea.length === 1
-      ? _ticketRangeArea
-      : internalApiForPaddleOcr().filter(
-          (i) => i.label.includes("元") || i.label.includes(RMB)
-        );
-  if (ticketRangeArea.length === 0) {
-    handleTicketRange({
-      timeRangeArea,
-      _ticketRangeArea: ticketRangeArea,
-      callback,
-    });
-    return;
-  }
+function handleTicketRange({ ticketRangeArea, callback }) {
   let weights = [];
   for (let i = 0; i < ticketRangeArea.length; i++) {
     let cur = ticketRangeArea[i];
@@ -301,26 +393,156 @@ function handleTicketRange({ timeRangeArea, _ticketRangeArea, callback }) {
       }
     }
   }
-  console.log(JSON.stringify(weights));
+  // console.log(JSON.stringify(weights));
   let hasProd = weights.find((i) => i.hasProd); // 是否存在有货的票档
   if (hasProd) {
     // 存在，点击某一票档 进行缺货登记
     click(hasProd.point.x, hasProd.point.y);
-    callback();
+    callback && callback();
   } else {
     // 不存在，点击某一票档 进行缺货登记
     let firstNoProd = weights[0];
     click(firstNoProd.point.x, firstNoProd.point.y);
     className("android.widget.TextView").text("缺货登记").findOne().click();
     className("android.view.View").clickable(true).depth(9).findOne().click();
-    callback();
+    callback && callback();
   }
 }
 
-function screenIsLoadedWithOcr({ callBack, patchStep }) {
-  console.log(isWeightFound("选择票档"), "选择票档");
-  console.log(isWeightFound("确认购票"), "确认购买");
-  console.log(isWeightFound("猫眼演出详情"), "猫眼演出详情");
+/**
+ * 当默认人不在观演人列表中时，取消默认人的选中状态
+ */
+function uncheckIfDefaultUserNotInViewer(viewersArr) {
+  let defaultUserObj = text("默认").findOne().parent().children()[1];
+  let defaultUser = defaultUserObj.text();
+  console.log(defaultUser);
+  if (!viewersArr.includes(defaultUser)) {
+    uncheckViewer(defaultUserObj);
+  }
+}
+
+function checkViewer(viewerObj) {
+  clickViewerCheckBox(viewerObj, true);
+}
+
+function uncheckViewer(viewerObj) {
+  clickViewerCheckBox(viewerObj, false);
+}
+
+/**
+ * 点击观演人勾选框
+ * @param {viewerObj} 观演人姓名text所在的对象
+ * @param {*} isChecked 当前目标操作是否为选中
+ */
+function clickViewerCheckBox(viewerObj, isChecked) {
+  viewerObj
+    .parent()
+    .children()
+    .forEach(function (child) {
+      if (child.className() == "android.widget.Image") {
+        //当前目标操作为选中 且 当前当前状态为未选中
+        if (isChecked && child.text() == "wc0GRRGh2f2pQAAAABJRU5ErkJggg==") {
+          console.log("选中观演人：" + viewerObj.text());
+          child.click();
+        }
+        //当前目标操作为取消选中 且 当前当前状态为选中
+        if (!isChecked && child.text() == "B85bZ04Z1b5tAAAAAElFTkSuQmCC") {
+          console.log("取消选中观演人：" + viewerObj.text());
+          child.click();
+        }
+      }
+    });
+}
+
+function screenIsLoadedWithOcr({ patchStep, callback }) {
+  let {
+    playDetailScreen,
+    playDetailIKnownScreen,
+    chooseTicketRangeScreen,
+    sureTicketScreen,
+  } = handleoOrcScreen();
+
+  function fallbackLogic() {
+    console.log("----------------需要进行兜底吗？", {
+      patchStep,
+      playDetailScreen,
+      playDetailIKnownScreen,
+      chooseTicketRangeScreen,
+      sureTicketScreen,
+    });
+    // if (patchStep === "makeSureOrder" && makeSureOrderScreen) {
+    //   device.vibrate(200); //手机震动 可能抢到了
+    // }
+    // 兜底逻辑 没有找到 再多等待一会儿再查找
+    // sleep(100);
+    screenIsLoadedWithOcr({ patchStep, callback });
+    return;
+  }
+
+  if (patchStep === "page0") {
+    if (playDetailScreen) {
+      // 实名制观影 我知道了按钮
+      if (playDetailIKnownScreen) {
+        callback("playDetailIKnown");
+        return;
+      }
+
+      // 可以点击 跳转至选择票档
+      if (!playDetailIKnownScreen) {
+        callback("jumpToChooseTicketRange");
+        return;
+      }
+    }
+  }
+  if (patchStep === "page1") {
+    let currentScreenOrc = getScreenOrcInfo(100);
+    // console.log(currentScreenOrc);
+    if (
+      chooseTicketRangeScreen &&
+      currentScreenOrc.some((item) => item.includes("场次"))
+    ) {
+      // 选择票档
+      callback("chooseTicketRange");
+      return;
+    }
+  }
+  if (patchStep === "page2") {
+    if (sureTicketScreen) {
+      // 确认购票
+      callback("enterSureTicket");
+      return;
+    }
+  }
+
+  if (!patchStep) {
+    if (playDetailScreen) {
+      callback("loop_page0");
+      return;
+    }
+    if (chooseTicketRangeScreen) {
+      callback("loop_page1");
+      return;
+    }
+    if (sureTicketScreen) {
+      callback("loop_page2");
+      return;
+    }
+  }
+
+  fallbackLogic();
+}
+
+function handleoOrcScreen() {
+  let playDetailScreen = isWeightFound("猫眼演出详情");
+  let chooseTicketRangeScreen = isWeightFound("选择票档");
+  let sureTicketScreen = isWeightFound("确认购票");
+  let playDetailIKnownScreen = isWeightFound("知道了");
+  return {
+    playDetailScreen,
+    playDetailIKnownScreen,
+    chooseTicketRangeScreen,
+    sureTicketScreen,
+  };
 }
 
 // ocr获取节点信息
@@ -342,7 +564,7 @@ function internalApiForPaddleOcr() {
     };
   });
   log(`识别结束, 耗时: ${new Date() - start}ms`);
-  //   log(`识别结果: ${JSON.stringify(c)}`);
+  log(`识别结果: ${JSON.stringify(c)}`);
   // 回收图片
   img.recycle();
   return c;
@@ -471,12 +693,41 @@ function splitByTicketType(str) {
 }
 
 function getPoint({ index, bounds }) {
-  const left = bounds.left;
-  const top = bounds.top;
-  const right = bounds.right;
-  const bottom = bounds.bottom;
+  let left = bounds.left;
+  let top = bounds.top;
+  let right = bounds.right;
+  let bottom = bounds.bottom;
   let x = index === 0 ? left + 10 : right + 10;
   let y = (top + bottom) / 2;
 
   return { x, y };
+}
+
+// 快速获取当前页面orc 内容
+function getScreenOrcInfo(wait) {
+  let _wait = wait ? wait : 200;
+  sleep(_wait); // 绝不能删除  不然orc需要一定时间 机型不同 时间会有所差异
+  let img = images.captureScreen();
+  let region = [0, 0.2, -1, 0.6];
+  let currentScreenOcr = ocr(img, region);
+  // console.log("ocr----", currentScreenOcr);
+  img.recycle();
+  return currentScreenOcr;
+}
+
+function unique(arr) {
+  const result = [];
+  for (let i = 0; i < arr.length; i++) {
+    let isDuplicate = false;
+    for (let j = 0; j < result.length; j++) {
+      if (arr[i] === result[j]) {
+        isDuplicate = true;
+        break;
+      }
+    }
+    if (!isDuplicate) {
+      result.push(arr[i]);
+    }
+  }
+  return result;
 }
