@@ -107,7 +107,7 @@
   ui.run(function () {
     clickButtonWindow.setPosition(
       device.width / 2 - ~~(clickButtonWindow.getWidth() / 2),
-      device.height * 0.65
+      device.height * 0.45
     );
   });
 
@@ -179,7 +179,7 @@
    */
   function drawRectAndText(desc, rect, colorStr, canvas, paint) {
     let color = colors.parseColor(colorStr);
-    console.log(rect,'paint')
+    console.log(rect, "paint");
     paint.setStrokeWidth(1);
     paint.setStyle(Paint.Style.STROKE);
     // 反色
@@ -194,7 +194,15 @@
     paint.setStrokeWidth(1);
     paint.setTextSize(20);
     paint.setStyle(Paint.Style.FILL);
-    canvas.drawText(desc + `${rect.left}-${rect.top}-${rect.right}-${rect.bottom}`, rect.left, rect.top, paint);
+    canvas.drawText(
+      desc +
+        `x:${Math.floor((rect.left + rect.right) / 2)}-y:${Math.floor(
+          (rect.top + rect.bottom) / 2
+        )}`,
+      rect.left,
+      rect.top,
+      paint
+    );
     paint.setTextSize(10);
     paint.setStrokeWidth(1);
     paint.setARGB(255, 0, 0, 0);
