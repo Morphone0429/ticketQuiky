@@ -71,9 +71,14 @@ function startPlayDetail() {
         startPlayDetail();
       }
       if (mode === "jumpToChooseTicketRange") {
-        // className("android.widget.TextView").text("立即预订").findOne().click();  // oneplus
-        // className("android.view.View").text("立即预订").findOne().click()  // vivo 老机型
-        textContains("立即预订").findOne().click();
+        let btn0 = textContains("立即预订");
+        let btn1 = textContains("缺货登记");
+        let btn2 = textContains("立即购票");
+        let btn3 = textContains("特惠购票");
+        btn0.exists() && btn0.findOne().click();
+        btn1.exists() && btn1.findOne().click();
+        btn2.exists() && btn2.findOne().click();
+        btn3.exists() && btn3.findOne().click();
         startChooseTicketRangePage();
         sleep(200);
       }
@@ -113,9 +118,12 @@ function watchTicketRange() {
 
   threads.start(function () {
     console.log("开启票档扫描线程");
+    // TODO:
+    // 华为p30Pro 即使初始化票档也无法获取到票档处的weight 需要额外选择缺货登记
     while (true) {
       //当前还在票档界面，就持续扫描
       while (textContains(RMB).exists()) {
+        console.log("当前还在票档界面，持续扫描");
         cycleMonitor();
         //50ms扫描一次
         sleep(50);
@@ -164,9 +172,10 @@ function handleConfigTicket({ amount }) {
   state.isChooseTicketRangeing = true; // 选择数量后点击确认
   log("开冲一个：" + amount, state.isChooseTicketRangeing);
   let viewersArr = user.viewers.split(",");
-  textContains(RMB + amount)
+  // 可能存在一个价位  两个票档 如看台2000 内场2000(缺货) 需要规避缺货按钮
+  textMatches(new RegExp(`^(?!.*缺货登记).*${RMB}${amount}.*$`))
     .findOne()
-    .click(); // 点击对应的挡位
+    .click();
   // console.log(11222);
   // 增加人员数量
   plusViewers({
@@ -424,7 +433,10 @@ function handleTicketRange({ ticketRangeArea, callback }) {
     // 缺货出现的次数
     let noProdNum = countSubstringOccurrences(cur.label, "缺货");
     // 元出现的次数 代表一行中有几档票
-    let rowTicketNum = countSubstringOccurrences(cur.label, "元");
+    let rowTicketNum = Math.max(
+      countSubstringOccurrences(cur.label, "元"),
+      countSubstringOccurrences(cur.label, RMB)
+    );
     let temp = splitByTicketType(cur.label);
     log({ noProdNum, rowTicketNum, temp });
 
@@ -454,6 +466,7 @@ function handleTicketRange({ ticketRangeArea, callback }) {
     }
   }
   console.log(JSON.stringify(weights));
+  state.ticketRangeWeights = weights;
   let hasProd = weights.find((i) => i.hasProd); // 是否存在有货的票档
   if (hasProd) {
     // 存在，点击某一票档 进行缺货登记
@@ -464,7 +477,10 @@ function handleTicketRange({ ticketRangeArea, callback }) {
     let firstNoProd = weights[0];
     click(firstNoProd.point.x, firstNoProd.point.y);
     className("android.widget.TextView").text("缺货登记").findOne().click();
-    className("android.view.View").clickable(true).depth(9).findOne().click();
+    let submitBtn = textContains("提交").findOne();
+    if (submitBtn) {
+      click(submitBtn.bounds().centerX(), submitBtn.bounds().centerY());
+    }
     callback && callback();
   }
 }
