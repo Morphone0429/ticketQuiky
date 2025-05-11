@@ -179,7 +179,7 @@
    */
   function drawRectAndText(desc, rect, colorStr, canvas, paint) {
     let color = colors.parseColor(colorStr);
-
+    console.log(rect,'paint')
     paint.setStrokeWidth(1);
     paint.setStyle(Paint.Style.STROKE);
     // 反色
@@ -194,7 +194,7 @@
     paint.setStrokeWidth(1);
     paint.setTextSize(20);
     paint.setStyle(Paint.Style.FILL);
-    canvas.drawText(desc, rect.left, rect.top, paint);
+    canvas.drawText(desc + `${rect.left}-${rect.top}-${rect.right}-${rect.bottom}`, rect.left, rect.top, paint);
     paint.setTextSize(10);
     paint.setStrokeWidth(1);
     paint.setARGB(255, 0, 0, 0);
