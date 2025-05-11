@@ -18,9 +18,9 @@ let isDebug = true;
 let user = {
   //默认场次信息，例如：05-18,05-19
   // playEtcStr: "05-23,05-24,05-25,05-27,05-28",
-  playEtcStr: "06-14",
+  playEtcStr: "06-21",
   //默认最高票价，例如：800
-  maxTicketPrice: "2700",
+  maxTicketPrice: "700",
   //默认观演人，例如：观演人a,观演人b
   viewers: "楼超强,林彤彤",
 };
