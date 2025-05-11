@@ -12,7 +12,7 @@ let webHookNoticeUrl = "";
 let isRingingBell = true;
 
 //是否在测试调试，测试时不会点击支付按钮，避免生成过多订单
-let isDebug = false;
+let isDebug = true;
 
 //默认参数收集，如果设置了默认值，可以直接使用默认值，不再需要弹窗输入，加快脚本启动进程
 let user = {
@@ -26,7 +26,9 @@ let user = {
 };
 
 let state = {
+  ticketRangeWeights: [],
   isChooseTicketRangeing: false, //是否正在选择档位
+  watchSureScreen: false,
 };
 
 main();
@@ -63,12 +65,15 @@ function startPlayDetail() {
   screenIsLoadedWithOcr({
     patchStep: "page0",
     callback: (mode) => {
+      console.log(mode);
       if (mode === "playDetailIKnown") {
         className("android.widget.TextView").text("知道了").findOne().click();
         startPlayDetail();
       }
       if (mode === "jumpToChooseTicketRange") {
-        className("android.widget.TextView").text("立即预订").findOne().click();
+        // className("android.widget.TextView").text("立即预订").findOne().click();  // oneplus
+        // className("android.view.View").text("立即预订").findOne().click()  // vivo 老机型
+        textContains("立即预订").findOne().click();
         startChooseTicketRangePage();
         sleep(200);
       }
@@ -143,59 +148,114 @@ function watchTicketRange() {
 function cycleMonitor() {
   //获取符合条件的票档数组
   let targetTickets = get_less_than_tickets();
-  console.log({
-    targetTickets,
-    isChooseTicketRangeing: state.isChooseTicketRangeing,
-  });
   for (let amount of targetTickets) {
+    sleep(10);
+    console.log({
+      amount,
+      targetTickets,
+      isChooseTicketRangeing: state.isChooseTicketRangeing,
+    });
     handleConfigTicket({ amount });
   }
 }
 
 function handleConfigTicket({ amount }) {
   if (state.isChooseTicketRangeing) return;
-  log("开冲一个：" + amount);
   state.isChooseTicketRangeing = true; // 选择数量后点击确认
+  log("开冲一个：" + amount, state.isChooseTicketRangeing);
   let viewersArr = user.viewers.split(",");
-  // 点击对应的挡位
   textContains(RMB + amount)
     .findOne()
-    .click();
+    .click(); // 点击对应的挡位
+  // console.log(11222);
   // 增加人员数量
-  plusViewers(viewersArr);
-  if (!text(viewersArr.length + "份").exists()) {
-    console.log("票数不足，继续刷新");
-    state.isChooseTicketRangeing = false;
-    return true;
+  plusViewers({
+    viewersArr,
+    callback: (bool) => {
+      if (!bool) {
+        state.isChooseTicketRangeing = false;
+        console.log("票数不足，继续刷新");
+        return;
+      } else {
+        loopClickSureBtn();
+      }
+    },
+  });
+}
+
+// 选中票档后 增加人员数量
+function plusViewers({ viewersArr, callback }) {
+  // let regex = matchRegexWithViewer(viewersArr.length);
+  let regex = "\\d+份";
+  textContains("数量").waitFor();
+  let amountWeight = textMatches(regex);
+  if (amountWeight.exists()) {
+    let curCount = parseInt(amountWeight.findOne().text().replace("份", ""));
+    if (curCount === viewersArr.length) {
+      // 数量一致 等待数量组件框刷新，很重要
+      callback(
+        waitForElement(textMatches(matchRegexWithFixed(viewersArr.length)), 800)
+      );
+    }
+
+    let ticketNumParent = amountWeight.findOne().parent();
+    //根据观演人数点 -1
+    if (curCount > viewersArr.length) {
+      let subObj = ticketNumParent.children()[ticketNumParent.childCount() - 3];
+      for (let i = 0; i < curCount - viewersArr.length; i++) {
+        sleep(100);
+        subObj.click();
+      }
+      // 等待数量组件框刷新，很重要
+      callback(
+        waitForElement(textMatches(matchRegexWithFixed(viewersArr.length)), 800)
+      );
+    }
+    //根据观演人数点 +1
+    if (curCount < viewersArr.length) {
+      let plusObj =
+        ticketNumParent.children()[ticketNumParent.childCount() - 1];
+      for (let i = curCount; i < viewersArr.length; i++) {
+        sleep(100);
+        plusObj.click();
+      }
+      // 等待数量组件框刷新，很重要
+      callback(
+        waitForElement(textMatches(matchRegexWithFixed(viewersArr.length)), 800)
+      );
+    }
+
+    //根据观演人数点+1
   }
-  loopClickSureBtn();
-  startSureTicketInfoThenToPay();
+  //plus点击后，等待数量组件框刷新，很重要
+  // textMatches(matchRegexWithFixed(viewersArr.length)).waitFor();
 }
 
 function startSureTicketInfoThenToPay() {
   screenIsLoadedWithOcr({
     patchStep: "page2",
     callback: (mode) => {
+      console.log("mode,", mode);
       if (mode === "enterSureTicket") {
         state.isChooseTicketRangeing = false;
         chooseViewers();
-        console.log(mode, "==============");
+        // sleep(20)
+        handleQuickPay();
       }
     },
   });
 }
 
 function handleQuickPay() {
-  if (isDebug) return;
-  // if()
   console.log("准备点击 ");
   for (let cnt = 0; className("android.widget.Button").exists(); cnt++) {
-    //直接猛点就完事了
-    className("android.widget.Button").findOne().click();
-    sleep(50);
     if (cnt % 20 == 0) {
       log("点支付次数:" + cnt + " 可继续等待或返回上一个界面继续刷新其他票档");
     }
+    //直接猛点就完事了
+    if (isDebug) return;
+    className("android.widget.Button").findOne().click();
+    sleep(50);
     //TODO 出现类似【票已经卖完了】退出循环，继续刷新票档
   }
 }
@@ -216,6 +276,19 @@ function chooseViewers() {
   }
 }
 
+//  开始监听是否进入确认购票页面
+function handleWatchSureScreen() {
+  if (!state.watchSureScreen) return;
+  let { sureTicketScreen } = handleoOrcScreen();
+  log(sureTicketScreen, "sureTicketScreen");
+  if (!sureTicketScreen) {
+    sleep(100);
+    handleWatchSureScreen();
+  } else {
+    startSureTicketInfoThenToPay();
+  }
+}
+
 // 循环点击寻找票档页面的 确认按钮
 function loopClickSureBtn() {
   let attemptCnt = 0;
@@ -223,8 +296,11 @@ function loopClickSureBtn() {
   while (text("确认").exists() && attemptCnt <= attemptMaxCnt) {
     let sureBtn = className("android.widget.TextView").text("确认").findOne();
     sureBtn.click();
+    state.watchSureScreen = true; // 开始监听是否进入确认购票页面
+    handleWatchSureScreen();
     isDebug && console.log("点击确认");
     attemptCnt++;
+    console.log(attemptCnt, "attemptCnt");
   }
   if (
     attemptCnt >= attemptMaxCnt &&
@@ -234,27 +310,6 @@ function loopClickSureBtn() {
     state.isChooseTicketRangeing = false;
     return false;
   }
-}
-
-// 选中票档后 增加人员数量
-function plusViewers(viewersArr) {
-  textContains("数量").waitFor();
-  if (textMatches("\\d+份").exists()) {
-    let curCount = parseInt(
-      textMatches("\\d+份").findOne().text().replace("份", "")
-    );
-    //根据观演人数点+1
-    let plusObj;
-    for (let i = curCount; i < viewersArr.length; i++) {
-      if (!plusObj) {
-        let ticketNumParent = textMatches("/\\d+份/").findOne().parent();
-        plusObj = ticketNumParent.children()[ticketNumParent.childCount() - 1];
-      }
-      plusObj.click();
-    }
-  }
-  //plus点击后，等待数量组件框刷新，很重要
-  textMatches("\\d+份").waitFor();
 }
 
 // 获取符合条件的票档数组
@@ -297,8 +352,9 @@ function initChooseTicketRangeWeight({ callback }) {
   }
 }
 
-// 异常节点处理
-function getNodeWithFallback({ callback }) {
+// 异常节点处理 hasChooseSessions 判断场次是否已经初始化选中
+function getNodeWithFallback({ callback, hasChooseSessions }) {
+  // console.log("进入异常节点处理程序");
   let orcResult = internalApiForPaddleOcr();
   let timeRangeArea = orcResult.filter((i) =>
     /周[一二三四五六日]/.test(i.label)
@@ -312,9 +368,9 @@ function getNodeWithFallback({ callback }) {
   let ticketRangeArea = orcResult.filter(
     (i) => i.label.includes("元") || i.label.includes(RMB)
   ); // 票档
+  // console.log({ timeRangeArea, ticketRangeArea }, "票档");
   // 情况1 只开了一场  场次会自动选中 且票档会有内容
   // 情况2 开了多场    场次不会自动选中  且票档需要选中场次后显示
-  // console.log({ timeRangeArea, ticketRangeArea }, "票档");
   // 先处理场次
   handleSessionsChoose({
     timeRangeArea,
@@ -322,26 +378,28 @@ function getNodeWithFallback({ callback }) {
       console.log("场次已选中，开始处理票档部分");
       if (ticketRangeArea.length === 0) {
         // sleep(200);
-        getNodeWithFallback({ callback });
+        getNodeWithFallback({ callback, hasChooseSessions: true });
         return;
       }
+      // console.log(22222, { ticketRangeArea });
       // 确保ticketRangeArea 长度 > 0, 再处理票档
       handleTicketRange({
         ticketRangeArea,
         callback,
       });
     },
+    hasChooseSessions,
   });
 }
 
-// 处理场次
-function handleSessionsChoose({ timeRangeArea, callback }) {
-  if (timeRangeArea.length === 1) {
+// 处理场次 hasChooseSessions 判断场次是否已经初始化选中
+function handleSessionsChoose({ timeRangeArea, callback, hasChooseSessions }) {
+  if (timeRangeArea.length === 1 || hasChooseSessions) {
     callback();
     return;
   }
   let hasProd = timeRangeArea.find((i) => !i.label.includes("缺货"));
-  console.log(hasProd);
+  console.log(hasProd, "场次 有货的");
   if (hasProd) {
     // 场次有货
     let point = getPoint({ index: 0, bounds: hasProd.bounds });
@@ -365,35 +423,37 @@ function handleTicketRange({ ticketRangeArea, callback }) {
     let cur = ticketRangeArea[i];
     // 缺货出现的次数
     let noProdNum = countSubstringOccurrences(cur.label, "缺货");
-    // ¥出现的次数 代表一行中有几档票
-    let rowTicketNum = countSubstringOccurrences(cur.label, RMB);
+    // 元出现的次数 代表一行中有几档票
+    let rowTicketNum = countSubstringOccurrences(cur.label, "元");
     let temp = splitByTicketType(cur.label);
     log({ noProdNum, rowTicketNum, temp });
 
     //可以明确一行最多两个票档选择;
     if (noProdNum === rowTicketNum) {
-      log(temp, 1);
+      // log(temp, 1); text.match(/(\d+)元/)[1]
       // 这一行没有票
       for (let j = 0; j < temp.length; j++) {
         let _w = {
           hasProd: false,
           point: getPoint({ index: j, bounds: cur.bounds }),
+          amount: unique(temp[j].match(/\d+/g))[0],
         };
         weights.push(_w);
       }
     } else if (rowTicketNum > noProdNum) {
       // 这一行有票
-      log(temp, 2);
+      // log(temp, 2);
       for (let j = 0; j < temp.length; j++) {
         let _w = {
           hasProd: !temp[j].includes("缺货"),
           point: getPoint({ index: j, bounds: cur.bounds }),
+          amount: unique(temp[j].match(/\d+/g))[0],
         };
         weights.push(_w);
       }
     }
   }
-  // console.log(JSON.stringify(weights));
+  console.log(JSON.stringify(weights));
   let hasProd = weights.find((i) => i.hasProd); // 是否存在有货的票档
   if (hasProd) {
     // 存在，点击某一票档 进行缺货登记
@@ -697,7 +757,7 @@ function getPoint({ index, bounds }) {
   let top = bounds.top;
   let right = bounds.right;
   let bottom = bounds.bottom;
-  let x = index === 0 ? left + 10 : right + 10;
+  let x = index === 0 ? left + 100 : right - 10;
   let y = (top + bottom) / 2;
 
   return { x, y };
@@ -716,7 +776,7 @@ function getScreenOrcInfo(wait) {
 }
 
 function unique(arr) {
-  const result = [];
+  let result = [];
   for (let i = 0; i < arr.length; i++) {
     let isDuplicate = false;
     for (let j = 0; j < result.length; j++) {
@@ -730,4 +790,30 @@ function unique(arr) {
     }
   }
   return result;
+}
+
+function matchRegexWithViewer(a) {
+  let digits = Array.from({ length: a + 1 }, (_, i) => i).join("|");
+  // 构建正则表达式
+  let regex = `/^(${digits})份$/`;
+  return regex;
+}
+
+function matchRegexWithFixed(a) {
+  // 构建正则表达式
+  let regex = `/^(${a})份$/`;
+  return regex;
+}
+
+function waitForElement(selector, timeout, interval = 500) {
+  let startTime = Date.now(); // 记录开始时间
+
+  while (Date.now() - startTime < timeout) {
+    if (selector.exists()) {
+      return true; // 元素存在，返回 true
+    }
+    sleep(interval); // 等待指定间隔后再次检查
+  }
+
+  return false; // 超时，返回 false
 }
