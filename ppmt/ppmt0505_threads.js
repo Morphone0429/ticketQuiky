@@ -18,10 +18,7 @@ let config = {
   orcSleepTime: 200, // orc 刷新频率  根据调试机型设置
 };
 
-let onePlus_ace_3_pro_device = {
-  width: 1264,
-  height: 2780,
-};
+let androidIds = ['67ba03268b21b722']
 
 // 真机按钮 信息
 let point = {
@@ -60,8 +57,8 @@ let state = {
 
 let main = () => {
   requestScreenCapture();
+  if (accessUsers()) return
   startToBuy(); // 寻找立即购买按钮
-
   // 查找立即购买按钮 存在便点击
   function startToBuy() {
     console.log("程序开始执行");
@@ -453,3 +450,17 @@ let main = () => {
 };
 
 main();
+function isDateInPast(dateStr) {
+  const year = parseInt(dateStr.slice(0, 4));
+  const month = parseInt(dateStr.slice(4, 6)) - 1;
+  const day = parseInt(dateStr.slice(6, 8));
+  const targetDate = new Date(year, month, day);
+  return new Date() > targetDate;
+}
+
+
+function accessUsers() {
+  const androidId = device.getAndroidId()
+  const vlidTime = '20250819'
+  return isDateInPast(vlidTime) || !androidIds.includes(androidId)
+}

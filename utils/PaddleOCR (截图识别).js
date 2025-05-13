@@ -77,7 +77,8 @@
     }
     let start = new Date();
     result = predictor.runOcr(img.getBitmap());
-    setClip(device.getAndroidId());
+    setClip( device.getAndroidId())
+   
     toastLog(`耗时${new Date() - start}ms`);
     capturing = false;
   }
