@@ -77,7 +77,7 @@
     }
     let start = new Date();
     result = predictor.runOcr(img.getBitmap());
-    console.log(result, "result");
+    setClip(device.getAndroidId());
     toastLog(`耗时${new Date() - start}ms`);
     capturing = false;
   }
@@ -107,7 +107,7 @@
   ui.run(function () {
     clickButtonWindow.setPosition(
       device.width / 2 - ~~(clickButtonWindow.getWidth() / 2),
-      device.height * 0.45
+      device.height * 0.65
     );
   });
 
@@ -117,7 +117,6 @@
     ui.run(function () {
       clickButtonWindow.setPosition(device.width, device.height);
     });
-
     setTimeout(() => {
       captureAndOcr();
       ui.run(function () {
@@ -179,7 +178,7 @@
    */
   function drawRectAndText(desc, rect, colorStr, canvas, paint) {
     let color = colors.parseColor(colorStr);
-    console.log(rect, "paint");
+
     paint.setStrokeWidth(1);
     paint.setStyle(Paint.Style.STROKE);
     // 反色
@@ -192,13 +191,12 @@
     canvas.drawRect(rect, paint);
     paint.setARGB(255, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
     paint.setStrokeWidth(1);
-    paint.setTextSize(20);
+    paint.setTextSize(32);
     paint.setStyle(Paint.Style.FILL);
     canvas.drawText(
-      desc +
-        `x:${Math.floor((rect.left + rect.right) / 2)}-y:${Math.floor(
-          (rect.top + rect.bottom) / 2
-        )}`,
+      `x:${Math.floor((rect.left + rect.right) / 2)}-y:${Math.floor(
+        (rect.top + rect.bottom) / 2
+      )}`,
       rect.left,
       rect.top,
       paint
