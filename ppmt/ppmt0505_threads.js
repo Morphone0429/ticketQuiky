@@ -18,33 +18,33 @@ let config = {
   orcSleepTime: 200, // orc 刷新频率  根据调试机型设置
 };
 
-let androidIds = ['67ba03268b21b722']
+let androidIds = ['7a92adec0ba18095']
 
 // 真机按钮 信息
 let point = {
   //  按钮信息 ------start ------
-  originSixModePoint: { x: 694.5, y: 1258 }, // 单个盲盒随机发货 ojbk
-  originSingleModePoint: { x: 257, y: 1258 }, // 整盒含6个盲盒 ojbk
+  originSixModePoint: { x:222, y: 1149 }, // 单个盲盒随机发货 ok
+  originSingleModePoint: { x: 594, y: 1148 }, // 整盒含6个盲盒  ok
   originSendToHomePoint: {
-    x: 161,
-    y: !config.sixMode && !config.singleMode ? 1223 : 1601,
-  }, // 送到家按钮 ojbk [161,1223] [161,1601]
+    x: 138,
+    y: !config.sixMode && !config.singleMode ? 1121 : 1446,
+  }, // 送到家按钮  [161,1223] [161,1601]  ok1
   originGoMarkGetPoint: {
-    x: 434,
-    y: !config.sixMode && !config.singleMode ? 1223 : 1601,
-  }, // 到店取按钮 ojbk  [434,1223] [434,1601]
+    x: 373,
+    y: !config.sixMode && !config.singleMode ? 1121 : 1446,
+  }, // 到店取按钮   [434,1223] [434,1601] ok1
   originAcountAddPoint: {
     x: 1172,
     y: !config.sixMode && !config.singleMode ? 1578 : 2191,
-  }, // 数量增加按钮 ojbk [1172,1578] [1172,2191]
-  originalQuickBtnPointWithOutCarPoint: { x: 748.5, y: 2619.5 }, // 立即购买按钮(无加入购物车) ojbk
-  originalQuickBtnPointWithCarPoint: { x: 986.5, y: 2619.5 }, // 立即购买按钮(有加入购物车) ojbk
-  originSurePoint: { x: 631.5, y: 2504.0 }, // 选择购买方式页面有货时 确定按钮 ojbk
-  originThisMarkPoint: { x: 631.5, y: 1799.0 }, // 确定订单页面 确认稳点信息  就是这家按钮 ojbk
-  originNoProdPoint: { x: 631.5, y: 1468.5 }, // 没货提示 <我知道了>按钮  ojbk
-  originknowMailPoint: { x: 631.5, y: 1716.0 }, // 请确认收货地址  确认无误按钮  ojbk
-  originSureInfoAndPayPoint: { x: 980, y: 2627.0 }, //确认订单页面 确认信息并支付 ojbk
-  originBackScreenPoint: { x: 75, y: 214.0 },
+  }, // 数量增加按钮  [1172,1578] [1172,2191]
+  originalQuickBtnPointWithOutCarPoint: { x: 840, y: 2309 }, // 立即购买按钮(无加入购物车)  ok1
+  originalQuickBtnPointWithCarPoint: { x: 639, y: 2308 }, // 立即购买按钮(有加入购物车)  ok1
+  originSurePoint: { x: 539, y: 2221.0 }, // 选择购买方式页面有货时 确定按钮  ok1
+  originThisMarkPoint: { x:  539, y: 1558 }, // 确定订单页面 确认们店信息  就是这家按钮 ok1
+  originNoProdPoint: { x:535, y:1193}, // 没货提示 <我知道了>按钮  ok1
+  originknowMailPoint: { x:538, y: 1523 }, // 请确认收货地址  确认无误按钮  ok1
+  originSureInfoAndPayPoint: { x: 836, y: 2313.0 }, //确认订单页面 确认信息并支付 //ok1
+  originBackScreenPoint: { x: 58, y: 153.0 },  //ok1
   //  按钮信息 ------end -----
 };
 
@@ -461,6 +461,6 @@ function isDateInPast(dateStr) {
 
 function accessUsers() {
   const androidId = device.getAndroidId()
-  const vlidTime = '20250819'
+  const vlidTime = '20260514'
   return isDateInPast(vlidTime) || !androidIds.includes(androidId)
 }
