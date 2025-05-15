@@ -10,7 +10,7 @@ auto();
     VERY_SLOW  // 慢速更新 860-1500ms毫秒随机
    */
 let config = {
-   frequency: "NORMAL",
+  frequency: "NORMAL",
   singleMode: true,
   sixMode: false,
   sendToHome: true,
@@ -23,8 +23,8 @@ let androidIds = ['b2f3fc8abeb30e54']
 // 真机按钮 信息
 let point = {
   //  按钮信息 ------start ------
-  originSixModePoint: { x:222, y: 1033 }, // 单个盲盒随机发货 ok
-  originSingleModePoint: { x: 597, y: 1034 }, // 整盒含6个盲盒  ok 
+  originSixModePoint: { x: 597, y: 1033 }, // 单个盲盒随机发货 ok
+  originSingleModePoint: { x: 222, y: 1034 }, // 整盒含6个盲盒  ok 
   originSendToHomePoint: {
     x: 138,
     y: !config.sixMode && !config.singleMode ? 1001 : 1329,
@@ -40,9 +40,9 @@ let point = {
   originalQuickBtnPointWithOutCarPoint: { x: 641, y: 2191 }, // 立即购买按钮(无加入购物车)  ok1
   originalQuickBtnPointWithCarPoint: { x: 842, y: 2191 }, // 立即购买按钮(有加入购物车)  ok1
   originSurePoint: { x: 540, y: 2095.0 }, // 选择购买方式页面有货时 确定按钮  ok1
-  originThisMarkPoint: { x:  542, y: 1503 }, // 确定订单页面 确认们店信息  就是这家按钮 ok1
-  originNoProdPoint: { x:535, y:1205}, // 没货提示 <我知道了>按钮  ok1
-  originknowMailPoint: { x:541, y: 1469 }, // 请确认收货地址  确认无误按钮  ok1
+  originThisMarkPoint: { x: 542, y: 1503 }, // 确定订单页面 确认们店信息  就是这家按钮 ok1
+  originNoProdPoint: { x: 535, y: 1205 }, // 没货提示 <我知道了>按钮  ok1
+  originknowMailPoint: { x: 541, y: 1469 }, // 请确认收货地址  确认无误按钮  ok1
   originSureInfoAndPayPoint: { x: 836, y: 2198.0 }, //确认订单页面 确认信息并支付 //ok1
   originBackScreenPoint: { x: 58, y: 162.0 },  //ok1
   //  按钮信息 ------end -----

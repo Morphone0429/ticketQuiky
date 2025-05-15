@@ -23,8 +23,8 @@ let androidIds = ['1116b0a825135171']
 // 真机按钮 信息
 let point = {
   //  按钮信息 ------start ------
-  originSixModePoint: { x: 222, y: 1089 }, // 单个盲盒随机发货 ok1
-  originSingleModePoint: { x: 594, y: 1085 }, // 整盒含6个盲盒  ok1
+  originSixModePoint: { x: 594, y: 1089 }, // 单个盲盒随机发货 ok1
+  originSingleModePoint: { x: 222, y: 1085 }, // 整盒含6个盲盒  ok1
   originSendToHomePoint: {
     x: 139,
     y: !config.sixMode && !config.singleMode ? 1059 : 1385,
