@@ -1,7 +1,6 @@
 auto();
-const config = {
-  /***
-   * 刷新频率  默认NORMAL
+/***
+   * 刷新频率 frequency  默认NORMAL
    *  
     IMMEDIATE     // 立即执行 20ms
     VERY_FAST   // 快速更新 20-130ms毫秒随机
@@ -10,87 +9,115 @@ const config = {
     SLOW     // 较慢更新 500-860ms毫秒随机
     VERY_SLOW  // 慢速更新 860-1500ms毫秒随机
    */
+let config = {
   frequency: "NORMAL",
   singleMode: false, // single模式
-  sixMode: false, // 6模式
+  sixMode: true, // 6模式
   sendToHome: false, // 送到家模式
   goMarkGet: true, // 到店取模式
   orcSleepTime: 200, // orc 刷新频率  根据调试机型设置
 };
 
-const onePlus_ace_3_pro_device = {
-  width: 1264,
-  height: 2780,
-};
-
 // 真机按钮 信息
-const point = {
+let point = {
   //  按钮信息 ------start ------
-  originSixModePoint: { x: 694.5, y: 1258 }, // 单个盲盒随机发货 ojbk
-  originSingleModePoint: { x: 257, y: 1258 }, // 整盒含6个盲盒 ojbk
+  originSingleModePoint: { x: 257, y: 1258 }, // 整盒含6个盲盒 
+  originSixModePoint: { x: 694.5, y: 1258 }, // 单个盲盒随机发货 
   originSendToHomePoint: {
     x: 161,
     y: !config.sixMode && !config.singleMode ? 1223 : 1601,
-  }, // 送到家按钮 ojbk [161,1223] [161,1601]
+  }, // 送到家按钮  
   originGoMarkGetPoint: {
     x: 434,
     y: !config.sixMode && !config.singleMode ? 1223 : 1601,
-  }, // 到店取按钮 ojbk  [434,1223] [434,1601]
+  }, // 到店取按钮  
   originAcountAddPoint: {
     x: 1172,
     y: !config.sixMode && !config.singleMode ? 1578 : 2191,
-  }, // 数量增加按钮 ojbk [1172,1578] [1172,2191]
-  originalQuickBtnPointWithOutCarPoint: { x: 748.5, y: 2619.5 }, // 立即购买按钮(无加入购物车) ojbk
-  originalQuickBtnPointWithCarPoint: { x: 986.5, y: 2619.5 }, // 立即购买按钮(有加入购物车) ojbk
-  originSurePoint: { x: 631.5, y: 2504.0 }, // 选择购买方式页面有货时 确定按钮 ojbk
-  originThisMarkPoint: { x: 631.5, y: 1799.0 }, // 确定订单页面 确认稳点信息  就是这家按钮 ojbk
-  originNoProdPoint: { x: 631.5, y: 1468.5 }, // 没货提示 我知道了按钮  ojbk
-  originknowMailPoint: { x: 236.0, y: 1716.0 },
-  originSureInfoAndPayPoint: { x: 980, y: 2627.0 }, //确认订单页面 确认信息并支付 ojbk
+  }, // 数量增加按钮
+  originalQuickBtnPointWithOutCarPoint: { x: 748.5, y: 2619.5 }, // 立即购买按钮(无加入购物车) 
+  originalQuickBtnPointWithCarPoint: { x: 986.5, y: 2619.5 }, // 立即购买按钮(有加入购物车) 
+  originSurePoint: { x: 631.5, y: 2504.0 }, // 选择购买方式页面有货时 确定按钮 
+  originThisMarkPoint: { x: 631.5, y: 1799.0 }, // 确定订单页面 确认稳点信息  就是这家按钮 
+  originNoProdPoint: { x: 631.5, y: 1468.5 }, // 没货提示 <我知道了>按钮  
+  originknowMailPoint: { x: 631.5, y: 1716.0 }, // 请确认收货地址  确认无误按钮  
+  originSureInfoAndPayPoint: { x: 980, y: 2627.0 }, //确认订单页面 确认信息并支付 
+  originBackScreenPoint: { x: 75, y: 214.0 }, // 返回上一页左上角图标
   //  按钮信息 ------end -----
 };
 
-const state = {
+let state = {
   initBuyConfig: false, // 初始化规格
   buyMethod: "home", // home | mark
   enterSureLoop: false,
   loopCount: 0,
 };
 
-const main = () => {
+let main = () => {
   requestScreenCapture();
-  setScreenMetrics(
-    onePlus_ace_3_pro_device.width,
-    onePlus_ace_3_pro_device.height
-  );
+  if (accessUsers()) return
   startToBuy(); // 寻找立即购买按钮
-
   // 查找立即购买按钮 存在便点击
   function startToBuy() {
     console.log("程序开始执行");
-    console.log("初始化购买配置页面", { config, point, state });
+    console.log("当前用户设置的初始化购买配置", { config, state });
     console.log("查找立即购买按钮");
-    const run = (point, mode) => {
-      console.log(
-        "当前的mode:",
-        mode,
-        "立即购买,即将进入选择规格和购买方式页面",
-        point
-      );
-      click(point.x, point.y);
-      initBuyMethod(); //初始化购买配置页面
-    };
-    screenIsLoadedWithOcr({
-      callBack: (mode) => {
-        if (mode === "quickBuyWithCar") {
-          run(point.originalQuickBtnPointWithCarPoint, mode);
+    threads.start(function () {
+      log("刷新确定按钮自动点击线程已启动");
+      let i = 0;
+      // 直到进入选择规格/购买方式页面才停止该线程
+      while (true) {
+        i++;
+        let currentScreenOcr = handleoOrcScreen(100);
+        let {
+          hasQuickBuyBtn,
+          quickBuyScreen,
+          chooseDetailScreen,
+          markListScreen,
+          makeSureOrderScreen,
+        } = patchScreen(currentScreenOcr);
+
+        console.log(
+          "立即购买,即将进入选择规格和购买方式页面",
+          i,
+          currentScreenOcr,
+          hasQuickBuyBtn,
+          quickBuyScreen,
+          chooseDetailScreen,
+          makeSureOrderScreen
+        );
+        // 进入选择规格/购买方式页面  break
+        if (chooseDetailScreen) {
+          console.log("进入购买页面，开始初始化购买配置，并打断当前子线程");
+          initBuyMethod(); //初始化购买配置页面
+          break;
         }
-        if (mode === "quickBuyWithoutCar") {
-          run(point.originalQuickBtnPointWithOutCarPoint, mode);
+        // 确认信息页面
+        if (makeSureOrderScreen) {
+          console.log("开始确认订单循环，并打断当前子线程");
+          handleToPayLoop();
+          break;
         }
-        console.log(mode);
-      },
-      patchStep: "quickBuy",
+        // 误点进入自提门店列表页面 马上退出F
+        if (markListScreen) {
+          click(point.originBackScreenPoint);
+        }
+        // 监听到有立即购买按钮  点击
+        if (hasQuickBuyBtn && quickBuyScreen) {
+          // 有购物车模式
+          if (currentScreenOcr.includes("加入购物车")) {
+            click(point.originalQuickBtnPointWithCarPoint);
+            sleep(config.orcSleepTime);
+          }
+          // 无购物车模式
+          if (!currentScreenOcr.includes("加入购物车")) {
+            click(point.originalQuickBtnPointWithOutCarPoint);
+            sleep(config.orcSleepTime);
+          }
+        }
+        // 看自行测试结果 判断是否 控制刷新频率 默认不控制
+        // sleep(100);
+      }
     });
   }
 
@@ -101,7 +128,7 @@ const main = () => {
         handleBuyMethod();
         return;
       }
-      const run = ({ _point, buyMethod }) => {
+      let run = ({ _point, buyMethod }) => {
         // 如果有规格选项 先选择规格
         if (config.sixMode) {
           console.log("选择了6个盲盒", point.originSixModePoint);
@@ -130,16 +157,7 @@ const main = () => {
         run({ _point: point.originGoMarkGetPoint, buyMethod: "mark" });
       }
     }
-
-    screenIsLoadedWithOcr({
-      callBack: (mode) => {
-        console.log(mode, "开始初始化");
-        if (mode === "initBuyConfig") {
-          init && init();
-        }
-      },
-      patchStep: "chooseDetail",
-    });
+    init();
   }
 
   function handleBuyMethod() {
@@ -162,7 +180,7 @@ const main = () => {
           if (state.buyMethod === "mark") {
             state.buyMethod = "home";
             click(point.originSendToHomePoint.x, point.originSendToHomePoint.y);
-            sleepForLessFetch();
+            sleepForLessFetch(); //可优化  根据页面刷新状态
             handleBuyMethod();
           }
           if (state.buyMethod === "home") {
@@ -187,7 +205,8 @@ const main = () => {
   // 确认信息并支付 并开启循环模式
   function handleToPayLoop() {
     state.enterSureLoop = true; // 是否进入循环  只要第一次点击了确认按钮  就认为进入循环
-    console.log("等待确认订单页面加载...", state.enterSureLoop);
+    console.log("等待确认订单页面加载...");
+    console.log("是否进入循环", state.enterSureLoop);
     sleepForLessFetch();
     // 等待页面加载完成
     screenIsLoadedWithOcr({
@@ -248,15 +267,32 @@ const main = () => {
     }
   }
 
-  function screenIsLoadedWithOcr({ callBack, patchStep, _wait }) {
-    const currentScreenOcr = handleoOrcScreen();
-    const quickBuyScreen = currentScreenOcr.includes("购物车");
-    const chooseDetailScreen = currentScreenOcr.includes("购买方式");
-    const makeSureOrderScreen = currentScreenOcr.some((item) =>
+  function patchScreen(currentScreenOcr) {
+    let quickBuyScreen = currentScreenOcr.includes("购物车");
+    let markListScreen = currentScreenOcr.includes("自堤门店列表");
+    let chooseDetailScreen = currentScreenOcr.includes("购买方式");
+    let makeSureOrderScreen = currentScreenOcr.some((item) =>
       item.includes("确认信息")
     );
-    const wait = _wait ? _wait : 0;
+    let hasQuickBuyBtn = currentScreenOcr.includes("立即购买");
+    return {
+      quickBuyScreen,
+      chooseDetailScreen,
+      makeSureOrderScreen,
+      hasQuickBuyBtn,
+      markListScreen,
+    };
+  }
 
+  function screenIsLoadedWithOcr({ callBack, patchStep, _wait }) {
+    let currentScreenOcr = handleoOrcScreen();
+    let {
+      quickBuyScreen,
+      chooseDetailScreen,
+      makeSureOrderScreen,
+      markListScreen,
+    } = patchScreen(currentScreenOcr);
+    let wait = _wait ? _wait : 0;
     // 兜底逻辑 需要
     function fallbackLogic() {
       console.log("----------------需要进行兜底吗？");
@@ -275,6 +311,11 @@ const main = () => {
       chooseDetailScreen,
       makeSureOrderScreen,
     });
+
+    if (markListScreen) {
+      // 误点进入自提门店列表页面 马上退出
+      click(point.originBackScreenPoint);
+    }
 
     // 匹配立即购买页面
     if (patchStep === "quickBuy") {
@@ -394,78 +435,35 @@ const main = () => {
     fallbackLogic();
   }
 
-  function handleoOrcScreen() {
-    sleep(config.orcSleepTime); // 绝不能删除  不然orc需要一定时间 机型不同 时间会有所差异
+  function handleoOrcScreen(wait) {
+    let _wait = wait ? wait : config.orcSleepTime;
+    sleep(_wait); // 绝不能删除  不然orc需要一定时间 机型不同 时间会有所差异
     let img = images.captureScreen();
-    const region = [0, 0.2, -1, 0.6];
-    const currentScreenOcr = ocr(img, region);
+    let region = [0, 0.2, -1, 0.6];
+    let currentScreenOcr = ocr(img, region);
     // console.log("ocr----", currentScreenOcr);
     img.recycle();
     return currentScreenOcr;
   }
 
-  // 辅助获取文本节点
-  function testBtnInfo(text) {
-    if (!text) {
-      console.log("没有需要寻找的按钮输入", text);
-      return;
-    }
-    console.log("开始寻找按钮信息");
-    const cur = className("android.widget.TextView").text(text).findOne();
-    console.log(text, "当前按钮信息", cur);
+  function isDateInPast(dateStr) {
+    const year = parseInt(dateStr.slice(0, 4));
+    const month = parseInt(dateStr.slice(4, 6)) - 1;
+    const day = parseInt(dateStr.slice(6, 8));
+    const targetDate = new Date(year, month, day);
+    return new Date() > targetDate;
   }
 
-  // 获取对应point findImage有内存溢出问题 需要控制调用该方法的次数
-  function getImagePoint({ tmpPath }) {
-    const img = captureScreen();
-    const temp = images.read(tmpPath);
-    if (!temp) {
-      return null;
-    }
-    const jpgPathArr = tmpPath.split("/");
-    const consolePath = jpgPathArr[jpgPathArr.length - 1];
-    //截图并找图
-    let p = null;
-    try {
-      p = findImage(img, temp, {
-        threshold: 0.4, // 相似度0.8
-      });
-    } catch (err) {
-      console.log(err, "err");
-    } finally {
-      console.log(p, consolePath);
-      temp.recycle();
-      img.recycle();
-      if (p) {
-        return p;
-      } else {
-        console.log("没有找到对应按钮:", consolePath);
-        return null;
-      }
-    }
-  }
 
-  // 返回weight point
-  function returnPoint({ tmpPath, callBack, timeOut }) {
-    wait(
-      () => {
-        const point = getImagePoint({ tmpPath });
-        return !!point && point;
-      },
-      {
-        then(point) {
-          console.log(`point是: ${point}`);
-          callBack(point);
-          return point;
-        },
-        else() {
-          console.log(`超时: ${tmpPath}`);
-          timeOut && timeOut(null);
-          return null;
-        },
-      }
-    );
+  function accessUsers() {
+    let androidIds = ['d0fb75129bdcd343', '67ba03268b21b722']
+    const androidId = device.getAndroidId()
+    console.log(androidId)
+    const vlidTime = '20260514'
+    return isDateInPast(vlidTime) || !androidIds.includes(androidId)
   }
 };
 
+
 main();
+
