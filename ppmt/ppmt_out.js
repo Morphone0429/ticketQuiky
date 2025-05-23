@@ -16,7 +16,6 @@ let config = {
   sendToHome: false, // 送到家模式
   goMarkGet: true, // 到店取模式
   orcSleepTime: 200, // orc 刷新频率  根据调试机型设置
-  addOne: true, // 是否加1
 };
 
 // 真机按钮 信息
@@ -34,14 +33,7 @@ let point = {
   }, // 到店取按钮 ojbk  [434,1223] [434,1601]
   originAcountAddPoint: {
     x: 1172,
-    y:
-      !config.sixMode && !config.singleMode
-        ? config.sendToHome
-          ? 1573
-          : 1810
-        : config.sendToHome
-        ? 1958
-        : 2191,
+    y: !config.sixMode && !config.singleMode ? 1578 : 2191,
   }, // 数量增加按钮 ojbk [1172,1578] [1172,2191]
   originalQuickBtnPointWithOutCarPoint: { x: 748.5, y: 2619.5 }, // 立即购买按钮(无加入购物车) ojbk
   originalQuickBtnPointWithCarPoint: { x: 986.5, y: 2619.5 }, // 立即购买按钮(有加入购物车) ojbk
@@ -63,8 +55,7 @@ let state = {
 
 let main = () => {
   requestScreenCapture();
-  handleoOrcScreen(100);
-  return;
+  if (accessUsers()) return
   startToBuy(); // 寻找立即购买按钮
   // 查找立即购买按钮 存在便点击
   function startToBuy() {
@@ -167,11 +158,6 @@ let main = () => {
       }
     }
     init();
-  }
-
-  function handleAddOne(currentScreenOcr) {
-    if (!config.addOne) return;
-    click(point.originAcountAddPoint.x, point.originSixModePoint.y);
   }
 
   function handleBuyMethod() {
@@ -391,7 +377,6 @@ let main = () => {
           // 两种模式都可以
           if (config.sendToHome && config.goMarkGet) {
             callBack("hasProd");
-            handleAddOne(currentScreenOcr)
             return;
           }
         }
@@ -456,10 +441,29 @@ let main = () => {
     let img = images.captureScreen();
     let region = [0, 0.2, -1, 0.6];
     let currentScreenOcr = ocr(img, region);
-    console.log("ocr----", currentScreenOcr);
+    // console.log("ocr----", currentScreenOcr);
     img.recycle();
     return currentScreenOcr;
   }
+
+  function isDateInPast(dateStr) {
+    const year = parseInt(dateStr.slice(0, 4));
+    const month = parseInt(dateStr.slice(4, 6)) - 1;
+    const day = parseInt(dateStr.slice(6, 8));
+    const targetDate = new Date(year, month, day);
+    return new Date() > targetDate;
+  }
+
+
+  function accessUsers() {
+    let androidIds = ['d0fb75129bdcd343', '67ba03268b21b722']
+    const androidId = device.getAndroidId()
+    console.log(androidId)
+    const vlidTime = '20260514'
+    return isDateInPast(vlidTime) || !androidIds.includes(androidId)
+  }
 };
 
+
 main();
+

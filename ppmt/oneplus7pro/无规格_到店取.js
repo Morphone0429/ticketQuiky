@@ -10,47 +10,39 @@ auto();
     VERY_SLOW  // 慢速更新 860-1500ms毫秒随机
    */
 let config = {
-  frequency: "NORMAL",
-  singleMode: false, // single模式
-  sixMode: true, // 6模式
-  sendToHome: false, // 送到家模式
-  goMarkGet: true, // 到店取模式
-  orcSleepTime: 200, // orc 刷新频率  根据调试机型设置
-  addOne: true, // 是否加1
+   frequency: "NORMAL",
+  singleMode: false,
+  sixMode: false,
+  sendToHome: false,
+  goMarkGet: true,
+  orcSleepTime: 200,
 };
 
 // 真机按钮 信息
 let point = {
   //  按钮信息 ------start ------
-  originSixModePoint: { x: 694.5, y: 1258 }, // 单个盲盒随机发货 ojbk
-  originSingleModePoint: { x: 257, y: 1258 }, // 整盒含6个盲盒 ojbk
+  originSingleModePoint: { x: 304, y: 1392 }, // 单个盲盒随机发货 1
+  originSixModePoint: { x: 820, y: 1392 }, // 整盒含6个盲盒 1
   originSendToHomePoint: {
-    x: 161,
-    y: !config.sixMode && !config.singleMode ? 1223 : 1601,
-  }, // 送到家按钮 ojbk [161,1223] [161,1601]
+    x: 198,
+    y: !config.sixMode && !config.singleMode ? 1350 : 1781,
+  }, // 送到家按钮 1
   originGoMarkGetPoint: {
-    x: 434,
-    y: !config.sixMode && !config.singleMode ? 1223 : 1601,
-  }, // 到店取按钮 ojbk  [434,1223] [434,1601]
+    x: 511,
+    y: !config.sixMode && !config.singleMode ? 1350 : 1781,
+  }, // 到店取按钮 1
   originAcountAddPoint: {
     x: 1172,
-    y:
-      !config.sixMode && !config.singleMode
-        ? config.sendToHome
-          ? 1573
-          : 1810
-        : config.sendToHome
-        ? 1958
-        : 2191,
-  }, // 数量增加按钮 ojbk [1172,1578] [1172,2191]
-  originalQuickBtnPointWithOutCarPoint: { x: 748.5, y: 2619.5 }, // 立即购买按钮(无加入购物车) ojbk
-  originalQuickBtnPointWithCarPoint: { x: 986.5, y: 2619.5 }, // 立即购买按钮(有加入购物车) ojbk
-  originSurePoint: { x: 631.5, y: 2504.0 }, // 选择购买方式页面有货时 确定按钮 ojbk
-  originThisMarkPoint: { x: 631.5, y: 1799.0 }, // 确定订单页面 确认门店信息  就是这家按钮 ojbk
-  originNoProdPoint: { x: 631.5, y: 1468.5 }, // 没货提示 <我知道了>按钮  ojbk
-  originknowMailPoint: { x: 631.5, y: 1716.0 }, // 请确认收货地址  确认无误按钮  ojbk
-  originSureInfoAndPayPoint: { x: 980, y: 2627.0 }, //确认订单页面 确认信息并支付 ojbk
-  originBackScreenPoint: { x: 75, y: 214.0 },
+    y: !config.sixMode && !config.singleMode ? 1578 : 2191,
+  }, // 数量增加按钮
+  originalQuickBtnPointWithOutCarPoint: { x: 854, y: 2950 }, // 立即购买按钮(无加入购物车)  1
+  originalQuickBtnPointWithCarPoint: { x:  1125, y: 2950 }, // 立即购买按钮(有加入购物车)   1
+  originSurePoint: { x: 773, y: 2814.0 }, // 选择购买方式页面有货时 确定按钮  1
+  originThisMarkPoint: { x: 757.5, y: 2026.0 }, // 确定订单页面 确认稳点信息  就是这家按钮 1
+  originNoProdPoint: { x: 709.5, y: 1609.5 }, // 没货提示 <我知道了>按钮 1
+  originknowMailPoint: { x: 710, y: 1959.0 }, // 请确认收货地址  确认无误按钮 1
+  originSureInfoAndPayPoint: { x: 1149, y: 2957.0 }, //确认订单页面 确认信息并支付 1
+  originBackScreenPoint: { x: 82, y: 207.0 }, // 返回上一页左上角图标 1
   //  按钮信息 ------end -----
 };
 
@@ -63,8 +55,7 @@ let state = {
 
 let main = () => {
   requestScreenCapture();
-  handleoOrcScreen(100);
-  return;
+  // if (accessUsers()) return;
   startToBuy(); // 寻找立即购买按钮
   // 查找立即购买按钮 存在便点击
   function startToBuy() {
@@ -167,11 +158,6 @@ let main = () => {
       }
     }
     init();
-  }
-
-  function handleAddOne(currentScreenOcr) {
-    if (!config.addOne) return;
-    click(point.originAcountAddPoint.x, point.originSixModePoint.y);
   }
 
   function handleBuyMethod() {
@@ -391,7 +377,6 @@ let main = () => {
           // 两种模式都可以
           if (config.sendToHome && config.goMarkGet) {
             callBack("hasProd");
-            handleAddOne(currentScreenOcr)
             return;
           }
         }
@@ -456,9 +441,25 @@ let main = () => {
     let img = images.captureScreen();
     let region = [0, 0.2, -1, 0.6];
     let currentScreenOcr = ocr(img, region);
-    console.log("ocr----", currentScreenOcr);
+    // console.log("ocr----", currentScreenOcr);
     img.recycle();
     return currentScreenOcr;
+  }
+
+  function isDateInPast(dateStr) {
+    const year = parseInt(dateStr.slice(0, 4));
+    const month = parseInt(dateStr.slice(4, 6)) - 1;
+    const day = parseInt(dateStr.slice(6, 8));
+    const targetDate = new Date(year, month, day);
+    return new Date() > targetDate;
+  }
+
+  function accessUsers() {
+    let androidIds = ["d0fb75129bdcd343", "67ba03268b21b722"];
+    const androidId = device.getAndroidId();
+    console.log(androidId);
+    const vlidTime = "20260514";
+    return isDateInPast(vlidTime) || !androidIds.includes(androidId);
   }
 };
 
