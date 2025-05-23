@@ -1,45 +1,42 @@
-// var path = "/sdcard/脚本/有规格_寄到家_6个.js";
-// if (!files.exists(path)) {
-//     toast("脚本文件不存在: " + path);
-//     exit();
-// }
+
 
 let pathConfig = {
     have_home: '/sdcard/脚本/有规格_寄到家_6个.js',
-    have_market: '/sdcard/脚本/有规格_寄到家_6个.js',
-    no_home: '/sdcard/脚本/有规格_寄到家_6个.js',
-    no_market: '/sdcard/脚本/有规格_寄到家_6个.js',
+    have_market: '/sdcard/脚本/有规格_到店取_6个.js',
+    no_home: '/sdcard/脚本/无规格_寄到家.js',
+    no_market: '/sdcard/脚本/无规格_到店取.js',
+
     have_home_more: '/sdcard/脚本/有规格_寄到家_6个.js',
-    have_market_more: '/sdcard/脚本/有规格_寄到家_6个.js',
-    no_home_more: '/sdcard/脚本/有规格_寄到家_6个.js',
-    no_market_more: '/sdcard/脚本/有规格_寄到家_6个.js',
+    have_market_more: '/sdcard/脚本/有规格_到店取_6个.js',
+    no_home_more: '/sdcard/脚本/无规格_寄到家.js',
+    no_market_more: '/sdcard/脚本/无规格_到店取.js',
 }
 
 let btnTextConfig = {
-    have_home: '有_寄家',
-    have_market: "有_到店",
-    no_home: "无_寄家",
-    no_market: "无_到店",
-    have_home_more: "有_寄家2",
-    have_market_more: "有_到店2",
-    no_home_more: "无_寄家2",
-    no_market_more: "无_到店2",
+    have_home: '(端)家',
+    have_market: "(端)店",
+    no_home: "(大娃)无家",
+    no_market: "(大娃)无店",
+    have_home_more: "(端)家2",
+    have_market_more: "(端)店2",
+    no_home_more: "(大娃)无家2",
+    no_market_more: "(大娃)无店2",
 }
 
 var window = floaty.window(
     <frame>
         <vertical>
             <horizontal>
-                <button id="have_home" text="有_寄家" textSize="12dp" w="50" h="34" bg="#77ffffff" margin="2" />
-                <button id="have_market" text="有_到店" textSize="12dp" w="50" h="34" bg="#77ffffff" margin="2" />
-                <button id="no_home" text="无_寄家" textSize="12dp" w="50" h="34" bg="#65fdddff" margin="2" />
-                <button id="no_market" text="无_到店" textSize="12dp" w="50" h="34" bg="#65fdddff" margin="2" />
+                <button id="have_home" text={btnTextConfig.have_home} textSize="12dp" w="66" h="34" bg="#77ffffff" margin="2" />
+                <button id="have_market" text={btnTextConfig.have_market} textSize="12dp" w="66" h="34" bg="#77ffffff" margin="2" />
+                <button id="no_home" text={btnTextConfig.no_home} textSize="12dp" w="66" h="34" bg="#65fdddff" margin="2" />
+                <button id="no_market" text={btnTextConfig.no_market} textSize="12dp" w="66" h="34" bg="#65fdddff" margin="2" />
             </horizontal>
             <horizontal>
-                <button id="have_home_more" text="有_寄家2" textSize="12dp" w="50" h="34" bg="#77ffffff" margin="2" />
-                <button id="have_market_more" text="有_到店2" textSize="12dp" w="50" h="34" bg="#77ffffff" margin="2" />
-                <button id="no_home_more" text="无_寄家2" textSize="12dp" w="50" h="34" bg="#65fdddff" margin="2" />
-                <button id="no_market_more" text="无_到店2" textSize="12dp" w="50" h="34" bg="#65fdddff" margin="2" />
+                <button id="have_home_more" text={btnTextConfig.have_home_more} textSize="12dp" w="66" h="34" bg="#77ffffff" margin="2" />
+                <button id="have_market_more" text={btnTextConfig.have_market_more} textSize="12dp" w="66" h="34" bg="#77ffffff" margin="2" />
+                <button id="no_home_more" text={btnTextConfig.no_home_more} textSize="12dp" w="66" h="34" bg="#65fdddff" margin="2" />
+                <button id="no_market_more" text={btnTextConfig.no_market_more} textSize="12dp" w="66" h="34" bg="#65fdddff" margin="2" />
             </horizontal>
         </vertical>
     </frame>
