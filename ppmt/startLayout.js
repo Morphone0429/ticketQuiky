@@ -15,12 +15,12 @@ let pathConfig = {
 let btnTextConfig = {
     have_home: '(端)家',
     have_market: "(端)店",
-    no_home: "(大娃)无家",
-    no_market: "(大娃)无店",
+    no_home: "(大娃)家",
+    no_market: "(大娃)店",
     have_home_more: "(端)家2",
     have_market_more: "(端)店2",
-    no_home_more: "(大娃)无家2",
-    no_market_more: "(大娃)无店2",
+    no_home_more: "(大娃)家2",
+    no_market_more: "(大娃)店2",
 }
 
 var window = floaty.window(
@@ -62,6 +62,12 @@ function handleBtnClick({ type }) {
         execution = engines.execScriptFile(path);
         window[type].setText('停止');
         window[type].setBackgroundColor(newColor);
+        for (let key in btnTextConfig) {
+            let text = btnTextConfig[key];
+            if (window[key] && type !== key) {
+                window[key].setEnabled(false);
+            }
+        }
     } else {
         if (execution) {
             execution.getEngine().forceStop();
@@ -69,6 +75,12 @@ function handleBtnClick({ type }) {
         let newColor = colors.parseColor(originColor);
         window[type].setText(targetText);
         window[type].setBackgroundColor(newColor);
+        for (let key in btnTextConfig) {
+            let text = btnTextConfig[key];
+            if (window[key]) {
+                window[key].setEnabled(true);
+            }
+        }
     }
 }
 window.have_home.click(() => {
