@@ -1,55 +1,71 @@
 auto();
+/***
+   * 刷新频率 frequency  默认NORMAL
+   *  
+    IMMEDIATE     // 立即执行 20ms
+    VERY_FAST   // 快速更新 20-130ms毫秒随机
+    FAST        // 较快更新 130-230ms毫秒随机
+    NORMAL      // 标准间隔 230-500ms毫秒随机
+    SLOW     // 较慢更新 500-860ms毫秒随机
+    VERY_SLOW  // 慢速更新 860-1500ms毫秒随机
+   */
 let config = {
   frequency: "NORMAL",
-  singleMode: false,
-  sixMode: true,
-  sendToHome: false,
-  goMarkGet: true,
-  orcSleepTime: 200,
-  needAdd: true
+  singleMode: false, // single模式
+  sixMode: true, // 6模式
+  sendToHome: false, // 送到家模式
+  goMarkGet: true, // 到店取模式
+  orcSleepTime: 200, // orc 刷新频率  根据调试机型设置
+  addOne: true, // 是否加1
 };
 
-
 // 真机按钮 信息
-const point = {
+let point = {
   //  按钮信息 ------start ------
-  originSixModePoint: { x: 596, y: 1086 }, // 单个盲盒随机发货  9
-  originSingleModePoint: { x: 214, y: 1086 }, // 整盒含6个盲盒   9
+  originSixModePoint: { x: 694.5, y: 1258 }, // 单个盲盒随机发货 ojbk
+  originSingleModePoint: { x: 257, y: 1258 }, // 整盒含6个盲盒 ojbk
   originSendToHomePoint: {
-    x: 137,
-    y: !config.sixMode && !config.singleMode ? 1062 : 1382,
-  }, // 送到家按钮   9
+    x: 161,
+    y: !config.sixMode && !config.singleMode ? 1223 : 1601,
+  }, // 送到家按钮 ojbk [161,1223] [161,1601]
   originGoMarkGetPoint: {
-    x: 378,
-    y: !config.sixMode && !config.singleMode ? 1062 : 1382,
-  }, // 到店取按钮   9
+    x: 434,
+    y: !config.sixMode && !config.singleMode ? 1223 : 1601,
+  }, // 到店取按钮 ojbk  [434,1223] [434,1601]
   originAcountAddPoint: {
-    x: 1000,
-    y: !config.sixMode && !config.singleMode ? 1566 : 1894,
-  }, // 数量增加按钮  9
-  originalQuickBtnPointWithOutCarPoint: { x: 635, y: 2247.0 }, // 立即购买按钮(无加入购物车)  9
-  originalQuickBtnPointWithCarPoint: { x: 853, y: 2247.0 }, // 立即购买按钮(有加入购物车)  9
-  originSurePoint: { x: 541, y: 2153.0 }, // 选择购买方式页面有货时 确定按钮     9
-  originSureInfoAndPayPoint: { x: 840, y: 2248.0 }, //确认订单页面 确认信息并支付  9
-  originThisMarkPoint: { x: 541, y: 1530.0 }, // 确定订单页面 确认稳点信息  就是这家按钮 9
-  originNoProdPoint: { x: 541, y: 1233.0 }, // 没货提示 我知道了按钮 9
-  originknowMailPoint: { x: 541, y: 1490.0 }, // 确认收货地址 9
-  originBackScreenPoint: { x: 60, y: 165.0 },
+    x: 1172,
+    y:
+      !config.sixMode && !config.singleMode
+        ? config.sendToHome
+          ? 1573
+          : 1810
+        : config.sendToHome
+        ? 1958
+        : 2191,
+  }, // 数量增加按钮 ojbk [1172,1578] [1172,2191]
+  originalQuickBtnPointWithOutCarPoint: { x: 748.5, y: 2619.5 }, // 立即购买按钮(无加入购物车) ojbk
+  originalQuickBtnPointWithCarPoint: { x: 986.5, y: 2619.5 }, // 立即购买按钮(有加入购物车) ojbk
+  originSurePoint: { x: 631.5, y: 2504.0 }, // 选择购买方式页面有货时 确定按钮 ojbk
+  originThisMarkPoint: { x: 631.5, y: 1799.0 }, // 确定订单页面 确认门店信息  就是这家按钮 ojbk
+  originNoProdPoint: { x: 631.5, y: 1468.5 }, // 没货提示 <我知道了>按钮  ojbk
+  originknowMailPoint: { x: 631.5, y: 1716.0 }, // 请确认收货地址  确认无误按钮  ojbk
+  originSureInfoAndPayPoint: { x: 980, y: 2627.0 }, //确认订单页面 确认信息并支付 ojbk
+  originBackScreenPoint: { x: 75, y: 214.0 },
   //  按钮信息 ------end -----
 };
 
-const state = {
+let state = {
   initBuyConfig: false, // 初始化规格
   buyMethod: "home", // home | mark
   enterSureLoop: false,
   loopCount: 0,
 };
 
-
 let main = () => {
   requestScreenCapture();
+  handleoOrcScreen(100);
+  return;
   startToBuy(); // 寻找立即购买按钮
-
   // 查找立即购买按钮 存在便点击
   function startToBuy() {
     console.log("程序开始执行");
@@ -151,6 +167,11 @@ let main = () => {
       }
     }
     init();
+  }
+
+  function handleAddOne(currentScreenOcr) {
+    if (!config.addOne) return;
+    click(point.originAcountAddPoint.x, point.originSixModePoint.y);
   }
 
   function handleBuyMethod() {
@@ -370,6 +391,7 @@ let main = () => {
           // 两种模式都可以
           if (config.sendToHome && config.goMarkGet) {
             callBack("hasProd");
+            handleAddOne(currentScreenOcr)
             return;
           }
         }
@@ -434,7 +456,7 @@ let main = () => {
     let img = images.captureScreen();
     let region = [0, 0.2, -1, 0.6];
     let currentScreenOcr = ocr(img, region);
-    // console.log("ocr----", currentScreenOcr);
+    console.log("ocr----", currentScreenOcr);
     img.recycle();
     return currentScreenOcr;
   }

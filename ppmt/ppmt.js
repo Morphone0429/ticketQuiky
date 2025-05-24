@@ -63,8 +63,6 @@ let state = {
 
 let main = () => {
   requestScreenCapture();
-  handleoOrcScreen(100);
-  return;
   startToBuy(); // 寻找立即购买按钮
   // 查找立即购买按钮 存在便点击
   function startToBuy() {
