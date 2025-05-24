@@ -138,16 +138,27 @@ let main = () => {
     init();
   }
 
-  function handleAddOne() {
-    console.log(config.addOne, state.currentScreenOcr.includes("2"));
-    if (!config.addOne || state.currentScreenOcr.includes("2")) return;
-    simulateClick(point.originAcountAddPoint.x, point.originAcountAddPoint.y);
-    sleep(50);
+  function handleAmount() {
+    // console.log(config.addOne, state.currentScreenOcr.includes("2"));
+    // if (!config.addOne || state.currentScreenOcr.includes("2")) return;
+
+    // simulateClick(point.originAcountAddPoint.x, point.originAcountAddPoint.y);
+    // sleep(50);
+    if (config.addOne && !state.currentScreenOcr.includes("2")) {
+      simulateClick(point.originAcountAddPoint.x, point.originAcountAddPoint.y);
+      sleep(50);
+    } else if (!config.addOne && state.currentScreenOcr.includes("2")) {
+      simulateClick(
+        point.originAcountLessPoint.x,
+        point.originAcountLessPoint.y
+      );
+      sleep(50);
+    }
   }
 
   function handleBuyMethod() {
-    let isFlag = fastClickSureBtn();
-    if (isFlag) return;
+    // let isFlag = fastClickSureBtn();
+    // if (isFlag) return;
     screenIsLoadedWithOcr({
       callBack: (mode) => {
         console.log(
@@ -159,7 +170,7 @@ let main = () => {
           console.log(
             "刷到了 点击进入确认信息页面  开始进行循环点击 <确认-就是这家-我知道了-确认> 模式"
           );
-          handleAddOne(); //判断是否进行 +1 操作
+          handleAmount(); //判断是否进行 +1 操作
           clickSureBtnWhenHasProd();
         }
         // 没货 继续刷新
@@ -171,7 +182,9 @@ let main = () => {
               point.originSendToHomePoint.x,
               point.originSendToHomePoint.y
             );
-            sleepForLessFetch(); //可优化  根据页面刷新状态
+            // let a = handleoOrcScreen(1);
+            // console.log({ a });
+            // sleepForLessFetch(5000); //可优化  根据页面刷新状态
             handleBuyMethod();
           }
           if (state.buyMethod === "home") {
@@ -180,7 +193,10 @@ let main = () => {
               point.originGoMarkGetPoint.x,
               point.originGoMarkGetPoint.y
             );
-            sleepForLessFetch();
+            // let b = handleoOrcScreen(1);
+            // console.log({ b });
+            // sleepForLessFetch(5000);
+
             handleBuyMethod();
           }
         }
@@ -212,7 +228,7 @@ let main = () => {
     if (state.isFirstEnterChooseDetailScreen) return false;
     state.isFirstEnterChooseDetailScreen = true;
     if (!state.currentScreenOcr.includes("确定")) return false;
-    handleAddOne(); //判断是否进行 +1 操作
+    handleAmount(); //判断是否进行 数量增加/减少 操作
     clickSureBtnWhenHasProd();
     return true;
   }

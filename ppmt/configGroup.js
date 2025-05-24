@@ -104,17 +104,28 @@ function patchPointGroup(config) {
             : config.sendToHome
             ? [1926, 1979]
             : [2167, 2209],
-      }, // 数量增加按钮 ojbk [1172,1578] [1172,2191]
+      }, // 数量增加按钮
+      originAcountLessPoint: {
+        x: [961, 998],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1565, 1595]
+              : [1788, 1839]
+            : config.sendToHome
+            ? [1926, 1979]
+            : [2167, 2209],
+      }, // 数量减少按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [319, 1183],
         y: [2558, 2678],
-      }, // 立即购买按钮(无加入购物车) ojbk
-      originalQuickBtnPointWithCarPoint: { x: [785, 1179], y: [2567, 2675] }, // 立即购买按钮(有加入购物车) ojbk
-      originSurePoint: { x: [128, 1149], y: [2446, 2554] }, // 选择购买方式页面有货时 确定按钮 ojbk
-      originThisMarkPoint: { x: [234, 1010], y: [1760, 1840] }, // 确定订单页面 确认门店信息  就是这家按钮 ojbk
-      originNoProdPoint: { x: [400, 860], y: [1380, 1480] }, // 没货提示 <我知道了>按钮  ojbk
-      originknowMailPoint: { x: [240, 1020], y: [1700, 1800] }, // 请确认收货地址  确认无误按钮  ojbk
-      originSureInfoAndPayPoint: { x: [780, 1175], y: [2573, 2680] }, //确认订单页面 确认信息并支付 ojbk
+      }, // 立即购买按钮(无加入购物车)
+      originalQuickBtnPointWithCarPoint: { x: [785, 1179], y: [2567, 2675] }, // 立即购买按钮(有加入购物车)
+      originSurePoint: { x: [128, 1149], y: [2446, 2554] }, // 选择购买方式页面有货时 确定按钮
+      originThisMarkPoint: { x: [234, 1010], y: [1760, 1840] }, // 确定订单页面 确认门店信息  就是这家按钮
+      originNoProdPoint: { x: [400, 860], y: [1380, 1480] }, // 没货提示 <我知道了>按钮
+      originknowMailPoint: { x: [240, 1020], y: [1700, 1800] }, // 请确认收货地址  确认无误按钮
+      originSureInfoAndPayPoint: { x: [780, 1175], y: [2573, 2680] }, //确认订单页面 确认信息并支付
       originBackScreenPoint: { x: [64, 75], y: [190, 230] },
     },
   };
