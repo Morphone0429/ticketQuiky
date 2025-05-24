@@ -6,10 +6,10 @@ let pathConfig = {
     no_home: '/sdcard/脚本/无规格_寄到家.js',
     no_market: '/sdcard/脚本/无规格_到店取.js',
 
-    have_home_more: '/sdcard/脚本/有规格_寄到家_6个.js',
-    have_market_more: '/sdcard/脚本/有规格_到店取_6个.js',
-    no_home_more: '/sdcard/脚本/无规格_寄到家.js',
-    no_market_more: '/sdcard/脚本/无规格_到店取.js',
+    have_home_more: '/sdcard/脚本/有规格_寄到家_6个_数量2.js',
+    have_market_more: '/sdcard/脚本/有规格_到店取_6个_数量2.js',
+    no_home_more: '/sdcard/脚本/无规格_寄到家_数量2.js',
+    no_market_more: '/sdcard/脚本/无规格_到店取_数量2.js',
 }
 
 let btnTextConfig = {

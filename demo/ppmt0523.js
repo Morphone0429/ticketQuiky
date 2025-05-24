@@ -13,8 +13,8 @@ let config = {
   frequency: "NORMAL",
   singleMode: false, // single模式
   sixMode: true, // 6模式
-  sendToHome: false, // 送到家模式
-  goMarkGet: true, // 到店取模式
+  sendToHome: true, // 送到家模式
+  goMarkGet: false, // 到店取模式
   orcSleepTime: 200, // orc 刷新频率  根据调试机型设置
   addOne: true, // 是否加1
 };
@@ -61,6 +61,7 @@ let state = {
   loopCount: 0,
   hasClickQuickBuy: false,
   currentScreenOcr: [],
+  isFirstEnterChooseDetailScreen: false,
 };
 
 let main = () => {
@@ -250,12 +251,11 @@ let main = () => {
     // let _wait = wait ? wait : 200;
     if (!x || !y) return;
     let _random = random(1, 11);
-    console.log(_random, x, y);
     let isEven = _random % 2 === 0;
     let _x = random(x[0], x[1]);
     let _y = random(y[0], y[1]);
     if (isEven) {
-      let _randomDuration = random(20, 220) || 150;;
+      let _randomDuration = random(20, 220) || 150;
       press(_x, _y, _randomDuration);
     } else {
       click(_x, _y);
@@ -266,6 +266,8 @@ let main = () => {
   // 第一次进入选择规格页面时，马上判断是否已经有确认按钮 如果存在，不进行
   function fastClickSureBtn() {
     // 判断是否已经存在确定按钮
+    if (state.isFirstEnterChooseDetailScreen) return false;
+    state.isFirstEnterChooseDetailScreen = true;
     if (!state.currentScreenOcr.includes("确定")) return false;
     handleAddOne(); //判断是否进行 +1 操作
     clickSureBtnWhenHasProd();
@@ -519,7 +521,7 @@ let main = () => {
           return;
         }
       }
-      console.log(currentScreenOcr, "currentScreenOcr");
+      // console.log(currentScreenOcr, "currentScreenOcr");
     }
 
     fallbackLogic();
