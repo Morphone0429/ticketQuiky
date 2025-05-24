@@ -22,35 +22,35 @@ let config = {
 // 真机按钮 信息
 let point = {
   //  按钮信息 ------start ------
-  originSixModePoint: { x: 694.5, y: 1258 }, // 单个盲盒随机发货 ojbk
-  originSingleModePoint: { x: 257, y: 1258 }, // 整盒含6个盲盒 ojbk
+  originSingleModePoint: { x: [114, 412], y: [1212, 1292] }, // 整盒含6个盲盒
+  originSixModePoint: { x: [567, 815], y: [1212, 1292] }, // 单个盲盒随机发货
   originSendToHomePoint: {
-    x: 161,
-    y: !config.sixMode && !config.singleMode ? 1223 : 1601,
-  }, // 送到家按钮 ojbk [161,1223] [161,1601]
+    x: [82, 252],
+    y: !config.sixMode && !config.singleMode ? [1174, 1271] : [1552, 1649],
+  }, // 送到家按钮
   originGoMarkGetPoint: {
-    x: 434,
-    y: !config.sixMode && !config.singleMode ? 1223 : 1601,
-  }, // 到店取按钮 ojbk  [434,1223] [434,1601]
+    x: [342, 520],
+    y: !config.sixMode && !config.singleMode ? [1174, 1271] : [1552, 1649],
+  }, // 到店取按钮
   originAcountAddPoint: {
-    x: 1172,
+    x: [1143, 1190],
     y:
       !config.sixMode && !config.singleMode
         ? config.sendToHome
-          ? 1573
-          : 1810
+          ? [1565, 1595]
+          : [1788, 1839]
         : config.sendToHome
-        ? 1958
-        : 2191,
+        ? [1926, 1979]
+        : [2167, 2209],
   }, // 数量增加按钮 ojbk [1172,1578] [1172,2191]
-  originalQuickBtnPointWithOutCarPoint: { x: 748.5, y: 2619.5 }, // 立即购买按钮(无加入购物车) ojbk
-  originalQuickBtnPointWithCarPoint: { x: 986.5, y: 2619.5 }, // 立即购买按钮(有加入购物车) ojbk
-  originSurePoint: { x: 631.5, y: 2504.0 }, // 选择购买方式页面有货时 确定按钮 ojbk
-  originThisMarkPoint: { x: 631.5, y: 1799.0 }, // 确定订单页面 确认门店信息  就是这家按钮 ojbk
-  originNoProdPoint: { x: 631.5, y: 1468.5 }, // 没货提示 <我知道了>按钮  ojbk
-  originknowMailPoint: { x: 631.5, y: 1716.0 }, // 请确认收货地址  确认无误按钮  ojbk
-  originSureInfoAndPayPoint: { x: 980, y: 2627.0 }, //确认订单页面 确认信息并支付 ojbk
-  originBackScreenPoint: { x: 75, y: 214.0 },
+  originalQuickBtnPointWithOutCarPoint: { x: [319, 1183], y: [2558, 2678] }, // 立即购买按钮(无加入购物车) ojbk
+  originalQuickBtnPointWithCarPoint: { x: [785, 1179], y: [2567, 2675] }, // 立即购买按钮(有加入购物车) ojbk
+  originSurePoint: { x: [128, 1149], y: [2446, 2554] }, // 选择购买方式页面有货时 确定按钮 ojbk
+  originThisMarkPoint: { x: [234, 1010], y: [1760, 1840] }, // 确定订单页面 确认门店信息  就是这家按钮 ojbk
+  originNoProdPoint: { x: [400, 860], y: [1380, 1480] }, // 没货提示 <我知道了>按钮  ojbk
+  originknowMailPoint: { x: [240, 1020], y: [1700, 1800] }, // 请确认收货地址  确认无误按钮  ojbk
+  originSureInfoAndPayPoint: { x: [780, 1175], y: [2573, 2680] }, //确认订单页面 确认信息并支付 ojbk
+  originBackScreenPoint: { x: [64, 75], y: [190, 230] },
   //  按钮信息 ------end -----
 };
 
@@ -59,25 +59,23 @@ let state = {
   buyMethod: "home", // home | mark
   enterSureLoop: false,
   loopCount: 0,
+  hasClickQuickBuy: false,
+  currentScreenOcr: [],
 };
 
 let main = () => {
   requestScreenCapture();
-  handleoOrcScreen(100);
-  return;
-  startToBuy(); // 寻找立即购买按钮
-  // 查找立即购买按钮 存在便点击
+  startToBuy();
+  // 开始脚本任务 判断当前页面 并进入对应页面的流程工作
   function startToBuy() {
-    console.log("程序开始执行");
+    console.log("脚本开始执行");
     console.log("当前用户设置的初始化购买配置", { config, state });
-    console.log("查找立即购买按钮");
     threads.start(function () {
-      log("刷新确定按钮自动点击线程已启动");
       let i = 0;
       // 直到进入选择规格/购买方式页面才停止该线程
       while (true) {
         i++;
-        let currentScreenOcr = handleoOrcScreen(100);
+        let currentScreenOcr = handleoOrcScreen(1);
         let {
           hasQuickBuyBtn,
           quickBuyScreen,
@@ -86,17 +84,18 @@ let main = () => {
           makeSureOrderScreen,
         } = patchScreen(currentScreenOcr);
 
-        console.log(
-          "立即购买,即将进入选择规格和购买方式页面",
-          i,
-          currentScreenOcr,
-          hasQuickBuyBtn,
-          quickBuyScreen,
-          chooseDetailScreen,
-          makeSureOrderScreen
-        );
+        // console.log(
+        //   "立即购买,即将进入选择规格和购买方式页面",
+        //   i,
+        //   currentScreenOcr,
+        //   hasQuickBuyBtn,
+        //   quickBuyScreen,
+        //   chooseDetailScreen,
+        //   makeSureOrderScreen
+        // );
         // 进入选择规格/购买方式页面  break
         if (chooseDetailScreen) {
+          state.hasClickQuickBuy = false;
           console.log("进入购买页面，开始初始化购买配置，并打断当前子线程");
           initBuyMethod(); //初始化购买配置页面
           break;
@@ -107,27 +106,50 @@ let main = () => {
           handleToPayLoop();
           break;
         }
-        // 误点进入自提门店列表页面 马上退出F
+        // 误点进入自提门店列表页面 马上退出
         if (markListScreen) {
-          click(point.originBackScreenPoint);
+          simulateClick(
+            point.originBackScreenPoint.x,
+            point.originBackScreenPoint.y
+          );
         }
-        // 监听到有立即购买按钮  点击
+        // 监听到有立即购买按钮点击  距离开售时间还剩 00:00
         if (hasQuickBuyBtn && quickBuyScreen) {
-          // 有购物车模式
-          if (currentScreenOcr.includes("加入购物车")) {
-            click(point.originalQuickBtnPointWithCarPoint);
-            sleep(config.orcSleepTime);
-          }
-          // 无购物车模式
-          if (!currentScreenOcr.includes("加入购物车")) {
-            click(point.originalQuickBtnPointWithOutCarPoint);
-            sleep(config.orcSleepTime);
-          }
+          initQuickBuy(currentScreenOcr);
         }
-        // 看自行测试结果 判断是否 控制刷新频率 默认不控制
-        // sleep(100);
       }
     });
+  }
+
+  // 立即购买页面/预售倒计时页面
+  function initQuickBuy(currentScreenOcr) {
+    // 防止进入选择规则页面的瞬间重复点击
+    if (state.hasClickQuickBuy) return;
+    // 有购物车模式
+    if (currentScreenOcr.includes("加入购物车")) {
+      state.hasClickQuickBuy = true;
+      console.log(
+        point.originalQuickBtnPointWithCarPoint.x,
+        point.originalQuickBtnPointWithCarPoint.y
+      );
+      simulateClick(
+        point.originalQuickBtnPointWithCarPoint.x,
+        point.originalQuickBtnPointWithCarPoint.y
+      );
+    }
+    // 无购物车模式
+    if (!currentScreenOcr.includes("加入购物车")) {
+      state.hasClickQuickBuy = true;
+      simulateClick(
+        point.originalQuickBtnPointWithOutCarPoint.x,
+        point.originalQuickBtnPointWithOutCarPoint.y
+      );
+    }
+    setTimeout(() => {
+      if (state.hasClickQuickBuy) {
+        state.hasClickQuickBuy = false;
+      }
+    }, 1000);
   }
 
   //初始化购买配置页面
@@ -141,13 +163,16 @@ let main = () => {
         // 如果有规格选项 先选择规格
         if (config.sixMode) {
           console.log("选择了6个盲盒", point.originSixModePoint);
-          click(point.originSixModePoint.x, point.originSixModePoint.y);
+          simulateClick(point.originSixModePoint.x, point.originSixModePoint.y);
         } else if (config.singleMode) {
           console.log("选择了1个盲盒", point.originSingleModePoint);
-          click(point.originSingleModePoint.x, point.originSingleModePoint.y);
+          simulateClick(
+            point.originSingleModePoint.x,
+            point.originSingleModePoint.y
+          );
         }
         state.buyMethod = buyMethod;
-        click(_point.x, _point.y);
+        simulateClick(_point.x, _point.y);
         state.initBuyConfig = true;
         handleBuyMethod();
       };
@@ -169,12 +194,16 @@ let main = () => {
     init();
   }
 
-  function handleAddOne(currentScreenOcr) {
-    if (!config.addOne) return;
-    click(point.originAcountAddPoint.x, point.originSixModePoint.y);
+  function handleAddOne() {
+    console.log(config.addOne, state.currentScreenOcr.includes("2"));
+    if (!config.addOne || state.currentScreenOcr.includes("2")) return;
+    simulateClick(point.originAcountAddPoint.x, point.originAcountAddPoint.y);
+    sleep(50);
   }
 
   function handleBuyMethod() {
+    let isFlag = fastClickSureBtn();
+    if (isFlag) return;
     screenIsLoadedWithOcr({
       callBack: (mode) => {
         console.log(
@@ -186,6 +215,7 @@ let main = () => {
           console.log(
             "刷到了 点击进入确认信息页面  开始进行循环点击 <确认-就是这家-我知道了-确认> 模式"
           );
+          handleAddOne(); //判断是否进行 +1 操作
           clickSureBtnWhenHasProd();
         }
         // 没货 继续刷新
@@ -193,13 +223,19 @@ let main = () => {
           console.log("没有库存，继续循环刷新");
           if (state.buyMethod === "mark") {
             state.buyMethod = "home";
-            click(point.originSendToHomePoint.x, point.originSendToHomePoint.y);
+            simulateClick(
+              point.originSendToHomePoint.x,
+              point.originSendToHomePoint.y
+            );
             sleepForLessFetch(); //可优化  根据页面刷新状态
             handleBuyMethod();
           }
           if (state.buyMethod === "home") {
             state.buyMethod = "mark";
-            click(point.originGoMarkGetPoint.x, point.originGoMarkGetPoint.y);
+            simulateClick(
+              point.originGoMarkGetPoint.x,
+              point.originGoMarkGetPoint.y
+            );
             sleepForLessFetch();
             handleBuyMethod();
           }
@@ -209,10 +245,37 @@ let main = () => {
     });
   }
 
+  // 模拟点击
+  function simulateClick(x, y, wait) {
+    // let _wait = wait ? wait : 200;
+    if (!x || !y) return;
+    let _random = random(1, 11);
+    console.log(_random, x, y);
+    let isEven = _random % 2 === 0;
+    let _x = random(x[0], x[1]);
+    let _y = random(y[0], y[1]);
+    if (isEven) {
+      let _randomDuration = random(20, 220) || 150;;
+      press(_x, _y, _randomDuration);
+    } else {
+      click(_x, _y);
+    }
+    // sleepForLessFetch(_wait);
+  }
+
+  // 第一次进入选择规格页面时，马上判断是否已经有确认按钮 如果存在，不进行
+  function fastClickSureBtn() {
+    // 判断是否已经存在确定按钮
+    if (!state.currentScreenOcr.includes("确定")) return false;
+    handleAddOne(); //判断是否进行 +1 操作
+    clickSureBtnWhenHasProd();
+    return true;
+  }
+
   function clickSureBtnWhenHasProd() {
     state.loopCount++;
     console.log("循环的次数", state.loopCount);
-    click(point.originSurePoint.x, point.originSurePoint.y);
+    simulateClick(point.originSurePoint.x, point.originSurePoint.y);
     handleToPayLoop();
   }
 
@@ -229,7 +292,7 @@ let main = () => {
         console.log(mode, "确认信息");
         // 确认信息并支付 按钮
         if (mode === "makeSureOrder") {
-          click(
+          simulateClick(
             point.originSureInfoAndPayPoint.x,
             point.originSureInfoAndPayPoint.y
           );
@@ -237,18 +300,24 @@ let main = () => {
         }
         // 确认门店信息
         if (mode === "thisOne") {
-          click(point.originThisMarkPoint.x, point.originThisMarkPoint.y);
+          simulateClick(
+            point.originThisMarkPoint.x,
+            point.originThisMarkPoint.y
+          );
           handleToPayLoop();
         }
         // 确认邮寄地址信息
         if (mode === "sureMail") {
-          click(point.originknowMailPoint.x, point.originknowMailPoint.y);
+          simulateClick(
+            point.originknowMailPoint.x,
+            point.originknowMailPoint.y
+          );
           handleToPayLoop();
         }
         // 判断是否有货 如果没货 点击我知道了  循环第一步
         // 两种形式  手动点击 / 自动跳转（一定时间内不点击会自动跳回选择规格页面）
         if (mode === "known") {
-          click(point.originNoProdPoint.x, point.originNoProdPoint.y);
+          simulateClick(point.originNoProdPoint.x, point.originNoProdPoint.y);
           handleToPayLoop();
         }
         // 没货 点击我知道了
@@ -260,7 +329,11 @@ let main = () => {
   }
 
   // 调用此方法不会影响抢购流程 仅为了控制请求频率
-  function sleepForLessFetch() {
+  function sleepForLessFetch(wait) {
+    if (wait) {
+      sleep(wait);
+      return;
+    }
     if (config.frequency === "IMMEDIATE") {
       sleep(20);
     }
@@ -328,7 +401,10 @@ let main = () => {
 
     if (markListScreen) {
       // 误点进入自提门店列表页面 马上退出
-      click(point.originBackScreenPoint);
+      simulateClick(
+        point.originBackScreenPoint.x,
+        point.originBackScreenPoint.y
+      );
     }
 
     // 匹配立即购买页面
@@ -391,7 +467,6 @@ let main = () => {
           // 两种模式都可以
           if (config.sendToHome && config.goMarkGet) {
             callBack("hasProd");
-            handleAddOne(currentScreenOcr)
             return;
           }
         }
@@ -456,7 +531,8 @@ let main = () => {
     let img = images.captureScreen();
     let region = [0, 0.2, -1, 0.6];
     let currentScreenOcr = ocr(img, region);
-    console.log("ocr----", currentScreenOcr);
+    state.currentScreenOcr = currentScreenOcr;
+    // console.log("ocr----", { currentScreenOcr, state: currentScreenOcr });
     img.recycle();
     return currentScreenOcr;
   }
