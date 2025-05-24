@@ -139,11 +139,6 @@ let main = () => {
   }
 
   function handleAmount() {
-    // console.log(config.addOne, state.currentScreenOcr.includes("2"));
-    // if (!config.addOne || state.currentScreenOcr.includes("2")) return;
-
-    // simulateClick(point.originAcountAddPoint.x, point.originAcountAddPoint.y);
-    // sleep(50);
     if (config.addOne && !state.currentScreenOcr.includes("2")) {
       simulateClick(point.originAcountAddPoint.x, point.originAcountAddPoint.y);
       sleep(50);
@@ -182,10 +177,9 @@ let main = () => {
               point.originSendToHomePoint.x,
               point.originSendToHomePoint.y
             );
-            // let a = handleoOrcScreen(1);
-            // console.log({ a });
-            // sleepForLessFetch(5000); //可优化  根据页面刷新状态
-            handleBuyMethod();
+            checkSureBtnLoading({
+              then: handleBuyMethod(),
+            });
           }
           if (state.buyMethod === "home") {
             state.buyMethod = "mark";
@@ -193,16 +187,27 @@ let main = () => {
               point.originGoMarkGetPoint.x,
               point.originGoMarkGetPoint.y
             );
-            // let b = handleoOrcScreen(1);
-            // console.log({ b });
-            // sleepForLessFetch(5000);
-
-            handleBuyMethod();
+            checkSureBtnLoading({
+              then: handleBuyMethod(),
+            });
           }
         }
       },
       patchStep: "chooseDetail",
     });
+  }
+
+  function checkSureBtnLoading({ then }) {
+    let currentScreenOcr = handleoOrcScreen(1);
+    if (
+      !currentScreenOcr.includes("确定") &&
+      !currentScreenOcr.includes("已售罄")
+    ) {
+      // 即没有确认按钮  也没有已售罄按钮 代表还在加载按钮
+      checkSureBtnLoading();
+    } else {
+      then();
+    }
   }
 
   // 模拟点击
