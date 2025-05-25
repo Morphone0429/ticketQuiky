@@ -312,6 +312,7 @@ let main = () => {
         }
         // 没货 点击我知道了
         if (mode === "nextLoopStart") {
+          handleAmount()
           clickSureBtnWhenHasProd();
         }
       },
