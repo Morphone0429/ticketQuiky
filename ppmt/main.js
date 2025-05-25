@@ -10,6 +10,8 @@ let main = () => {
     popLoadingStartTime: null,
   };
   requestScreenCapture();
+  // handleoOrcScreen();
+  // return;
   startToBuy();
   // 开始脚本任务 判断当前页面 并进入对应页面的流程工作
   function startToBuy() {
@@ -53,10 +55,7 @@ let main = () => {
         }
         // 误点进入自提门店列表页面 马上退出
         if (markListScreen) {
-          simulateClick(
-            point.originBackScreenPoint.x,
-            point.originBackScreenPoint.y
-          );
+          backToPreScreen();
         }
         // 监听到有立即购买按钮点击  距离开售时间还剩 00:00
         if (hasQuickBuyBtn && quickBuyScreen) {
@@ -199,7 +198,8 @@ let main = () => {
   }
 
   function checkSureBtnLoading({ then }) {
-    let currentScreenOcr = handleoOrcScreen(100);
+    //  checkSureBtnLoading({ then }); // 卡bug 进寄到家确认信息页面
+    let currentScreenOcr = handleoOrcScreen(1);
     console.log(currentScreenOcr, "currentScreenOcr");
     if (
       currentScreenOcr.includes("确定") ||
@@ -268,10 +268,7 @@ let main = () => {
               let isTimeOut = checkPOPLoading({ POPMARTLoading });
               if (POPMARTLoading) {
                 if (isTimeOut) {
-                  simulateClick(
-                    point.originBackScreenPoint.x,
-                    point.originBackScreenPoint.y
-                  );
+                  backToPreScreen();
                   sleep(200);
                   handleToPayLoop();
                 } else {
@@ -286,7 +283,6 @@ let main = () => {
               }
             },
           });
-
         }
         // 确认门店信息
         if (mode === "thisOne") {
@@ -345,6 +341,14 @@ let main = () => {
       let newScreenOcr = handleoOrcScreen(1500);
       sleepWhenTryAgianShow({ currentScreenOcr: newScreenOcr, then });
     }
+  }
+
+  function backToPreScreen() {
+    let { markListScreen, makeSureOrderScreen } = patchScreen(
+      state.currentScreenOcr
+    );
+    if (!markListScreen || !makeSureOrderScreen) return;
+    simulateClick(point.originBackScreenPoint.x, point.originBackScreenPoint.y);
   }
 
   // 调用此方法不会影响抢购流程 仅为了控制请求频率
@@ -422,10 +426,7 @@ let main = () => {
 
     if (markListScreen) {
       // 误点进入自提门店列表页面 马上退出
-      simulateClick(
-        point.originBackScreenPoint.x,
-        point.originBackScreenPoint.y
-      );
+      backToPreScreen();
     }
 
     // 匹配立即购买页面
