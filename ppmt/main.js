@@ -7,6 +7,7 @@ let main = () => {
     hasClickQuickBuy: false,
     currentScreenOcr: [],
     isFirstEnterChooseDetailScreen: false,
+    popLoadingStartTime: null,
   };
   requestScreenCapture();
   startToBuy();
@@ -198,15 +199,15 @@ let main = () => {
   }
 
   function checkSureBtnLoading({ then }) {
-    let currentScreenOcr = handleoOrcScreen(1);
+    let currentScreenOcr = handleoOrcScreen(100);
+    console.log(currentScreenOcr, "currentScreenOcr");
     if (
-      !currentScreenOcr.includes("确定") &&
-      !currentScreenOcr.includes("已售罄")
+      currentScreenOcr.includes("确定") ||
+      currentScreenOcr.includes("已售罄")
     ) {
-      // 即没有确认按钮  也没有已售罄按钮 代表还在加载按钮
-      checkSureBtnLoading();
-    } else {
       then();
+    } else {
+      checkSureBtnLoading({ then });
     }
   }
 
@@ -258,11 +259,34 @@ let main = () => {
         console.log(mode, "确认信息");
         // 确认信息并支付 按钮
         if (mode === "makeSureOrder") {
-          simulateClick(
-            point.originSureInfoAndPayPoint.x,
-            point.originSureInfoAndPayPoint.y
-          );
-          handleToPayLoop();
+          let currentScreenOcr = state.currentScreenOcr;
+          sleepWhenTryAgianShow({
+            currentScreenOcr,
+            then: () => {
+              let newScreenOcr = handleoOrcScreen(1);
+              let { POPMARTLoading } = patchScreen(newScreenOcr);
+              let isTimeOut = checkPOPLoading({ POPMARTLoading });
+              if (POPMARTLoading) {
+                if (isTimeOut) {
+                  simulateClick(
+                    point.originBackScreenPoint.x,
+                    point.originBackScreenPoint.y
+                  );
+                  sleep(200);
+                  handleToPayLoop();
+                } else {
+                  handleToPayLoop();
+                }
+              } else {
+                simulateClick(
+                  point.originSureInfoAndPayPoint.x,
+                  point.originSureInfoAndPayPoint.y
+                );
+                handleToPayLoop();
+              }
+            },
+          });
+
         }
         // 确认门店信息
         if (mode === "thisOne") {
@@ -292,6 +316,35 @@ let main = () => {
         }
       },
     });
+  }
+
+  function checkPOPLoading({ POPMARTLoading }) {
+    // 等待 loading 元素出现的最大时间（毫秒）
+    let MAX_WAIT_TIME = 11000;
+    if (!POPMARTLoading) return false;
+    if (!state.popLoadingStartTime) {
+      state.popLoadingStartTime = Date.now();
+    }
+    let elapsedTime = Date.now() - state.popLoadingStartTime;
+    // loading是否超时
+    if (elapsedTime >= MAX_WAIT_TIME) {
+      state.popLoadingStartTime = null;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  function sleepWhenTryAgianShow({ currentScreenOcr, then }) {
+    let hasTrySoon = currentScreenOcr.some((item) =>
+      item.includes("请稍后重试")
+    );
+    if (!hasTrySoon) {
+      then();
+    } else {
+      let newScreenOcr = handleoOrcScreen(1500);
+      sleepWhenTryAgianShow({ currentScreenOcr: newScreenOcr, then });
+    }
   }
 
   // 调用此方法不会影响抢购流程 仅为了控制请求频率
@@ -328,12 +381,14 @@ let main = () => {
       item.includes("确认信息")
     );
     let hasQuickBuyBtn = currentScreenOcr.includes("立即购买");
+    let POPMARTLoading = currentScreenOcr.some((item) => item.includes("POP")); //popmark 红色loading
     return {
       quickBuyScreen,
       chooseDetailScreen,
       makeSureOrderScreen,
       hasQuickBuyBtn,
       markListScreen,
+      POPMARTLoading,
     };
   }
 
@@ -465,7 +520,10 @@ let main = () => {
           return;
         }
         // 确认门店
-        if (currentScreenOcr.includes("确认无误")) {
+        if (
+          currentScreenOcr.includes("确认无误") ||
+          currentScreenOcr.some((item) => item.includes("无误"))
+        ) {
           callBack("sureMail");
           return;
         }
@@ -479,7 +537,8 @@ let main = () => {
         if (
           !currentScreenOcr.includes("就是这家") ||
           !currentScreenOcr.includes("我知道了") ||
-          !currentScreenOcr.includes("确认无误")
+          !currentScreenOcr.includes("确认无误") ||
+          !currentScreenOcr.some((item) => item.includes("无误"))
         ) {
           callBack("makeSureOrder");
           return;

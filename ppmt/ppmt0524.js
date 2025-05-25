@@ -11,7 +11,7 @@ auto();
  * 无规格_到店取  no_market
  * 无规格_到店取_数量2 no_market_more
  * */
-let config = baseConfig.have_home;
+let config = baseConfig.have_home_more;
 let point = patchPointGroup(config).oneplus_ace3pro;
 
 main();
