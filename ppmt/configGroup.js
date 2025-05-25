@@ -94,17 +94,6 @@ function patchPointGroup(config) {
         x: [],
         y: !config.sixMode && !config.singleMode ? [] : [],
       }, // 到店取按钮
-      originAcountAddPoint: {
-        x: [],
-        y:
-          !config.sixMode && !config.singleMode
-            ? config.sendToHome
-              ? []
-              : []
-            : config.sendToHome
-            ? []
-            : [],
-      }, // 数量增加按钮
       originAcountLessPoint: {
         x: [],
         y:
@@ -116,6 +105,17 @@ function patchPointGroup(config) {
             ? []
             : [],
       }, // 数量减少按钮
+      originAcountAddPoint: {
+        x: [],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? []
+              : []
+            : config.sendToHome
+            ? []
+            : [],
+      }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [],
         y: [],
@@ -139,17 +139,6 @@ function patchPointGroup(config) {
         x: [342, 520],
         y: !config.sixMode && !config.singleMode ? [1174, 1271] : [1552, 1649],
       }, // 到店取按钮
-      originAcountAddPoint: {
-        x: [1143, 1190],
-        y:
-          !config.sixMode && !config.singleMode
-            ? config.sendToHome
-              ? [1565, 1595]
-              : [1788, 1839]
-            : config.sendToHome
-            ? [1926, 1979]
-            : [2167, 2209],
-      }, // 数量增加按钮
       originAcountLessPoint: {
         x: [961, 998],
         y:
@@ -161,6 +150,17 @@ function patchPointGroup(config) {
             ? [1926, 1979]
             : [2167, 2209],
       }, // 数量减少按钮
+      originAcountAddPoint: {
+        x: [1143, 1190],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1565, 1595]
+              : [1788, 1839]
+            : config.sendToHome
+            ? [1926, 1979]
+            : [2167, 2209],
+      }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [319, 1183],
         y: [2558, 2678],
@@ -184,17 +184,6 @@ function patchPointGroup(config) {
         x: [342, 445],
         y: !config.sixMode && !config.singleMode ? [1041, 1105] : [1363, 1432],
       }, // 到店取按钮  1
-      originAcountAddPoint: {
-        x: [973, 1022],
-        y:
-          !config.sixMode && !config.singleMode
-            ? config.sendToHome
-              ? [1354, 1398]
-              : [1552, 1598]
-            : config.sendToHome
-            ? [1680, 1712]
-            : [1887, 1925],
-      }, // 数量增加按钮 1
       originAcountLessPoint: {
         x: [818, 863],
         y:
@@ -206,6 +195,18 @@ function patchPointGroup(config) {
             ? [1680, 1712]
             : [1887, 1925],
       }, // 数量减少按钮 1
+      originAcountAddPoint: {
+        x: [973, 1022],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1354, 1398]
+              : [1552, 1598]
+            : config.sendToHome
+            ? [1680, 1712]
+            : [1887, 1925],
+      }, // 数量增加按钮 1
+
       originalQuickBtnPointWithOutCarPoint: {
         x: [286, 994],
         y: [2209, 2304],
@@ -229,17 +230,6 @@ function patchPointGroup(config) {
         x: [423, 581],
         y: !config.sixMode && !config.singleMode ? [1303, 1389] : [1751, 1813],
       }, // 到店取按钮
-      originAcountAddPoint: {
-        x: [1299, 1367],
-        y:
-          !config.sixMode && !config.singleMode
-            ? config.sendToHome
-              ? [1722, 1790]
-              : [1984, 2046]
-            : config.sendToHome
-            ? [2154, 2214]
-            : [2421, 2478],
-      }, // 数量增加按钮
       originAcountLessPoint: {
         x: [1092, 1144],
         y:
@@ -251,6 +241,18 @@ function patchPointGroup(config) {
             ? [2154, 2214]
             : [2421, 2478],
       }, // 数量减少按钮
+      originAcountAddPoint: {
+        x: [1299, 1367],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1722, 1790]
+              : [1984, 2046]
+            : config.sendToHome
+            ? [2154, 2214]
+            : [2421, 2478],
+      }, // 数量增加按钮
+
       originalQuickBtnPointWithOutCarPoint: {
         x: [395, 1345],
         y: [2886, 3023],
@@ -274,7 +276,7 @@ function patchPointGroup(config) {
         x: [315, 430],
         y: !config.sixMode && !config.singleMode ? [1090, 1160] : [1424, 1478],
       }, // 到店取按钮
-      originAcountAddPoint: {
+      originAcountLessPoint: {
         x: [814, 856],
         y:
           !config.sixMode && !config.singleMode
@@ -284,8 +286,8 @@ function patchPointGroup(config) {
             : config.sendToHome
             ? [1735, 1770]
             : [1937, 1980],
-      }, // 数量增加按钮
-      originAcountLessPoint: {
+      }, // 数量减少按钮
+      originAcountAddPoint: {
         x: [977, 1025],
         y:
           !config.sixMode && !config.singleMode
@@ -295,7 +297,7 @@ function patchPointGroup(config) {
             : config.sendToHome
             ? [1735, 1770]
             : [1937, 1980],
-      }, // 数量减少按钮
+      }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [304, 960],
         y: [2276, 2365],
@@ -307,6 +309,51 @@ function patchPointGroup(config) {
       originknowMailPoint: { x: [204, 844], y: [1476, 1567] }, // 请确认收货地址  确认无误按钮
       originSureInfoAndPayPoint: { x: [655, 995], y: [2274, 2374] }, //确认订单页面 确认信息并支付
       originBackScreenPoint: { x: [53, 66], y: [138, 158] }, //
+    },
+    oppok5: {
+      originSingleModePoint: { x: [67, 373], y: [1054, 1123] }, //   1
+      originSixModePoint: { x: [473, 719], y: [1054, 1123] }, //
+      originSendToHomePoint: {
+        x: [84, 211],
+        y: !config.sixMode && !config.singleMode ? [1024, 1087] : [1346, 1420],
+      }, // 送到家按钮
+      originGoMarkGetPoint: {
+        x: [291, 453],
+        y: !config.sixMode && !config.singleMode ? [1024, 1087] : [1346, 1420],
+      }, // 到店取按钮
+      originAcountAddPoint: {
+        x: [973, 1022],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1339, 1386]
+              : [1544, , 1585]
+            : config.sendToHome
+            ? [1644, 1715]
+            : [1866, 1911],
+      }, // 数量增加按钮
+      originAcountLessPoint: {
+        x: [811, 864],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1339, 1386]
+              : [1544, , 1585]
+            : config.sendToHome
+            ? [1644, 1715]
+            : [1866, 1911],
+      }, // 数量减少按钮
+      originalQuickBtnPointWithOutCarPoint: {
+        x: [285, 985],
+        y: [2200, 2298],
+      }, // 立即购买按钮(无加入购物车)
+      originalQuickBtnPointWithCarPoint: { x: [679, 997], y: [2190, 2288] }, // 立即购买按钮(有加入购物车)
+      originSurePoint: { x: [136, 934], y: [2106, 2195] }, // 选择购买方式页面有货时 确定按钮
+      originThisMarkPoint: { x: [223, 855], y: [1500, 1571] }, // 确定订单页面 确认门店信息  就是这家按钮
+      originNoProdPoint: { x: [344, 731], y: [1196, 1264] }, // 没货提示 <我知道了>按钮
+      originknowMailPoint: { x: [254.878], y: [1465, 1522] }, // 请确认收货地址  确认无误按钮
+      originSureInfoAndPayPoint: { x: [673, 1002], y: [2203, 2307] }, //确认订单页面 确认信息并支付
+      originBackScreenPoint: { x: [51, 64], y: [148, 171] }, //
     },
   };
 }
