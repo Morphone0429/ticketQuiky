@@ -128,6 +128,51 @@ function patchPointGroup(config) {
       originSureInfoAndPayPoint: { x: [780, 1175], y: [2573, 2680] }, //确认订单页面 确认信息并支付
       originBackScreenPoint: { x: [64, 75], y: [190, 230] },
     },
+    opporeno5: {
+      originSingleModePoint: { x: [90, 360], y: [1072, 1130] }, // 整盒含6个盲盒  1
+      originSixModePoint: { x: [493, 736], y: [1072, 1130] }, // 单个盲盒随机发货 1
+      originSendToHomePoint: {
+        x: [87, 210],
+        y: !config.sixMode && !config.singleMode ? [1041, 1105] : [1363, 1432],
+      }, // 送到家按钮 1
+      originGoMarkGetPoint: {
+        x: [342, 445],
+        y: !config.sixMode && !config.singleMode ? [1041, 1105] : [1363, 1432],
+      }, // 到店取按钮  1
+      originAcountAddPoint: {
+        x: [973, 1022],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1354, 1398]
+              : [1552, 1598]
+            : config.sendToHome
+            ? [1680, 1712]
+            : [1887, 1925],
+      }, // 数量增加按钮 1
+      originAcountLessPoint: {
+        x: [818, 863],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1354, 1398]
+              : [1552, 1598]
+            : config.sendToHome
+            ? [1680, 1712]
+            : [1887, 1925],
+      }, // 数量减少按钮 1
+      originalQuickBtnPointWithOutCarPoint: {
+        x: [286, 994],
+        y: [2209, 2304],
+      }, // 立即购买按钮(无加入购物车) 1
+      originalQuickBtnPointWithCarPoint: { x: [696, 999], y: [2223, 2315] }, // 立即购买按钮(有加入购物车) 1
+      originSurePoint: { x: [136, 996], y: [2114, 2211] }, // 选择购买方式页面有货时 确定按钮 1
+      originThisMarkPoint: { x: [233, 866], y: [1502, 1582] }, // 确定订单页面 确认门店信息  就是这家按钮  1
+      originNoProdPoint: { x: [397, 708], y: [1202, 1277] }, // 没货提示 <我知道了>按钮 1
+      originknowMailPoint: { x: [214, 855], y: [1467, 1540] }, // 请确认收货地址  确认无误按钮 1
+      originSureInfoAndPayPoint: { x: [668, 997], y: [2225, 2317] }, //确认订单页面 确认信息并支付 1
+      originBackScreenPoint: { x: [50, 70], y: [154, 184] }, //1
+    },
   };
 }
 
