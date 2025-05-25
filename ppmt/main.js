@@ -8,9 +8,10 @@ let main = () => {
     currentScreenOcr: [],
     isFirstEnterChooseDetailScreen: false,
     popLoadingStartTime: null,
-    sureBtnShowTime: null
+    sureBtnShowTime: null,
   };
   requestScreenCapture();
+  // trySwipeUp();
   // handleoOrcScreen();
   // return;
   startToBuy();
@@ -66,7 +67,7 @@ let main = () => {
     });
   }
 
-  // 立即购买页面/预售倒计时页面 
+  // 立即购买页面/预售倒计时页面
   function initQuickBuy(currentScreenOcr) {
     // 防止进入选择规则页面的瞬间重复点击
     if (state.hasClickQuickBuy) return;
@@ -176,25 +177,26 @@ let main = () => {
         }
         // 没货 继续刷新
         if (mode === "noProd") {
+          let currentBuyMethod = state.buyMethod;
           console.log("没有库存，继续循环刷新");
-          if (state.buyMethod === "mark") {
+          if (currentBuyMethod === "mark") {
             state.buyMethod = "home";
             simulateClick(
               point.originSendToHomePoint.x,
               point.originSendToHomePoint.y
             );
             checkSureBtnLoading({
-              then: handleBuyMethod(),
+              then: handleBuyMethod,
             });
           }
-          if (state.buyMethod === "home") {
+          if (currentBuyMethod === "home") {
             state.buyMethod = "mark";
             simulateClick(
               point.originGoMarkGetPoint.x,
               point.originGoMarkGetPoint.y
             );
             checkSureBtnLoading({
-              then: handleBuyMethod(),
+              then: handleBuyMethod,
             });
           }
         }
@@ -204,13 +206,9 @@ let main = () => {
   }
 
   function checkSureBtnLoading({ then }) {
-    //  checkSureBtnLoading({ then }); // 卡bug 进寄到家确认信息页面
-    let currentScreenOcr = handleoOrcScreen(1);
-    console.log(currentScreenOcr, "currentScreenOcr");
-    if (
-      currentScreenOcr.includes("确定") ||
-      currentScreenOcr.includes("已售罄")
-    ) {
+    //TODO 卡bug 进寄到家确认信息页面
+    let newScreenOcr = handleoOrcScreen();
+    if (newScreenOcr.includes("确定") || newScreenOcr.includes("已售罄")) {
       then();
     } else {
       checkSureBtnLoading({ then });
@@ -571,9 +569,17 @@ let main = () => {
 
   // 下滑屏幕 用于刷新
   function trySwipeUp() {
+    // 获取屏幕尺寸
     let width = device.width;
     let height = device.height;
-    swipe(width / 2, height - 100, width / 2, 100, 800);
+    // 设置下拉起始点和结束点（从屏幕中部向下滑动）
+    let startX = width / 2;
+    let startY = height / 2;
+    let endY = startY + 800; // 下拉距离，可根据需要调整
+    // 执行下拉手势
+    gesture(1000, [startX, startY], [startX, endY]);
+    // 等待刷新完成（时间可根据实际情况调整）
+    // sleep(3000);
   }
 };
 
