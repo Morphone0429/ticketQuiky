@@ -173,9 +173,9 @@
         canvas.drawRect(rect, paint);
         paint.setARGB(255, color >> 16 & 0xff, color >> 8 & 0xff, color & 0xff);
         paint.setStrokeWidth(1);
-        paint.setTextSize(20);
+        paint.setTextSize(32);
         paint.setStyle(Paint.Style.FILL);
-        canvas.drawText(`${rect.left}-${rect.top}-${rect.right}-${rect.bottom}`, rect.left, rect.top, paint)
+        canvas.drawText(`${rect.left},${rect.right}-${rect.top},${rect.bottom}`, rect.left, rect.top, paint)
         paint.setTextSize(10);
         paint.setStrokeWidth(1);
         paint.setARGB(255, 0, 0, 0);

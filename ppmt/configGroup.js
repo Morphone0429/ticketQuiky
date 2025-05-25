@@ -83,9 +83,54 @@ let baseConfig = {
 
 function patchPointGroup(config) {
   return {
+    temp: {
+      originSingleModePoint: { x: [], y: [] }, //   1
+      originSixModePoint: { x: [], y: [] }, //
+      originSendToHomePoint: {
+        x: [],
+        y: !config.sixMode && !config.singleMode ? [] : [],
+      }, // 送到家按钮
+      originGoMarkGetPoint: {
+        x: [],
+        y: !config.sixMode && !config.singleMode ? [] : [],
+      }, // 到店取按钮
+      originAcountAddPoint: {
+        x: [],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? []
+              : []
+            : config.sendToHome
+            ? []
+            : [],
+      }, // 数量增加按钮
+      originAcountLessPoint: {
+        x: [],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? []
+              : []
+            : config.sendToHome
+            ? []
+            : [],
+      }, // 数量减少按钮
+      originalQuickBtnPointWithOutCarPoint: {
+        x: [],
+        y: [],
+      }, // 立即购买按钮(无加入购物车)
+      originalQuickBtnPointWithCarPoint: { x: [], y: [] }, // 立即购买按钮(有加入购物车)
+      originSurePoint: { x: [], y: [] }, // 选择购买方式页面有货时 确定按钮
+      originThisMarkPoint: { x: [], y: [] }, // 确定订单页面 确认门店信息  就是这家按钮
+      originNoProdPoint: { x: [], y: [] }, // 没货提示 <我知道了>按钮
+      originknowMailPoint: { x: [], y: [] }, // 请确认收货地址  确认无误按钮
+      originSureInfoAndPayPoint: { x: [], y: [] }, //确认订单页面 确认信息并支付
+      originBackScreenPoint: { x: [], y: [] }, //
+    },
     oneplus_ace3pro: {
-      originSingleModePoint: { x: [114, 412], y: [1212, 1292] }, // 整盒含6个盲盒
-      originSixModePoint: { x: [567, 815], y: [1212, 1292] }, // 单个盲盒随机发货
+      originSingleModePoint: { x: [114, 412], y: [1212, 1292] },
+      originSixModePoint: { x: [567, 815], y: [1212, 1292] },
       originSendToHomePoint: {
         x: [82, 252],
         y: !config.sixMode && !config.singleMode ? [1174, 1271] : [1552, 1649],
@@ -129,8 +174,8 @@ function patchPointGroup(config) {
       originBackScreenPoint: { x: [64, 75], y: [190, 230] },
     },
     opporeno5: {
-      originSingleModePoint: { x: [90, 360], y: [1072, 1130] }, // 整盒含6个盲盒  1
-      originSixModePoint: { x: [493, 736], y: [1072, 1130] }, // 单个盲盒随机发货 1
+      originSingleModePoint: { x: [90, 360], y: [1072, 1130] }, //  1
+      originSixModePoint: { x: [493, 736], y: [1072, 1130] }, //  1
       originSendToHomePoint: {
         x: [87, 210],
         y: !config.sixMode && !config.singleMode ? [1041, 1105] : [1363, 1432],
@@ -172,6 +217,51 @@ function patchPointGroup(config) {
       originknowMailPoint: { x: [214, 855], y: [1467, 1540] }, // 请确认收货地址  确认无误按钮 1
       originSureInfoAndPayPoint: { x: [668, 997], y: [2225, 2317] }, //确认订单页面 确认信息并支付 1
       originBackScreenPoint: { x: [50, 70], y: [154, 184] }, //1
+    },
+    oneplus7pro: {
+      originSingleModePoint: { x: [112, 491], y: [1361, 1420] }, //
+      originSixModePoint: { x: [652, 967], y: [1361, 1420] }, //
+      originSendToHomePoint: {
+        x: [112, 266],
+        y: !config.sixMode && !config.singleMode ? [1303, 1389] : [1751, 1813],
+      }, // 送到家按钮
+      originGoMarkGetPoint: {
+        x: [423, 581],
+        y: !config.sixMode && !config.singleMode ? [1303, 1389] : [1751, 1813],
+      }, // 到店取按钮
+      originAcountAddPoint: {
+        x: [1299, 1367],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1722, 1790]
+              : [1984, 2046]
+            : config.sendToHome
+            ? [2154, 2214]
+            : [2421, 2478],
+      }, // 数量增加按钮
+      originAcountLessPoint: {
+        x: [1092, 1144],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1722, 1790]
+              : [1984, 2046]
+            : config.sendToHome
+            ? [2154, 2214]
+            : [2421, 2478],
+      }, // 数量减少按钮
+      originalQuickBtnPointWithOutCarPoint: {
+        x: [395, 1345],
+        y: [2886, 3023],
+      }, // 立即购买按钮(无加入购物车)
+      originalQuickBtnPointWithCarPoint: { x: [911, 1344], y: [2877, 3002] }, // 立即购买按钮(有加入购物车)
+      originSurePoint: { x: [131, 1280], y: [2749, 2885] }, // 选择购买方式页面有货时 确定按钮
+      originThisMarkPoint: { x: [294, 1176], y: [1952, 2068] }, // 确定订单页面 确认门店信息  就是这家按钮
+      originNoProdPoint: { x: [450, 996], y: [1544, 1664] }, // 没货提示 <我知道了>按钮
+      originknowMailPoint: { x: [292, 1162], y: [1915, 2018] }, // 请确认收货地址  确认无误按钮
+      originSureInfoAndPayPoint: { x: [869, 1364], y: [2888, 3031] }, //确认订单页面 确认信息并支付
+      originBackScreenPoint: { x: [71, 87], y: [195, 240] }, //
     },
   };
 }

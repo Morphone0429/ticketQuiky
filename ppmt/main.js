@@ -8,6 +8,7 @@ let main = () => {
     currentScreenOcr: [],
     isFirstEnterChooseDetailScreen: false,
     popLoadingStartTime: null,
+    sureBtnShowTime: null
   };
   requestScreenCapture();
   // handleoOrcScreen();
@@ -65,7 +66,7 @@ let main = () => {
     });
   }
 
-  // 立即购买页面/预售倒计时页面
+  // 立即购买页面/预售倒计时页面 
   function initQuickBuy(currentScreenOcr) {
     // 防止进入选择规则页面的瞬间重复点击
     if (state.hasClickQuickBuy) return;
@@ -94,6 +95,11 @@ let main = () => {
         state.hasClickQuickBuy = false;
       }
     }, 1000);
+  }
+
+  // 预售时确定按钮不一定能刷新 会停留在 00:00  需要手动下滑
+  function waitForSureBtn() {
+    // sureBtnShowTime
   }
 
   //初始化购买配置页面
@@ -561,6 +567,13 @@ let main = () => {
     // console.log("ocr----", { currentScreenOcr, state: currentScreenOcr });
     img.recycle();
     return currentScreenOcr;
+  }
+
+  // 下滑屏幕 用于刷新
+  function trySwipeUp() {
+    let width = device.width;
+    let height = device.height;
+    swipe(width / 2, height - 100, width / 2, 100, 800);
   }
 };
 
