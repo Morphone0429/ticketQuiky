@@ -355,6 +355,51 @@ function patchPointGroup(config) {
       originSureInfoAndPayPoint: { x: [673, 1002], y: [2203, 2307] }, //确认订单页面 确认信息并支付
       originBackScreenPoint: { x: [51, 64], y: [148, 171] }, //
     },
+    p30pro: {
+      originSingleModePoint: { x: [88, 359], y: [1052, 1125] }, //   1
+      originSixModePoint: { x: [473, 712], y: [1052, 1125] }, //
+      originSendToHomePoint: {
+        x: [62, 218],
+        y: !config.sixMode && !config.singleMode ? [1026, 1094] : [1348, 1421],
+      }, // 送到家按钮
+      originGoMarkGetPoint: {
+        x: [303, 445],
+        y: !config.sixMode && !config.singleMode ? [1026, 1094] : [1348, 1421],
+      }, // 到店取按钮
+      originAcountLessPoint: {
+        x: [822, 864],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1340, 1384]
+              : [1545, 1586]
+            : config.sendToHome
+            ? [1661, 1712]
+            : [1866, 1915],
+      }, // 数量减少按钮
+      originAcountAddPoint: {
+        x: [981, 1025],
+        y:
+          !config.sixMode && !config.singleMode
+            ? config.sendToHome
+              ? [1340, 1384]
+              : [1545, 1586]
+            : config.sendToHome
+            ? [1661, 1712]
+            : [1866, 1915],
+      }, // 数量增加按钮
+      originalQuickBtnPointWithOutCarPoint: {
+        x: [321, 943],
+        y: [2218, 2297],
+      }, // 立即购买按钮(无加入购物车)
+      originalQuickBtnPointWithCarPoint: { x: [686, 982], y: [2204, 2282] }, // 立即购买按钮(有加入购物车)
+      originSurePoint: { x: [124, 981], y: [2108, 2200] }, // 选择购买方式页面有货时 确定按钮
+      originThisMarkPoint: { x: [217, 877], y: [1501, 1570] }, // 确定订单页面 确认门店信息  就是这家按钮
+      originNoProdPoint: { x: [384, 735], y: [1160, 1242] }, // 没货提示 <我知道了>按钮
+      originknowMailPoint: { x: [256, 854], y: [1457, 1543] }, // 请确认收货地址  确认无误按钮
+      originSureInfoAndPayPoint: { x: [684, 1007], y: [2204, 2297] }, //确认订单页面 <确认信息并支付>
+      originBackScreenPoint: { x: [54, 60], y: [154, 184] }, //
+    },
   };
 }
 
