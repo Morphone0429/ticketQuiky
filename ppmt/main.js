@@ -208,7 +208,12 @@ let main = () => {
   function checkSureBtnLoading({ then }) {
     //TODO 卡bug 进寄到家确认信息页面
     let newScreenOcr = handleoOrcScreen();
-    if (newScreenOcr.includes("确定") || newScreenOcr.includes("已售罄")) {
+    console.log(newScreenOcr,'newScreenOcr')
+    if (
+      newScreenOcr.includes("确定") ||
+      newScreenOcr.includes("已售罄") ||
+      newScreenOcr.includes("选择门店")
+    ) {
       then();
     } else {
       checkSureBtnLoading({ then });
@@ -312,7 +317,7 @@ let main = () => {
         }
         // 没货 点击我知道了
         if (mode === "nextLoopStart") {
-          handleAmount()
+          handleAmount();
           clickSureBtnWhenHasProd();
         }
       },

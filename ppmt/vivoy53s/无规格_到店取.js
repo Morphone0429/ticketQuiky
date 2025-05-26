@@ -3,6 +3,6 @@ let { main } = require("/sdcard/脚本/main.js");
 auto();
 
 let config = baseConfig.no_market;
-let point = patchPointGroup(config).oneplus7pro;
+let point = patchPointGroup(config).vivoy53s;
 
 main();
