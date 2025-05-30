@@ -185,9 +185,11 @@ let main = () => {
               point.originSendToHomePoint.x,
               point.originSendToHomePoint.y
             );
-            checkSureBtnLoading({
-              then: handleBuyMethod,
-            });
+            config.sendToHome && sleepForLessFetch();
+            handleBuyMethod();
+            // checkSureBtnLoading({
+            //   then: handleBuyMethod,
+            // });
           }
           if (currentBuyMethod === "home") {
             state.buyMethod = "mark";
@@ -195,9 +197,11 @@ let main = () => {
               point.originGoMarkGetPoint.x,
               point.originGoMarkGetPoint.y
             );
-            checkSureBtnLoading({
-              then: handleBuyMethod,
-            });
+            config.goMarkGet && sleepForLessFetch();
+            handleBuyMethod();
+            // checkSureBtnLoading({
+            //   then: handleBuyMethod,
+            // });
           }
         }
       },
@@ -208,7 +212,6 @@ let main = () => {
   function checkSureBtnLoading({ then }) {
     //TODO 卡bug 进寄到家确认信息页面
     let newScreenOcr = handleoOrcScreen();
-    console.log(newScreenOcr,'newScreenOcr')
     if (
       newScreenOcr.includes("确定") ||
       newScreenOcr.includes("已售罄") ||
@@ -326,7 +329,7 @@ let main = () => {
 
   function checkPOPLoading({ POPMARTLoading }) {
     // 等待 loading 元素出现的最大时间（毫秒）
-    let MAX_WAIT_TIME = 11000;
+    let MAX_WAIT_TIME = 5000;
     if (!POPMARTLoading) return false;
     if (!state.popLoadingStartTime) {
       state.popLoadingStartTime = Date.now();
@@ -539,7 +542,10 @@ let main = () => {
           return;
         }
         // 我知道了
-        if (currentScreenOcr.includes("我知道了")) {
+        if (
+          currentScreenOcr.includes("我知道了") ||
+          currentScreenOcr.some((item) => item.includes("道了"))
+        ) {
           callBack("known");
           return;
         }
@@ -548,6 +554,7 @@ let main = () => {
         if (
           !currentScreenOcr.includes("就是这家") ||
           !currentScreenOcr.includes("我知道了") ||
+          !currentScreenOcr.some((item) => item.includes("道了")) ||
           !currentScreenOcr.includes("确认无误") ||
           !currentScreenOcr.some((item) => item.includes("无误"))
         ) {
