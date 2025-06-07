@@ -11,9 +11,6 @@ let main = () => {
     sureBtnShowTime: null,
   };
   requestScreenCapture();
-  // trySwipeUp();
-  // handleoOrcScreen();
-  // return;
   startToBuy();
   // 开始脚本任务 判断当前页面 并进入对应页面的流程工作
   function startToBuy() {
@@ -336,6 +333,16 @@ let main = () => {
           handleAmount();
           clickSureBtnWhenHasProd();
         }
+        // 抢到了 自动付款
+        if (mode === "toPay") {
+          sleep(6000)
+          let payPoints = point.originPayPoints
+          for (let i = 0; i < payPoints.length; i++) {
+            let _point = payPoints[i]
+            simulateClick(_point.x, _point.y);
+            sleep(1000)
+          }
+        }
       },
     });
   }
@@ -567,13 +574,23 @@ let main = () => {
           return;
         }
 
+
+        // 付款页面
+        if (
+          currentScreenOcr.includes("微信支付")
+        ) {
+          callBack("toPay");
+          return;
+        }
+
         // 确认信息
         if (
           !currentScreenOcr.includes("就是这家") ||
           !currentScreenOcr.includes("我知道了") ||
           !currentScreenOcr.some((item) => item.includes("道了")) ||
           !currentScreenOcr.includes("确认无误") ||
-          !currentScreenOcr.some((item) => item.includes("无误"))
+          !currentScreenOcr.some((item) => item.includes("无误")) ||
+          !currentScreenOcr.includes("微信支付")
         ) {
           callBack("makeSureOrder");
           return;
