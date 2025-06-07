@@ -195,11 +195,12 @@ let main = () => {
               point.originSendToHomePoint.x,
               point.originSendToHomePoint.y
             );
-            config.sendToHome && sleepForLessFetch();
-            handleBuyMethod();
-            // checkSureBtnLoading({
-            //   then: handleBuyMethod,
-            // });
+            // config.sendToHome && sleepForLessFetch();
+            // handleBuyMethod();
+            checkSureBtnLoading({
+              then: handleBuyMethod,
+              skip: config.goMarkGet
+            })
           }
           if (currentBuyMethod === "home") {
             state.buyMethod = "mark";
@@ -207,11 +208,12 @@ let main = () => {
               point.originGoMarkGetPoint.x,
               point.originGoMarkGetPoint.y
             );
-            config.goMarkGet && sleepForLessFetch();
-            handleBuyMethod();
-            // checkSureBtnLoading({
-            //   then: handleBuyMethod,
-            // });
+            // config.goMarkGet && sleepForLessFetch();
+            // handleBuyMethod();
+            checkSureBtnLoading({
+              then: handleBuyMethod,
+              skip: config.sendToHome
+            })
           }
         }
       },
@@ -219,18 +221,31 @@ let main = () => {
     });
   }
 
-  function checkSureBtnLoading({ then }) {
+  function checkSureBtnLoading({ then, skip }) {
     //TODO 卡bug 进寄到家确认信息页面
-    let newScreenOcr = handleoOrcScreen();
-    if (
-      newScreenOcr.includes("确定") ||
-      newScreenOcr.includes("已售罄") ||
-      newScreenOcr.includes("选择门店")
-    ) {
-      then();
+    if (skip) {
+      then()
     } else {
-      checkSureBtnLoading({ then });
+      let newScreenOcr = handleoOrcScreen();
+      let MAX_WAIT_TIME = 600;
+      if (!state.sureBtnShowTime) {
+        state.sureBtnShowTime = Date.now();
+      }
+      let elapsedTime = Date.now() - state.sureBtnShowTime;
+      console.log(elapsedTime, state.sureBtnShowTime, '')
+      if (
+        newScreenOcr.includes("确定") ||
+        newScreenOcr.includes("已售罄") ||
+        newScreenOcr.includes("选择门店") ||
+        elapsedTime >= MAX_WAIT_TIME
+      ) {
+        state.sureBtnShowTime = null
+        then();
+      } else {
+        checkSureBtnLoading({ then, skip });
+      }
     }
+
   }
 
   // 模拟点击
@@ -273,6 +288,7 @@ let main = () => {
     state.enterSureLoop = true; // 是否进入循环  只要第一次点击了确认按钮  就认为进入循环
     console.log("等待确认订单页面加载...");
     console.log("是否进入循环", state.enterSureLoop);
+    // TODO:
     sleepForLessFetch();
     // 等待页面加载完成
     screenIsLoadedWithOcr({
