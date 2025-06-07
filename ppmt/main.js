@@ -28,6 +28,7 @@ let main = () => {
         let {
           hasQuickBuyBtn,
           quickBuyScreen,
+          hasQuickBuyErrorBtn,
           chooseDetailScreen,
           markListScreen,
           makeSureOrderScreen,
@@ -59,9 +60,13 @@ let main = () => {
         if (markListScreen) {
           backToPreScreen();
         }
-        // 监听到有立即购买按钮点击  距离开售时间还剩 00:00
+        // 监听到有立即购买按钮点击 
         if (hasQuickBuyBtn && quickBuyScreen) {
           initQuickBuy(currentScreenOcr);
+        }
+        // 距离开售时间还剩 00:00
+        if (hasQuickBuyErrorBtn && quickBuyScreen) {
+          waitForSureBtn()
         }
       }
     });
@@ -100,7 +105,15 @@ let main = () => {
 
   // 预售时确定按钮不一定能刷新 会停留在 00:00  需要手动下滑
   function waitForSureBtn() {
-    // sureBtnShowTime
+    let MAX_WAIT_TIME = 1500;
+    if (!state.sureBtnShowTime) {
+      state.sureBtnShowTime = Date.now();
+    }
+    let elapsedTime = Date.now() - state.sureBtnShowTime;
+    if (elapsedTime >= MAX_WAIT_TIME) {
+      state.sureBtnShowTime = null;
+      trySwipeUp()
+    }
   }
 
   //初始化购买配置页面
@@ -398,12 +411,16 @@ let main = () => {
       item.includes("确认信息")
     );
     let hasQuickBuyBtn = currentScreenOcr.includes("立即购买");
+    let hasQuickBuyErrorBtn = currentScreenOcr.some((item) =>
+      item.includes("00")
+    );
     let POPMARTLoading = currentScreenOcr.some((item) => item.includes("POP")); //popmark 红色loading
     return {
       quickBuyScreen,
       chooseDetailScreen,
       makeSureOrderScreen,
       hasQuickBuyBtn,
+      hasQuickBuyErrorBtn,
       markListScreen,
       POPMARTLoading,
     };
