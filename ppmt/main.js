@@ -30,16 +30,6 @@ let main = () => {
           markListScreen,
           makeSureOrderScreen,
         } = patchScreen(currentScreenOcr);
-
-        // console.log(
-        //   "立即购买,即将进入选择规格和购买方式页面",
-        //   i,
-        //   currentScreenOcr,
-        //   hasQuickBuyBtn,
-        //   quickBuyScreen,
-        //   chooseDetailScreen,
-        //   makeSureOrderScreen
-        // );
         // 进入选择规格/购买方式页面  break
         if (chooseDetailScreen) {
           state.hasClickQuickBuy = false;
@@ -57,13 +47,13 @@ let main = () => {
         if (markListScreen) {
           backToPreScreen();
         }
-        // 监听到有立即购买按钮点击 
+        // 监听到有立即购买按钮点击
         if (hasQuickBuyBtn && quickBuyScreen) {
           initQuickBuy(currentScreenOcr);
         }
         // 距离开售时间还剩 00:00
         if (hasQuickBuyErrorBtn && quickBuyScreen) {
-          waitForSureBtn()
+          waitForSureBtn();
         }
       }
     });
@@ -109,7 +99,7 @@ let main = () => {
     let elapsedTime = Date.now() - state.sureBtnShowTime;
     if (elapsedTime >= MAX_WAIT_TIME) {
       state.sureBtnShowTime = null;
-      trySwipeUp()
+      trySwipeUp();
     }
   }
 
@@ -156,10 +146,17 @@ let main = () => {
   }
 
   function handleAmount() {
-    if (config.addOne && !state.currentScreenOcr.includes("2")) {
+    let currentScreenOcr = state.currentScreenOcr;
+    let index = currentScreenOcr.indexOf("数量");
+    let newScreenOcr =
+      index !== -1 ? currentScreenOcr.slice(index + 1) : currentScreenOcr;
+    let hasAdd =
+      newScreenOcr.some((item) => item.includes("2")) ||
+      newScreenOcr.includes("2");
+    if (config.addOne && !hasAdd) {
       simulateClick(point.originAcountAddPoint.x, point.originAcountAddPoint.y);
       sleep(50);
-    } else if (!config.addOne && state.currentScreenOcr.includes("2")) {
+    } else if (!config.addOne && hasAdd) {
       simulateClick(
         point.originAcountLessPoint.x,
         point.originAcountLessPoint.y
@@ -199,8 +196,8 @@ let main = () => {
             // handleBuyMethod();
             checkSureBtnLoading({
               then: handleBuyMethod,
-              skip: config.goMarkGet
-            })
+              skip: config.goMarkGet,
+            });
           }
           if (currentBuyMethod === "home") {
             state.buyMethod = "mark";
@@ -212,8 +209,8 @@ let main = () => {
             // handleBuyMethod();
             checkSureBtnLoading({
               then: handleBuyMethod,
-              skip: config.sendToHome
-            })
+              skip: config.sendToHome,
+            });
           }
         }
       },
@@ -224,33 +221,30 @@ let main = () => {
   function checkSureBtnLoading({ then, skip }) {
     //TODO 卡bug 进寄到家确认信息页面
     if (skip) {
-      then()
+      then();
     } else {
-      let newScreenOcr = handleoOrcScreen();
+      let newScreenOcr = handleoOrcScreen(1);
       let MAX_WAIT_TIME = 600;
       if (!state.sureBtnShowTime) {
         state.sureBtnShowTime = Date.now();
       }
       let elapsedTime = Date.now() - state.sureBtnShowTime;
-      console.log(elapsedTime, state.sureBtnShowTime, '')
       if (
         newScreenOcr.includes("确定") ||
         newScreenOcr.includes("已售罄") ||
         newScreenOcr.includes("选择门店") ||
         elapsedTime >= MAX_WAIT_TIME
       ) {
-        state.sureBtnShowTime = null
+        state.sureBtnShowTime = null;
         then();
       } else {
         checkSureBtnLoading({ then, skip });
       }
     }
-
   }
 
   // 模拟点击
   function simulateClick(x, y, wait) {
-    // let _wait = wait ? wait : 200;
     if (!x || !y) return;
     let _random = random(1, 11);
     let isEven = _random % 2 === 0;
@@ -262,7 +256,6 @@ let main = () => {
     } else {
       click(_x, _y);
     }
-    // sleepForLessFetch(_wait);
   }
 
   // 第一次进入选择规格页面时，马上判断是否已经有确认按钮 如果存在，不进行
@@ -289,10 +282,12 @@ let main = () => {
     console.log("等待确认订单页面加载...");
     console.log("是否进入循环", state.enterSureLoop);
     // TODO:
-    sleepForLessFetch();
+    sleepForLessFetch(1);
+
     // 等待页面加载完成
     screenIsLoadedWithOcr({
       patchStep: "makeSureOrder",
+      _wait: 1,
       callBack: (mode) => {
         console.log(mode, "确认信息");
         // 确认信息并支付 按钮
@@ -328,6 +323,7 @@ let main = () => {
             point.originThisMarkPoint.x,
             point.originThisMarkPoint.y
           );
+          sleep(config.orcSleepTime);
           handleToPayLoop();
         }
         // 确认邮寄地址信息
@@ -336,6 +332,7 @@ let main = () => {
             point.originknowMailPoint.x,
             point.originknowMailPoint.y
           );
+          sleep(config.orcSleepTime);
           handleToPayLoop();
         }
         // 判断是否有货 如果没货 点击我知道了  循环第一步
@@ -351,12 +348,13 @@ let main = () => {
         }
         // 抢到了 自动付款
         if (mode === "toPay") {
-          sleep(6000)
-          let payPoints = point.originPayPoints
+          device.vibrate(1500);
+          sleep(6000);
+          let payPoints = point.originPayPoints;
           for (let i = 0; i < payPoints.length; i++) {
-            let _point = payPoints[i]
+            let _point = payPoints[i];
             simulateClick(_point.x, _point.y);
-            sleep(1000)
+            sleep(1000);
           }
         }
       },
@@ -450,20 +448,17 @@ let main = () => {
   }
 
   function screenIsLoadedWithOcr({ callBack, patchStep, _wait }) {
-    let currentScreenOcr = handleoOrcScreen();
+    let wait = _wait ? _wait : 0;
+    let currentScreenOcr = handleoOrcScreen(wait);
     let {
       quickBuyScreen,
       chooseDetailScreen,
       makeSureOrderScreen,
       markListScreen,
     } = patchScreen(currentScreenOcr);
-    let wait = _wait ? _wait : 0;
     // 兜底逻辑 需要
     function fallbackLogic() {
-      console.log("----------------需要进行兜底吗？");
-      if (patchStep === "makeSureOrder" && makeSureOrderScreen) {
-        device.vibrate(200); //手机震动 可能抢到了
-      }
+      console.log("兜底逻辑=====================");
       // 兜底逻辑 没有找到 再多等待一会儿再查找
       sleep(config.orcSleepTime + wait);
       screenIsLoadedWithOcr({ callBack, patchStep });
@@ -590,11 +585,8 @@ let main = () => {
           return;
         }
 
-
         // 付款页面
-        if (
-          currentScreenOcr.includes("微信支付")
-        ) {
+        if (currentScreenOcr.includes("微信支付")) {
           callBack("toPay");
           return;
         }
