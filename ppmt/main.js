@@ -234,11 +234,12 @@ let main = () => {
         state.sureBtnShowTime = Date.now();
       }
       let elapsedTime = Date.now() - state.sureBtnShowTime;
+
       if (elapsedTime >= MAX_WAIT_TIME) {
         state.sureBtnShowTime = null;
         then();
       }
-      let newScreenOcr = handleoOrcScreen();
+      let newScreenOcr = handleoOrcScreen(1);
       if (
         newScreenOcr.includes("确定") ||
         newScreenOcr.includes("已售罄") ||
