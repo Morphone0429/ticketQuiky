@@ -102,8 +102,8 @@ function patchPointGroup(config) {
               ? []
               : []
             : config.sendToHome
-              ? []
-              : [],
+            ? []
+            : [],
       }, // 数量减少按钮
       originAcountAddPoint: {
         x: [],
@@ -113,8 +113,8 @@ function patchPointGroup(config) {
               ? []
               : []
             : config.sendToHome
-              ? []
-              : [],
+            ? []
+            : [],
       }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [],
@@ -127,6 +127,14 @@ function patchPointGroup(config) {
       originknowMailPoint: { x: [], y: [] }, // 请确认收货地址  确认无误按钮
       originSureInfoAndPayPoint: { x: [], y: [] }, //确认订单页面 确认信息并支付
       originBackScreenPoint: { x: [], y: [] }, //
+      originPayPoints: [
+        { x: [], y: [] }, //2
+        { x: [], y: [] }, // 2
+        { x: [], y: [] }, // 0
+        { x: [], y: [] }, // 3
+        { x: [], y: [] }, // 0
+        { x: [], y: [] }, // 7
+      ],
     },
     oneplus_ace3pro: {
       originSingleModePoint: { x: [114, 412], y: [1212, 1292] },
@@ -147,8 +155,8 @@ function patchPointGroup(config) {
               ? [1565, 1595]
               : [1788, 1839]
             : config.sendToHome
-              ? [1926, 1979]
-              : [2167, 2209],
+            ? [1926, 1979]
+            : [2167, 2209],
       }, // 数量减少按钮
       originAcountAddPoint: {
         x: [1143, 1190],
@@ -158,8 +166,8 @@ function patchPointGroup(config) {
               ? [1565, 1595]
               : [1788, 1839]
             : config.sendToHome
-              ? [1926, 1979]
-              : [2167, 2209],
+            ? [1926, 1979]
+            : [2167, 2209],
       }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [319, 1183],
@@ -172,6 +180,14 @@ function patchPointGroup(config) {
       originknowMailPoint: { x: [240, 1020], y: [1700, 1800] }, // 请确认收货地址  确认无误按钮
       originSureInfoAndPayPoint: { x: [780, 1175], y: [2573, 2680] }, //确认订单页面 确认信息并支付
       originBackScreenPoint: { x: [64, 75], y: [190, 230] },
+      originPayPoints: [
+        { x: [927, 1121], y: [2040, 2125] }, //3
+        { x: [927, 1121], y: [2040, 2125] }, //3
+        { x: [520, 763], y: [2592, 2670] }, // 0
+        { x: [116, 346], y: [2220, 2320] }, // 4
+        { x: [520, 763], y: [2040, 2125] }, // 2
+        { x: [927, 1121], y: [2403, 2496] }, // 9
+      ],
     },
     opporeno5: {
       originSingleModePoint: { x: [90, 360], y: [1072, 1130] }, //  1
@@ -192,8 +208,8 @@ function patchPointGroup(config) {
               ? [1354, 1398]
               : [1552, 1598]
             : config.sendToHome
-              ? [1680, 1712]
-              : [1887, 1925],
+            ? [1680, 1712]
+            : [1887, 1925],
       }, // 数量减少按钮 1
       originAcountAddPoint: {
         x: [973, 1022],
@@ -203,8 +219,8 @@ function patchPointGroup(config) {
               ? [1354, 1398]
               : [1552, 1598]
             : config.sendToHome
-              ? [1680, 1712]
-              : [1887, 1925],
+            ? [1680, 1712]
+            : [1887, 1925],
       }, // 数量增加按钮 1
 
       originalQuickBtnPointWithOutCarPoint: {
@@ -218,6 +234,14 @@ function patchPointGroup(config) {
       originknowMailPoint: { x: [214, 855], y: [1467, 1540] }, // 请确认收货地址  确认无误按钮 1
       originSureInfoAndPayPoint: { x: [668, 997], y: [2225, 2317] }, //确认订单页面 确认信息并支付 1
       originBackScreenPoint: { x: [50, 70], y: [154, 184] }, //1
+      originPayPoints: [
+        { x: [447, 654], y: [1774, 1845] }, //2
+        { x: [447, 654], y: [1774, 1845] }, // 2
+        { x: [447, 654], y: [2232, 2307] }, // 0
+        { x: [807, 955], y: [1774, 1845] }, // 3
+        { x: [447, 654], y: [2232, 2307] }, // 0
+        { x: [107, 249], y: [2081, 2153] }, // 7
+      ],
     },
     oneplus7pro: {
       originSingleModePoint: { x: [112, 491], y: [1361, 1420] }, //
@@ -238,8 +262,8 @@ function patchPointGroup(config) {
               ? [1722, 1790]
               : [1984, 2046]
             : config.sendToHome
-              ? [2154, 2214]
-              : [2421, 2478],
+            ? [2154, 2214]
+            : [2421, 2478],
       }, // 数量减少按钮
       originAcountAddPoint: {
         x: [1299, 1367],
@@ -249,8 +273,8 @@ function patchPointGroup(config) {
               ? [1722, 1790]
               : [1984, 2046]
             : config.sendToHome
-              ? [2154, 2214]
-              : [2421, 2478],
+            ? [2154, 2214]
+            : [2421, 2478],
       }, // 数量增加按钮
 
       originalQuickBtnPointWithOutCarPoint: {
@@ -264,6 +288,14 @@ function patchPointGroup(config) {
       originknowMailPoint: { x: [292, 1162], y: [1915, 2018] }, // 请确认收货地址  确认无误按钮
       originSureInfoAndPayPoint: { x: [869, 1364], y: [2888, 3031] }, //确认订单页面 确认信息并支付
       originBackScreenPoint: { x: [71, 87], y: [195, 240] }, //
+      originPayPoints: [
+        { x: [1056, 1352], y: [2708, 2808] }, // 9
+        { x: [614, 836], y: [2900.3002] }, // 0
+        { x: [1056, 1352], y: [2290, 2390] }, // 3
+        { x: [614, 836], y: [2708, 2808] }, // 8
+        { x: [614, 836], y: [2290, 2390] }, // 2
+        { x: [614, 836], y: [2900.3002] }, // 0
+      ],
     },
     vivoy53s: {
       originSingleModePoint: { x: [84, 360], y: [1136, 1181] }, //   1
@@ -284,8 +316,8 @@ function patchPointGroup(config) {
               ? [1410, 1459]
               : [1607, 1658]
             : config.sendToHome
-              ? [1735, 1770]
-              : [1937, 1980],
+            ? [1735, 1770]
+            : [1937, 1980],
       }, // 数量减少按钮
       originAcountAddPoint: {
         x: [977, 1025],
@@ -295,8 +327,8 @@ function patchPointGroup(config) {
               ? [1410, 1459]
               : [1607, 1658]
             : config.sendToHome
-              ? [1735, 1770]
-              : [1937, 1980],
+            ? [1735, 1770]
+            : [1937, 1980],
       }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [304, 960],
@@ -309,6 +341,14 @@ function patchPointGroup(config) {
       originknowMailPoint: { x: [204, 844], y: [1476, 1567] }, // 请确认收货地址  确认无误按钮
       originSureInfoAndPayPoint: { x: [655, 995], y: [2274, 2374] }, //确认订单页面 确认信息并支付
       originBackScreenPoint: { x: [53, 66], y: [138, 158] }, //
+      originPayPoints: [
+        { x: [], y: [] }, //2
+        { x: [], y: [] }, // 2
+        { x: [], y: [] }, // 0
+        { x: [], y: [] }, // 3
+        { x: [], y: [] }, // 0
+        { x: [], y: [] }, // 7
+      ],
     },
     p30pro: {
       originSingleModePoint: { x: [88, 359], y: [1052, 1125] }, //   1
@@ -329,8 +369,8 @@ function patchPointGroup(config) {
               ? [1340, 1384]
               : [1545, 1586]
             : config.sendToHome
-              ? [1661, 1712]
-              : [1866, 1915],
+            ? [1661, 1712]
+            : [1866, 1915],
       }, // 数量减少按钮
       originAcountAddPoint: {
         x: [981, 1025],
@@ -340,8 +380,8 @@ function patchPointGroup(config) {
               ? [1340, 1384]
               : [1545, 1586]
             : config.sendToHome
-              ? [1661, 1712]
-              : [1866, 1915],
+            ? [1661, 1712]
+            : [1866, 1915],
       }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [321, 943],
@@ -355,13 +395,13 @@ function patchPointGroup(config) {
       originSureInfoAndPayPoint: { x: [684, 1007], y: [2204, 2297] }, //确认订单页面 <确认信息并支付>
       originBackScreenPoint: { x: [54, 60], y: [154, 184] }, //
       originPayPoints: [
-        { x: [430, 660], y: [1765, 1833] },  //2
-        { x: [430, 660], y: [1765, 1833] },  // 2
-        { x: [430, 660], y: [2219, 2300] }, // 0 
-        { x: [810, 1000], y: [1765, 1833] }, // 3 
-        { x: [430, 660], y: [2219, 2300] }, // 0 
-        { x: [95, 300], y: [2065, 2150] },  // 7
-      ]
+        { x: [430, 660], y: [1765, 1833] }, //2
+        { x: [430, 660], y: [1765, 1833] }, // 2
+        { x: [430, 660], y: [2219, 2300] }, // 0
+        { x: [810, 1000], y: [1765, 1833] }, // 3
+        { x: [430, 660], y: [2219, 2300] }, // 0
+        { x: [95, 300], y: [2065, 2150] }, // 7
+      ],
     },
   };
 }
