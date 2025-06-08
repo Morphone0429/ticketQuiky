@@ -147,7 +147,11 @@ let main = () => {
 
   function handleAmount() {
     let currentScreenOcr = state.currentScreenOcr;
-    let index = currentScreenOcr.indexOf("数量");
+    // oppo reno5 教量识图为教量
+    let index =
+      currentScreenOcr.indexOf("数量") !== -1
+        ? currentScreenOcr.indexOf("数量")
+        : currentScreenOcr.indexOf("教量");
     let newScreenOcr =
       index !== -1 ? currentScreenOcr.slice(index + 1) : currentScreenOcr;
     let hasAdd =
@@ -194,6 +198,7 @@ let main = () => {
             );
             // config.sendToHome && sleepForLessFetch();
             // handleBuyMethod();
+
             checkSureBtnLoading({
               then: handleBuyMethod,
               skip: config.goMarkGet,
@@ -207,6 +212,7 @@ let main = () => {
             );
             // config.goMarkGet && sleepForLessFetch();
             // handleBuyMethod();
+
             checkSureBtnLoading({
               then: handleBuyMethod,
               skip: config.sendToHome,
@@ -223,17 +229,20 @@ let main = () => {
     if (skip) {
       then();
     } else {
-      let newScreenOcr = handleoOrcScreen(1);
-      let MAX_WAIT_TIME = 600;
+      let MAX_WAIT_TIME = 2000;
       if (!state.sureBtnShowTime) {
         state.sureBtnShowTime = Date.now();
       }
       let elapsedTime = Date.now() - state.sureBtnShowTime;
+      if (elapsedTime >= MAX_WAIT_TIME) {
+        state.sureBtnShowTime = null;
+        then();
+      }
+      let newScreenOcr = handleoOrcScreen();
       if (
         newScreenOcr.includes("确定") ||
         newScreenOcr.includes("已售罄") ||
-        newScreenOcr.includes("选择门店") ||
-        elapsedTime >= MAX_WAIT_TIME
+        newScreenOcr.includes("选择门店")
       ) {
         state.sureBtnShowTime = null;
         then();
@@ -282,12 +291,11 @@ let main = () => {
     console.log("等待确认订单页面加载...");
     console.log("是否进入循环", state.enterSureLoop);
     // TODO:
-    sleepForLessFetch(1);
-
+    sleepForLessFetch();
     // 等待页面加载完成
     screenIsLoadedWithOcr({
       patchStep: "makeSureOrder",
-      _wait: 1,
+      // _wait: 50,
       callBack: (mode) => {
         console.log(mode, "确认信息");
         // 确认信息并支付 按钮
@@ -590,7 +598,7 @@ let main = () => {
           callBack("toPay");
           return;
         }
-
+        // console.log(currentScreenOcr, "currentScreenOcr");
         // 确认信息
         if (
           !currentScreenOcr.includes("就是这家") ||
