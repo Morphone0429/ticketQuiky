@@ -1,4 +1,8 @@
-let { baseConfig, patchPointGroup } = require("/sdcard/脚本/configGroup.js");
+let {
+  baseConfig,
+  patchPointGroup,
+  utils,
+} = require("/sdcard/脚本/configGroup.js");
 let { main } = require("/sdcard/脚本/main.js");
 auto();
 

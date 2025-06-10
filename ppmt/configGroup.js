@@ -406,7 +406,76 @@ function patchPointGroup(config) {
   };
 }
 
+let utils = {
+  // 下拉刷新
+  trySwipeUp: function () {
+    // 获取屏幕尺寸
+    let width = device.width;
+    let height = device.height;
+    // 设置下拉起始点和结束点（从屏幕中部向下滑动）
+    let startX = width / 2;
+    let startY = height / 2;
+    let endY = startY + 800; // 下拉距离，可根据需要调整
+    // 执行下拉手势
+    gesture(1000, [startX, startY], [startX, endY]);
+    // 等待刷新完成（时间可根据实际情况调整）},
+  },
+  // 获取orc
+  getOrcScreen: function () {
+    let startTime = Date.now();
+    let img = images.captureScreen();
+    let region = [0, 0.2, -1, 0.6];
+    let currentScreenOcr = ocr(img, region);
+    img.recycle();
+    let endTime = Date.now();
+    let elapsedTime = endTime - startTime;
+    let generateId = startTime + "-" + elapsedTime;
+    return { currentScreenOcr, elapsedTime, startTime, generateId, endTime };
+  },
+
+  // 模拟点击
+  simulateClick: function ({ x, y, wait }) {
+    if (!x || !y) return;
+    let _random = random(1, 11);
+    let isEven = _random % 2 === 0;
+    let _x = random(x[0], x[1]);
+    let _y = random(y[0], y[1]);
+    if (isEven) {
+      let _randomDuration = random(20, 220) || 150;
+      press(_x, _y, _randomDuration);
+    } else {
+      click(_x, _y);
+    }
+  },
+
+  patchScreen: function ({ currentScreenOcr }) {
+    let quickBuyScreen = currentScreenOcr.includes("购物车");
+    let markListScreen = currentScreenOcr.includes("自堤门店列表");
+    let chooseDetailScreen = currentScreenOcr.includes("购买方式");
+    let makeSureOrderScreen = currentScreenOcr.some((item) =>
+      item.includes("确认信息")
+    );
+    let hasAddCar = currentScreenOcr.includes("加入购物车");
+    let hasQuickBuyBtn = currentScreenOcr.includes("立即购买");
+    let hasQuickBuyErrorBtn = currentScreenOcr.some((item) =>
+      item.includes("00")
+    );
+    let POPMARTLoading = currentScreenOcr.some((item) => item.includes("POP")); //popmark 红色loading
+    return {
+      quickBuyScreen,
+      chooseDetailScreen,
+      makeSureOrderScreen,
+      hasAddCar,
+      hasQuickBuyBtn,
+      hasQuickBuyErrorBtn,
+      markListScreen,
+      POPMARTLoading,
+    };
+  },
+};
+
 module.exports = {
   baseConfig,
   patchPointGroup,
+  utils,
 };
