@@ -183,8 +183,13 @@ let main = () => {
           console.log(
             "刷到了 点击进入确认信息页面  开始进行循环点击 <确认-就是这家-我知道了-确认> 模式"
           );
-          handleAmount(); //判断是否进行 +1 操作
-          clickSureBtnWhenHasProd();
+          let newScreenOcr = handleoOrcScreen(1);
+          if (newScreenOcr.includes("确定")) {
+            handleAmount(); //判断是否进行 +1 操作
+            clickSureBtnWhenHasProd();
+          } else {
+            handleBuyMethod();
+          }
         }
         // 没货 继续刷新
         if (mode === "noProd") {
