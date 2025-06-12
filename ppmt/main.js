@@ -70,9 +70,15 @@ let main = () => {
         });
       }
       state.buyMethod = buyMethod;
-      handleSimulateClick({ x: _point.x, y: _point.y, unobstructed: true });
-      sleep(50)
-      checkSureBtnLoading({ then: handleBuyMethod, loadingKey: 'sureBtnLoading' });
+      let { hasSureBtn } = utils.patchScreen({ currentScreenOcr: state.currentScreenOcr })
+      if (hasSureBtn) {
+        clickSureBtnWhenHasProd();
+        return
+      } else {
+        handleSimulateClick({ x: _point.x, y: _point.y, unobstructed: true });
+        sleep(50)
+        checkSureBtnLoading({ then: handleBuyMethod, loadingKey: 'sureBtnLoading' });
+      }
     };
 
     // 送到家
@@ -91,7 +97,6 @@ let main = () => {
       callBack: ({ mode }) => {
         if (mode === 'hasProd') {
           console.log('刷到了 点击进入确认信息页面  开始进行循环点击 <确认-就是这家-我知道了-确认> 模式');
-          handleAmount(); //判断是否进行 +1 操作
           clickSureBtnWhenHasProd();
         }
         // 没货 继续刷新
@@ -135,7 +140,7 @@ let main = () => {
 
   function checkSureBtnLoading({ then, skip, loadingKey }) {
     //TODO 卡bug 进寄到家确认信息页面
-    let key = loadingKey ? loadingKey : 'loadingTime'
+    let key = !!loadingKey ? loadingKey : 'loadingTime'
     if (skip) {
       then();
     } else {
@@ -166,14 +171,8 @@ let main = () => {
 
 
   function handleAmount() {
-    let currentScreenOcr = state.currentScreenOcr;
-    // oppo reno5 教量识图为教量
-    let index =
-      currentScreenOcr.indexOf("数量") !== -1
-        ? currentScreenOcr.indexOf("数量")
-        : currentScreenOcr.indexOf("教量");
-    let newScreenOcr =
-      index !== -1 ? currentScreenOcr.slice(index + 1) : currentScreenOcr;
+    if (state.loopCount > 1) return
+    let newScreenOcr = state.currentScreenOcr.slice(state.currentScreenOcr.length - 6)
     let hasAdd =
       newScreenOcr.some((item) => item.includes("2")) ||
       newScreenOcr.includes("2");
@@ -196,12 +195,13 @@ let main = () => {
 
   // 确认信息并支付 并开启循环模式
   function handleToPayLoop() {
+    console.log('进入循环')
     // 是否进入循环  只要第一次点击了确认按钮  就认为进入循环
     state.enterSureLoop = true;
     console.log("等待确认订单页面加载...");
     // 等待页面加载完成
     screenIsLoadedWithOcr({
-      wait: state.loopCount < 10 ? 1 : 0,
+      wait: state.loopCount < 10 ? 1 : config.orcSleepTime,
       patchStep: "makeSureOrder",
       callBack: ({ mode }) => {
         console.log(mode, "确认信息");
@@ -211,7 +211,6 @@ let main = () => {
             x: point.originSureInfoAndPayPoint.x,
             y: point.originSureInfoAndPayPoint.y,
             disabledKey: 'originSureInfoAndPayPoint',
-            wait: 1000,
           });
           handleToPayLoop();
         }
@@ -240,7 +239,6 @@ let main = () => {
             x: point.originknowMailPoint.x,
             y: point.originknowMailPoint.y,
             disabledKey: 'originknowMailPoint',
-
           });
           handleToPayLoop();
         }
@@ -250,13 +248,12 @@ let main = () => {
           handleSimulateClick({
             x: point.originNoProdPoint.x,
             y: point.originNoProdPoint.y,
-            disabledKey: 'originNoProdPoint'
+            disabledKey: 'originNoProdPoint',
           });
           handleToPayLoop();
         }
         // 没货 点击我知道了
         if (mode === "nextLoopStart") {
-          handleAmount();
           clickSureBtnWhenHasProd();
         }
         // 抢到了 自动付款
@@ -276,12 +273,13 @@ let main = () => {
   }
 
   function clickSureBtnWhenHasProd() {
+    handleAmount()
     state.loopCount++;
     console.log("循环的次数", state.loopCount);
     handleSimulateClick({
       x: point.originSurePoint.x,
       y: point.originSurePoint.y,
-      disabledKey: 'originSurePoint'
+      disabledKey: 'originSurePoint',
     });
 
     handleToPayLoop();
@@ -289,7 +287,7 @@ let main = () => {
 
   // 预售时确定按钮不一定能刷新 会停留在 00:00  需要手动下滑
   function waitForFn({ maxWaitTime, next, loadingKey }) {
-    let key = loadingKey ? loadingKey : 'loadingTime'
+    let key = !!loadingKey ? loadingKey : 'loadingTime'
     let MAX_WAIT_TIME = maxWaitTime;
     if (!state[key]) {
       state[key] = Date.now();
@@ -300,24 +298,28 @@ let main = () => {
       next && next();
       return true
     }
-    setTimeout(() => {
-      state[key] = null;
-    }, maxWaitTime + 500);
+    threads.start(function () {
+      setTimeout(() => {
+        state[key] = null;
+      }, maxWaitTime + 500);
+    })
   }
 
   function backToPreScreen() {
     let { markListScreen, makeSureOrderScreen } = utils.patchScreen({ currentScreenOcr: state.currentScreenOcr });
-    if (!markListScreen || !makeSureOrderScreen) return;
-    handleSimulateClick({
-      x: point.originBackScreenPoint.x,
-      y: point.originBackScreenPoint.y,
-      disabledKey: "originBackScreenPoint"
-    });
+    // console.log(markListScreen, makeSureOrderScreen, 'markListScreen, makeSureOrderScreen ')
+    if (markListScreen || makeSureOrderScreen) {
+      handleSimulateClick({
+        x: point.originBackScreenPoint.x,
+        y: point.originBackScreenPoint.y,
+        disabledKey: "originBackScreenPoint"
+      });
+    }
   }
 
   // 模拟点击  unobstructed true 不设置clickDisabled
   function handleSimulateClick({ x, y, wait, unobstructed, disabledKey }) {
-    let key = disabledKey ? disabledKey : 'clickDisabled'
+    let key = !!disabledKey ? disabledKey : 'clickDisabled'
     if (unobstructed) {
       utils.simulateClick({ x, y });
     } else {
@@ -326,15 +328,16 @@ let main = () => {
       threads.start(function () {
         setTimeout(() => {
           state[key] = false
-        }, wait ? wait : 5000);
+        }, !!wait ? wait : 1500);
       })
       utils.simulateClick({ x, y });
       state[key] = true;
+      console.log(state, 'handleSimulateClick-state')
     }
   }
 
   function screenIsLoadedWithOcr({ callBack, patchStep, wait }) {
-    let _wait = wait ? wait : 0;
+    let _wait = !!wait ? wait : 0;
     let { currentScreenOcr } = handleoOrcScreen(_wait);
     let {
       hasQuickBuyBtn,
@@ -342,24 +345,21 @@ let main = () => {
       hasAddCar,
       hasTrySoon,
       POPMARTLoading,
+      hasSureBtn,
       quickBuyScreen, // 立即购买按钮页面
       chooseDetailScreen, // 选择规格，购买方式页面
       makeSureOrderScreen, // 确认信息并支付页面
       markListScreen, // 自提门店列表页面
     } = utils.patchScreen({ currentScreenOcr });
-    console.log({ currentScreenOcr }, '=currentScreenOcr')
+    console.log({ state }, '=currentScreenOcr')
     function fallbackLogic() {
+      console.log('================兜底逻辑 ===================', { state })
       // 兜底逻辑 没有找到 再多等待一会儿再查找
       screenIsLoadedWithOcr({ callBack, patchStep: 'start', wait });
       return;
     }
 
-    console.log('当前的步骤和监听到的页面是', {
-      patchStep,
-      quickBuyScreen,
-      chooseDetailScreen,
-      makeSureOrderScreen,
-    });
+    console.log('当前的步骤是', { patchStep });
 
     if (markListScreen) {
       // 误点进入自提门店列表页面 马上退出
@@ -439,7 +439,7 @@ let main = () => {
     if (patchStep === 'makeSureOrder') {
       // 有确定按钮 进行下一次循环
       if (chooseDetailScreen) {
-        if (currentScreenOcr.includes('确定') && state.enterSureLoop) {
+        if (hasSureBtn && state.enterSureLoop) {
           callBack({ mode: 'nextLoopStart' });
           return;
         }
@@ -480,7 +480,7 @@ let main = () => {
   }
 
   function handleoOrcScreen(wait) {
-    let _wait = wait ? wait : config.orcSleepTime;
+    let _wait = !!wait ? wait : config.orcSleepTime;
     let { currentScreenOcr, elapsedTime, startTime, generateId, endTime } = utils.getOrcScreen();
     state.currentScreenOcr = currentScreenOcr;
     state.generateId = generateId;

@@ -388,7 +388,7 @@ function patchPointGroup(config) {
         y: [2218, 2297],
       }, // 立即购买按钮(无加入购物车)
       originalQuickBtnPointWithCarPoint: { x: [686, 982], y: [2204, 2282] }, // 立即购买按钮(有加入购物车)
-      originSurePoint: { x: [124, 981], y: [2108, 2200] }, // 选择购买方式页面有货时 确定按钮
+      originSurePoint: { x: [124, 981], y: [2134, 2173] }, // 选择购买方式页面有货时 确定按钮
       originThisMarkPoint: { x: [217, 877], y: [1501, 1570] }, // 确定订单页面 确认门店信息  就是这家按钮
       originNoProdPoint: { x: [384, 735], y: [1190, 1242] }, // 没货提示 <我知道了>按钮
       originknowMailPoint: { x: [256, 854], y: [1457, 1543] }, // 请确认收货地址  确认无误按钮
@@ -425,7 +425,7 @@ let utils = {
     let startTime = Date.now();
     let img = images.captureScreen();
     let region = [0, 0.2, -1, 0.6];
-    let currentScreenOcr = ocr(img, region);
+    let currentScreenOcr = ocr(img, region).map(i => i.trim())
     img.recycle();
     let endTime = Date.now();
     let elapsedTime = endTime - startTime;
@@ -450,11 +450,13 @@ let utils = {
 
   patchScreen: function ({ currentScreenOcr }) {
     let quickBuyScreen = currentScreenOcr.includes("购物车");
-    let markListScreen = currentScreenOcr.includes("自堤门店列表");
-    let chooseDetailScreen = currentScreenOcr.includes("购买方式");
-    let makeSureOrderScreen = currentScreenOcr.some((item) =>
-      item.includes("确认信息")
-    );
+    let markListScreen = currentScreenOcr.includes("自提门店列表") || currentScreenOcr.some((item) => item.includes("门店列表"));
+    let hasSureBtn = currentScreenOcr.includes("确定") || currentScreenOcr.some((item) => item.includes("确定"));
+    let chooseDetailScreen = currentScreenOcr.includes("购买方式")
+      || currentScreenOcr.some((item) => item.includes("买方式"))
+      || currentScreenOcr.includes("到店取")
+      || currentScreenOcr.includes("送到家");
+    let makeSureOrderScreen = currentScreenOcr.some((item) => item.includes("确认信息")) || currentScreenOcr.some((item) => item.includes("合计"));
     let hasAddCar = currentScreenOcr.includes("加入购物车");
     let hasQuickBuyBtn = currentScreenOcr.includes("立即购买");
     let hasQuickBuyErrorBtn = currentScreenOcr.some((item) =>
@@ -474,6 +476,7 @@ let utils = {
       markListScreen,
       POPMARTLoading,
       hasTrySoon,
+      hasSureBtn,
     };
   },
 };
