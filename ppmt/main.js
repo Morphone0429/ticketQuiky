@@ -1,6 +1,6 @@
 let main = () => {
   let state = {
-    buyMethod: '', // home | mark
+    buyMethod: "", // home | mark
     enterSureLoop: false,
     loopCount: 0,
     clickDisabled: false,
@@ -9,45 +9,49 @@ let main = () => {
   };
   //
   requestScreenCapture();
-  console.log('脚本开始执行,购买配置:', { config, state });
+  console.log("脚本开始执行,购买配置:", { config, state });
   run();
   function run() {
     screenIsLoadedWithOcr({
       callBack: ({ mode }) => {
-        console.log({ mode }, '========mode')
-        if (mode === 'quickBuyWithCar') {
+        console.log({ mode }, "========mode");
+        if (mode === "quickBuyWithCar") {
           handleSimulateClick({
             x: point.originalQuickBtnPointWithCarPoint.x,
             y: point.originalQuickBtnPointWithCarPoint.y,
-            disabledKey: 'originalQuickBtnPointWithCarPoint'
+            disabledKey: "originalQuickBtnPointWithCarPoint",
           });
           run();
         }
-        if (mode === 'quickBuyWithoutCar') {
+        if (mode === "quickBuyWithoutCar") {
           handleSimulateClick({
             x: point.originalQuickBtnPointWithOutCarPoint.x,
             y: point.originalQuickBtnPointWithOutCarPoint.y,
-            disabledKey: 'originalQuickBtnPointWithOutCarPoint'
+            disabledKey: "originalQuickBtnPointWithOutCarPoint",
           });
           run();
         }
-        if (mode === 'quickBuyError') {
+        if (mode === "quickBuyError") {
           //预售时确定按钮不一定能刷新 会停留在 00:00  需要手动下滑
-          waitForFn({ maxWaitTime: 1500, next: utils.trySwipeUp, loadingKey: 'quickBuyErrorLoading' });
+          waitForFn({
+            maxWaitTime: 2000,
+            next: utils.trySwipeUp,
+            loadingKey: "quickBuyErrorLoading",
+          });
           run();
         }
-        if (mode === 'loopChooseDetail') {
+        if (mode === "loopChooseDetail") {
           initBuyMethod();
         }
-        if (mode === 'loopMakeSureOrder') {
+        if (mode === "loopMakeSureOrder") {
           handleToPayLoop();
         }
-        if (mode === 'loopMarkList') {
+        if (mode === "loopMarkList") {
           backToPreScreen();
           run();
         }
       },
-      patchStep: 'start',
+      patchStep: "start",
       wait: 1,
     });
   }
@@ -70,72 +74,78 @@ let main = () => {
         });
       }
       state.buyMethod = buyMethod;
-      handleSimulateClick({ x: _point.x, y: _point.y, unobstructed: true })
-      let { hasSureBtn } = utils.patchScreen({ currentScreenOcr: state.currentScreenOcr })
-      !hasSureBtn && sleep(200)
-      checkSureBtnLoading({ then: handleBuyMethod, loadingKey: 'sureBtnLoading' });
+      handleSimulateClick({ x: _point.x, y: _point.y, unobstructed: true });
+      let { hasSureBtn } = utils.patchScreen({
+        currentScreenOcr: state.currentScreenOcr,
+      });
+      !hasSureBtn && sleep(200);
+      checkSureBtnLoading({
+        then: handleBuyMethod,
+        loadingKey: "sureBtnLoading",
+      });
     };
 
     // 送到家
     if (config.sendToHome && !config.goMarkGet) {
-      run({ _point: point.originSendToHomePoint, buyMethod: 'home' });
+      run({ _point: point.originSendToHomePoint, buyMethod: "home" });
     }
 
     // 到店取
     if (!config.sendToHome && config.goMarkGet) {
-      run({ _point: point.originGoMarkGetPoint, buyMethod: 'mark' });
+      run({ _point: point.originGoMarkGetPoint, buyMethod: "mark" });
     }
   }
 
   function handleBuyMethod() {
     screenIsLoadedWithOcr({
       callBack: ({ mode }) => {
-        if (mode === 'hasProd') {
-          console.log('刷到了 点击进入确认信息页面  开始进行循环点击 <确认-就是这家-我知道了-确认> 模式');
+        if (mode === "hasProd") {
+          console.log(
+            "刷到了 点击进入确认信息页面  开始进行循环点击 <确认-就是这家-我知道了-确认> 模式"
+          );
           clickSureBtnWhenHasProd();
         }
         // 没货 继续刷新
-        if (mode === 'noProd') {
+        if (mode === "noProd") {
           let currentBuyMethod = state.buyMethod;
-          console.log('没有库存，继续循环刷新');
-          if (currentBuyMethod === 'mark') {
-            state.buyMethod = 'home';
+          console.log("没有库存，继续循环刷新");
+          if (currentBuyMethod === "mark") {
+            state.buyMethod = "home";
             handleSimulateClick({
               x: point.originSendToHomePoint.x,
               y: point.originSendToHomePoint.y,
-              unobstructed: true
-            },);
+              unobstructed: true,
+            });
 
             checkSureBtnLoading({
               then: handleBuyMethod,
               skip: config.goMarkGet,
-              loadingKey: 'homeLoading'
+              loadingKey: "homeLoading",
             });
           }
-          if (currentBuyMethod === 'home') {
-            state.buyMethod = 'mark';
+          if (currentBuyMethod === "home") {
+            state.buyMethod = "mark";
             handleSimulateClick({
               x: point.originGoMarkGetPoint.x,
               y: point.originGoMarkGetPoint.y,
-              unobstructed: true
+              unobstructed: true,
             });
 
             checkSureBtnLoading({
               then: handleBuyMethod,
               skip: config.sendToHome,
-              loadingKey: 'markLoading'
+              loadingKey: "markLoading",
             });
           }
         }
       },
-      patchStep: 'chooseDetail',
+      patchStep: "chooseDetail",
     });
   }
 
-
   function checkSureBtnLoading({ then, skip, loadingKey }) {
     //TODO 卡bug 进寄到家确认信息页面
-    let key = !!loadingKey ? loadingKey : 'loadingTime'
+    let key = !!loadingKey ? loadingKey : "loadingTime";
     if (skip) {
       then();
     } else {
@@ -148,7 +158,7 @@ let main = () => {
       if (elapsedTime >= MAX_WAIT_TIME) {
         state[key] = null;
         then();
-        return true
+        return true;
       }
       let newScreenOcr = handleoOrcScreen(1).currentScreenOcr;
       if (
@@ -164,10 +174,11 @@ let main = () => {
     }
   }
 
-
   function handleAmount() {
-    if (state.loopCount > 1) return
-    let newScreenOcr = state.currentScreenOcr.slice(state.currentScreenOcr.length - 6)
+    if (state.loopCount > 1) return;
+    let newScreenOcr = state.currentScreenOcr.slice(
+      state.currentScreenOcr.length - 6
+    );
     let hasAdd =
       newScreenOcr.some((item) => item.includes("2")) ||
       newScreenOcr.includes("2");
@@ -175,22 +186,21 @@ let main = () => {
       handleSimulateClick({
         x: point.originAcountAddPoint.x,
         y: point.originAcountAddPoint.y,
-        unobstructed: true
+        unobstructed: true,
       });
       sleep(50);
     } else if (!config.addOne && hasAdd) {
       handleSimulateClick({
         x: point.originAcountLessPoint.x,
         y: point.originAcountLessPoint.y,
-        unobstructed: true
+        unobstructed: true,
       });
     }
   }
 
-
   // 确认信息并支付 并开启循环模式
   function handleToPayLoop() {
-    console.log('进入循环')
+    console.log("进入循环");
     // 是否进入循环  只要第一次点击了确认按钮  就认为进入循环
     state.enterSureLoop = true;
     console.log("等待确认订单页面加载...");
@@ -199,23 +209,26 @@ let main = () => {
       wait: state.loopCount < 10 ? 1 : config.orcSleepTime,
       patchStep: "makeSureOrder",
       callBack: ({ mode }) => {
-        console.log(mode, "确认信息");
+        console.log(mode, "mode确认信息");
         // 确认信息并支付 按钮
         if (mode === "makeSureOrder") {
           handleSimulateClick({
             x: point.originSureInfoAndPayPoint.x,
             y: point.originSureInfoAndPayPoint.y,
-            disabledKey: 'originSureInfoAndPayPoint',
+            disabledKey: "originSureInfoAndPayPoint",
           });
           handleToPayLoop();
         }
-        if (mode === 'backToPre') {
+        if (mode === "backToPre") {
           backToPreScreen();
           handleToPayLoop();
         }
+        if (mode === "POPMARTLoading") {
+          handleToPayLoop();
+        }
 
-        if (mode === 'trySoon') {
-          sleep(1000)
+        if (mode === "trySoon") {
+          sleep(1000);
           handleToPayLoop();
         }
 
@@ -224,7 +237,7 @@ let main = () => {
           handleSimulateClick({
             x: point.originThisMarkPoint.x,
             y: point.originThisMarkPoint.y,
-            disabledKey: 'originThisMarkPoint',
+            disabledKey: "originThisMarkPoint",
           });
           handleToPayLoop();
         }
@@ -233,7 +246,7 @@ let main = () => {
           handleSimulateClick({
             x: point.originknowMailPoint.x,
             y: point.originknowMailPoint.y,
-            disabledKey: 'originknowMailPoint',
+            disabledKey: "originknowMailPoint",
           });
           handleToPayLoop();
         }
@@ -243,7 +256,7 @@ let main = () => {
           handleSimulateClick({
             x: point.originNoProdPoint.x,
             y: point.originNoProdPoint.y,
-            disabledKey: 'originNoProdPoint',
+            disabledKey: "originNoProdPoint",
           });
           handleToPayLoop();
         }
@@ -258,31 +271,34 @@ let main = () => {
           let payPoints = point.originPayPoints;
           for (let i = 0; i < payPoints.length; i++) {
             let _point = payPoints[i];
-            handleSimulateClick({ x: _point.x, y: _point.y, unobstructed: true });
+            handleSimulateClick({
+              x: _point.x,
+              y: _point.y,
+              unobstructed: true,
+            });
             sleep(1000);
           }
         }
       },
     });
-
   }
 
   function clickSureBtnWhenHasProd() {
-    handleAmount()
+    handleAmount();
     state.loopCount++;
     console.log("循环的次数", state.loopCount);
     handleSimulateClick({
       x: point.originSurePoint.x,
       y: point.originSurePoint.y,
-      disabledKey: 'originSurePoint',
+      disabledKey: "originSurePoint",
     });
 
     handleToPayLoop();
   }
 
   // 预售时确定按钮不一定能刷新 会停留在 00:00  需要手动下滑
-  function waitForFn({ maxWaitTime, next, loadingKey }) {
-    let key = !!loadingKey ? loadingKey : 'loadingTime'
+  function waitForFn({ maxWaitTime, next, then, loadingKey }) {
+    let key = !!loadingKey ? loadingKey : "loadingTime";
     let MAX_WAIT_TIME = maxWaitTime;
     if (!state[key]) {
       state[key] = Date.now();
@@ -291,43 +307,50 @@ let main = () => {
     if (elapsedTime >= MAX_WAIT_TIME) {
       state[key] = null;
       next && next();
-      return true
+      return true;
     }
+
     threads.start(function () {
       setTimeout(() => {
         state[key] = null;
       }, maxWaitTime + 500);
-    })
+    });
+    then && then();
   }
 
   function backToPreScreen() {
-    let { markListScreen, makeSureOrderScreen } = utils.patchScreen({ currentScreenOcr: state.currentScreenOcr });
+    let { markListScreen, makeSureOrderScreen } = utils.patchScreen({
+      currentScreenOcr: state.currentScreenOcr,
+    });
     // console.log(markListScreen, makeSureOrderScreen, 'markListScreen, makeSureOrderScreen ')
     if (markListScreen || makeSureOrderScreen) {
       handleSimulateClick({
         x: point.originBackScreenPoint.x,
         y: point.originBackScreenPoint.y,
-        disabledKey: "originBackScreenPoint"
+        disabledKey: "originBackScreenPoint",
       });
     }
   }
 
   // 模拟点击  unobstructed true 不设置clickDisabled
   function handleSimulateClick({ x, y, wait, unobstructed, disabledKey }) {
-    let key = !!disabledKey ? disabledKey : 'clickDisabled'
+    let key = !!disabledKey ? disabledKey : "clickDisabled";
     if (unobstructed) {
       utils.simulateClick({ x, y });
     } else {
-      console.log(state, 'state')
+      console.log(state, "state");
       if (state[key]) return;
       threads.start(function () {
-        setTimeout(() => {
-          state[key] = false
-        }, !!wait ? wait : 1500);
-      })
+        setTimeout(
+          () => {
+            state[key] = false;
+          },
+          !!wait ? wait : 1500
+        );
+      });
       utils.simulateClick({ x, y });
       state[key] = true;
-      console.log(state, 'handleSimulateClick-state')
+      console.log(state, "handleSimulateClick-state");
     }
   }
 
@@ -346,126 +369,145 @@ let main = () => {
       makeSureOrderScreen, // 确认信息并支付页面
       markListScreen, // 自提门店列表页面
     } = utils.patchScreen({ currentScreenOcr });
-    console.log({ state }, '=currentScreenOcr')
+    console.log({ state }, "=currentScreenOcr");
     function fallbackLogic() {
-      console.log('================兜底逻辑 ===================', { state })
+      console.log("================兜底逻辑 ===================", { state });
       // 兜底逻辑 没有找到 再多等待一会儿再查找
-      screenIsLoadedWithOcr({ callBack, patchStep: 'start', wait });
+      screenIsLoadedWithOcr({ callBack, patchStep: "start", wait });
       return;
     }
 
-    console.log('当前的步骤是', { patchStep });
+    console.log("当前的步骤是", { patchStep });
 
     if (markListScreen) {
       // 误点进入自提门店列表页面 马上退出
       backToPreScreen();
     }
 
-    if (patchStep === 'start') {
+    if (patchStep === "start") {
       // 购物车y页面
       if (quickBuyScreen) {
         // 有购物车模式
         if (hasAddCar && hasQuickBuyBtn) {
-          callBack({ mode: 'quickBuyWithCar' });
+          callBack({ mode: "quickBuyWithCar" });
           return;
         }
         // 无购物车模式
         if (!hasAddCar && hasQuickBuyBtn) {
-          callBack({ mode: 'quickBuyWithoutCar' });
+          callBack({ mode: "quickBuyWithoutCar" });
           return;
         }
         // 距离开售时间还剩 00:00 异常情况
         if (hasQuickBuyErrorBtn) {
-          callBack({ mode: 'quickBuyError' });
+          callBack({ mode: "quickBuyError" });
           return;
         }
       } else if (chooseDetailScreen) {
         // 进入选择规格/购买方式页面
-        callBack({ mode: 'loopChooseDetail' });
+        callBack({ mode: "loopChooseDetail" });
         return;
       } else if (makeSureOrderScreen) {
         // 确认信息页面
-        callBack({ mode: 'loopMakeSureOrder' });
+        callBack({ mode: "loopMakeSureOrder" });
         return;
       } else if (markListScreen) {
         // 误点进入自提门店列表页面 马上退出
-        callBack({ mode: 'loopMarkList' });
+        callBack({ mode: "loopMarkList" });
         return;
       }
     }
 
     // 选择规格页面
-    if (patchStep === 'chooseDetail') {
+    if (patchStep === "chooseDetail") {
       if (chooseDetailScreen) {
         // 有货 可以点击购买
-        if (currentScreenOcr.includes('确定')) {
+        if (currentScreenOcr.includes("确定")) {
           // 仅购买送到家
           if (config.sendToHome && !config.goMarkGet) {
-            if (state.buyMethod === 'mark') {
-              callBack({ mode: 'noProd' });
+            if (state.buyMethod === "mark") {
+              callBack({ mode: "noProd" });
               return;
             }
-            if (state.buyMethod === 'home') {
-              callBack({ mode: 'hasProd' });
+            if (state.buyMethod === "home") {
+              callBack({ mode: "hasProd" });
               return;
             }
           }
           // 仅购买到店取
           if (!config.sendToHome && config.goMarkGet) {
-            if (state.buyMethod === 'mark') {
-              callBack({ mode: 'hasProd' });
+            if (state.buyMethod === "mark") {
+              callBack({ mode: "hasProd" });
               return;
             }
-            if (state.buyMethod === 'home') {
-              callBack({ mode: 'noProd' });
+            if (state.buyMethod === "home") {
+              callBack({ mode: "noProd" });
               return;
             }
           }
         }
 
         // 没货 开始循环点击刷新
-        if (currentScreenOcr.includes('已售罄') || !currentScreenOcr.includes('确定')) {
-          callBack({ mode: 'noProd' });
+        if (
+          currentScreenOcr.includes("已售罄") ||
+          !currentScreenOcr.includes("确定")
+        ) {
+          callBack({ mode: "noProd" });
           return;
         }
       }
     }
 
-    if (patchStep === 'makeSureOrder') {
+    if (patchStep === "makeSureOrder") {
       // 有确定按钮 进行下一次循环
       if (chooseDetailScreen) {
         if (hasSureBtn && state.enterSureLoop) {
-          callBack({ mode: 'nextLoopStart' });
+          callBack({ mode: "nextLoopStart" });
           return;
         }
       }
 
       // 确认订单页面
       if (makeSureOrderScreen) {
-        if (currentScreenOcr.includes('就是这家')) {
+        if (currentScreenOcr.includes("就是这家")) {
           // 确认门店
-          callBack({ mode: 'thisOne' });
+          callBack({ mode: "thisOne" });
           return;
-        } else if (currentScreenOcr.includes('确认无误') || currentScreenOcr.some(item => item.includes('无误'))) {
+        } else if (
+          currentScreenOcr.includes("确认无误") ||
+          currentScreenOcr.some((item) => item.includes("无误"))
+        ) {
           // 确认无误
-          callBack({ mode: 'sureMail' });
+          callBack({ mode: "sureMail" });
           return;
-        } else if (currentScreenOcr.includes('我知道了') || currentScreenOcr.some(item => item.includes('道了'))) {
+        } else if (
+          currentScreenOcr.includes("我知道了") ||
+          currentScreenOcr.some((item) => item.includes("道了"))
+        ) {
           // 我知道了
-          callBack({ mode: 'known' });
+          callBack({ mode: "known" });
           return;
-        } else if (currentScreenOcr.includes('微信支付')) {
+        } else if (currentScreenOcr.includes("微信支付")) {
           // 付款页面
-          callBack({ mode: 'toPay' });
+          callBack({ mode: "toPay" });
           return;
         } else if (hasTrySoon) {
-          callBack({ mode: 'trySoon' });
+          callBack({ mode: "trySoon" });
           return;
-        } else if (POPMARTLoading && waitForFn({ maxWaitTime: 3500, loadingKey: 'POPMARTLoading' })) {
-          callBack({ mode: 'backToPre' });
-          return;
+        } else if (POPMARTLoading) {
+          waitForFn({
+            maxWaitTime: 4000,
+            loadingKey: "POPMARTLoading",
+            next: () => {
+              callBack({ mode: "backToPre" });
+              return;
+            },
+            then: () => {
+              callBack({ mode: "POPMARTLoading" });
+              return;
+            },
+          });
         } else {
-          callBack({ mode: 'makeSureOrder' });
+          callBack({ mode: "makeSureOrder" });
           return;
         }
       }
@@ -476,7 +518,8 @@ let main = () => {
 
   function handleoOrcScreen(wait) {
     let _wait = !!wait ? wait : config.orcSleepTime;
-    let { currentScreenOcr, elapsedTime, startTime, generateId, endTime } = utils.getOrcScreen();
+    let { currentScreenOcr, elapsedTime, startTime, generateId, endTime } =
+      utils.getOrcScreen();
     state.currentScreenOcr = currentScreenOcr;
     state.generateId = generateId;
     sleep(_wait);

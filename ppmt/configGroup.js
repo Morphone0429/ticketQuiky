@@ -102,8 +102,8 @@ function patchPointGroup(config) {
               ? []
               : []
             : config.sendToHome
-              ? []
-              : [],
+            ? []
+            : [],
       }, // 数量减少按钮
       originAcountAddPoint: {
         x: [],
@@ -113,8 +113,8 @@ function patchPointGroup(config) {
               ? []
               : []
             : config.sendToHome
-              ? []
-              : [],
+            ? []
+            : [],
       }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [],
@@ -155,8 +155,8 @@ function patchPointGroup(config) {
               ? [1565, 1595]
               : [1788, 1839]
             : config.sendToHome
-              ? [1926, 1979]
-              : [2167, 2209],
+            ? [1926, 1979]
+            : [2167, 2209],
       }, // 数量减少按钮
       originAcountAddPoint: {
         x: [1143, 1190],
@@ -166,8 +166,8 @@ function patchPointGroup(config) {
               ? [1565, 1595]
               : [1788, 1839]
             : config.sendToHome
-              ? [1926, 1979]
-              : [2167, 2209],
+            ? [1926, 1979]
+            : [2167, 2209],
       }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [319, 1183],
@@ -208,8 +208,8 @@ function patchPointGroup(config) {
               ? [1354, 1398]
               : [1552, 1598]
             : config.sendToHome
-              ? [1680, 1712]
-              : [1887, 1925],
+            ? [1680, 1712]
+            : [1887, 1925],
       }, // 数量减少按钮 1
       originAcountAddPoint: {
         x: [973, 1022],
@@ -219,8 +219,8 @@ function patchPointGroup(config) {
               ? [1354, 1398]
               : [1552, 1598]
             : config.sendToHome
-              ? [1680, 1712]
-              : [1887, 1925],
+            ? [1680, 1712]
+            : [1887, 1925],
       }, // 数量增加按钮 1
 
       originalQuickBtnPointWithOutCarPoint: {
@@ -262,8 +262,8 @@ function patchPointGroup(config) {
               ? [1722, 1790]
               : [1984, 2046]
             : config.sendToHome
-              ? [2154, 2214]
-              : [2421, 2478],
+            ? [2154, 2214]
+            : [2421, 2478],
       }, // 数量减少按钮
       originAcountAddPoint: {
         x: [1299, 1367],
@@ -273,8 +273,8 @@ function patchPointGroup(config) {
               ? [1722, 1790]
               : [1984, 2046]
             : config.sendToHome
-              ? [2154, 2214]
-              : [2421, 2478],
+            ? [2154, 2214]
+            : [2421, 2478],
       }, // 数量增加按钮
 
       originalQuickBtnPointWithOutCarPoint: {
@@ -316,8 +316,8 @@ function patchPointGroup(config) {
               ? [1410, 1459]
               : [1607, 1658]
             : config.sendToHome
-              ? [1735, 1770]
-              : [1937, 1980],
+            ? [1735, 1770]
+            : [1937, 1980],
       }, // 数量减少按钮
       originAcountAddPoint: {
         x: [977, 1025],
@@ -327,8 +327,8 @@ function patchPointGroup(config) {
               ? [1410, 1459]
               : [1607, 1658]
             : config.sendToHome
-              ? [1735, 1770]
-              : [1937, 1980],
+            ? [1735, 1770]
+            : [1937, 1980],
       }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [304, 960],
@@ -369,8 +369,8 @@ function patchPointGroup(config) {
               ? [1340, 1384]
               : [1545, 1586]
             : config.sendToHome
-              ? [1661, 1712]
-              : [1866, 1915],
+            ? [1661, 1712]
+            : [1866, 1915],
       }, // 数量减少按钮
       originAcountAddPoint: {
         x: [981, 1025],
@@ -380,8 +380,8 @@ function patchPointGroup(config) {
               ? [1340, 1384]
               : [1545, 1586]
             : config.sendToHome
-              ? [1661, 1712]
-              : [1866, 1915],
+            ? [1661, 1712]
+            : [1866, 1915],
       }, // 数量增加按钮
       originalQuickBtnPointWithOutCarPoint: {
         x: [321, 943],
@@ -425,7 +425,7 @@ let utils = {
     let startTime = Date.now();
     let img = images.captureScreen();
     let region = [0, 0.2, -1, 0.6];
-    let currentScreenOcr = ocr(img, region).map(i => i.trim())
+    let currentScreenOcr = ocr(img, region).map((i) => i.trim());
     img.recycle();
     let endTime = Date.now();
     let elapsedTime = endTime - startTime;
@@ -434,7 +434,7 @@ let utils = {
   },
 
   // 模拟点击
-  simulateClick: function ({ x, y, }) {
+  simulateClick: function ({ x, y }) {
     if (!x || !y) return;
     let _random = random(1, 11);
     let isEven = _random % 2 === 0;
@@ -450,13 +450,20 @@ let utils = {
 
   patchScreen: function ({ currentScreenOcr }) {
     let quickBuyScreen = currentScreenOcr.includes("购物车");
-    let markListScreen = currentScreenOcr.includes("自提门店列表") || currentScreenOcr.some((item) => item.includes("门店列表"));
-    let hasSureBtn = currentScreenOcr.includes("确定") || currentScreenOcr.some((item) => item.includes("确定"));
-    let chooseDetailScreen = currentScreenOcr.includes("购买方式")
-      || currentScreenOcr.some((item) => item.includes("买方式"))
-      || currentScreenOcr.includes("到店取")
-      || currentScreenOcr.includes("送到家");
-    let makeSureOrderScreen = currentScreenOcr.some((item) => item.includes("确认信息")) || currentScreenOcr.some((item) => item.includes("合计"));
+    let markListScreen =
+      currentScreenOcr.includes("自提门店列表") ||
+      currentScreenOcr.some((item) => item.includes("门店列表"));
+    let hasSureBtn =
+      currentScreenOcr.includes("确定") ||
+      currentScreenOcr.some((item) => item.includes("确定"));
+    let chooseDetailScreen =
+      currentScreenOcr.includes("购买方式") ||
+      currentScreenOcr.some((item) => item.includes("买方式")) ||
+      currentScreenOcr.includes("到店取") ||
+      currentScreenOcr.includes("送到家");
+    let makeSureOrderScreen =
+      currentScreenOcr.some((item) => item.includes("确认信息")) ||
+      currentScreenOcr.some((item) => item.includes("合计"));
     let hasAddCar = currentScreenOcr.includes("加入购物车");
     let hasQuickBuyBtn = currentScreenOcr.includes("立即购买");
     let hasQuickBuyErrorBtn = currentScreenOcr.some((item) =>
@@ -464,8 +471,10 @@ let utils = {
     );
     let hasTrySoon = currentScreenOcr.some((item) =>
       item.includes("请稍后重试")
-    )
-    let POPMARTLoading = currentScreenOcr.some((item) => item.includes("POP")); //popmark 红色loading
+    );
+    let POPMARTLoading =
+      currentScreenOcr.some((item) => item.includes("POP")) ||
+      currentScreenOcr.some((item) => item.includes("MAR")); //popmark 红色loading
     return {
       quickBuyScreen,
       chooseDetailScreen,
