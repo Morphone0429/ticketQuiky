@@ -70,15 +70,10 @@ let main = () => {
         });
       }
       state.buyMethod = buyMethod;
+      handleSimulateClick({ x: _point.x, y: _point.y, unobstructed: true })
       let { hasSureBtn } = utils.patchScreen({ currentScreenOcr: state.currentScreenOcr })
-      if (hasSureBtn) {
-        clickSureBtnWhenHasProd();
-        return
-      } else {
-        handleSimulateClick({ x: _point.x, y: _point.y, unobstructed: true });
-        sleep(50)
-        checkSureBtnLoading({ then: handleBuyMethod, loadingKey: 'sureBtnLoading' });
-      }
+      !hasSureBtn && sleep(200)
+      checkSureBtnLoading({ then: handleBuyMethod, loadingKey: 'sureBtnLoading' });
     };
 
     // 送到家
@@ -466,7 +461,7 @@ let main = () => {
         } else if (hasTrySoon) {
           callBack({ mode: 'trySoon' });
           return;
-        } else if (POPMARTLoading && waitForFn({ maxWaitTime: 4000, loadingKey: 'POPMARTLoading' })) {
+        } else if (POPMARTLoading && waitForFn({ maxWaitTime: 3500, loadingKey: 'POPMARTLoading' })) {
           callBack({ mode: 'backToPre' });
           return;
         } else {

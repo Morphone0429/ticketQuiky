@@ -460,7 +460,7 @@ let utils = {
     let hasAddCar = currentScreenOcr.includes("加入购物车");
     let hasQuickBuyBtn = currentScreenOcr.includes("立即购买");
     let hasQuickBuyErrorBtn = currentScreenOcr.some((item) =>
-      item.includes("00")
+      item.includes("00:00")
     );
     let hasTrySoon = currentScreenOcr.some((item) =>
       item.includes("请稍后重试")
