@@ -230,7 +230,7 @@ function patchPointGroup(config) {
       originalQuickBtnPointWithCarPoint: { x: [696, 999], y: [2223, 2315] }, // 立即购买按钮(有加入购物车) 1
       originSurePoint: { x: [136, 996], y: [2114, 2211] }, // 选择购买方式页面有货时 确定按钮 1
       originThisMarkPoint: { x: [233, 866], y: [1502, 1582] }, // 确定订单页面 确认门店信息  就是这家按钮  1
-      originNoProdPoint: { x: [397, 708], y: [1202, 1277] }, // 没货提示 <我知道了>按钮 1
+      originNoProdPoint: { x: [397, 708], y: [1194, 1232] }, // 没货提示 <我知道了>按钮 1
       originknowMailPoint: { x: [214, 855], y: [1467, 1540] }, // 请确认收货地址  确认无误按钮 1
       originSureInfoAndPayPoint: { x: [668, 997], y: [2225, 2317] }, //确认订单页面 确认信息并支付 1
       originBackScreenPoint: { x: [50, 70], y: [154, 184] }, //1
@@ -434,17 +434,21 @@ let utils = {
   },
 
   // 模拟点击
-  simulateClick: function ({ x, y }) {
+  simulateClick: function ({ x, y, clickTime }) {
     if (!x || !y) return;
-    let _random = random(1, 11);
-    let isEven = _random % 2 === 0;
     let _x = random(x[0], x[1]);
     let _y = random(y[0], y[1]);
-    if (isEven) {
-      let _randomDuration = random(20, 220) || 150;
-      press(_x, _y, _randomDuration);
+    if (!!clickTime) {
+      press(_x, _y, clickTime);
     } else {
-      click(_x, _y);
+      let _random = random(1, 11);
+      let isEven = _random % 2 === 0;
+      if (isEven) {
+        let _randomDuration = random(20, 40) || 30;
+        press(_x, _y, _randomDuration);
+      } else {
+        click(_x, _y);
+      }
     }
   },
 

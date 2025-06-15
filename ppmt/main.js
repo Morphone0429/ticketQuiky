@@ -20,6 +20,7 @@ let main = () => {
             x: point.originalQuickBtnPointWithCarPoint.x,
             y: point.originalQuickBtnPointWithCarPoint.y,
             disabledKey: "originalQuickBtnPointWithCarPoint",
+            clickTime: 1,
           });
           run();
         }
@@ -28,6 +29,7 @@ let main = () => {
             x: point.originalQuickBtnPointWithOutCarPoint.x,
             y: point.originalQuickBtnPointWithOutCarPoint.y,
             disabledKey: "originalQuickBtnPointWithOutCarPoint",
+            clickTime: 1,
           });
           run();
         }
@@ -65,23 +67,31 @@ let main = () => {
           x: point.originSixModePoint.x,
           y: point.originSixModePoint.y,
           unobstructed: true,
+          clickTime: 1,
         });
       } else if (config.singleMode) {
         handleSimulateClick({
           x: point.originSingleModePoint.x,
           y: point.originSingleModePoint.y,
           unobstructed: true,
+          clickTime: 1,
         });
       }
       state.buyMethod = buyMethod;
-      handleSimulateClick({ x: _point.x, y: _point.y, unobstructed: true });
+      handleSimulateClick({
+        x: _point.x,
+        y: _point.y,
+        unobstructed: true,
+        clickTime: 1,
+      });
       let { hasSureBtn } = utils.patchScreen({
         currentScreenOcr: state.currentScreenOcr,
       });
-      !hasSureBtn && sleep(200);
+      // !hasSureBtn && sleep(50);
       checkSureBtnLoading({
         then: handleBuyMethod,
         loadingKey: "sureBtnLoading",
+        storage: hasSureBtn ? state.currentScreenOcr : undefined,
       });
     };
 
@@ -115,6 +125,7 @@ let main = () => {
               x: point.originSendToHomePoint.x,
               y: point.originSendToHomePoint.y,
               unobstructed: true,
+              clickTime: 1,
             });
 
             checkSureBtnLoading({
@@ -129,6 +140,7 @@ let main = () => {
               x: point.originGoMarkGetPoint.x,
               y: point.originGoMarkGetPoint.y,
               unobstructed: true,
+              clickTime: 1,
             });
 
             checkSureBtnLoading({
@@ -143,7 +155,7 @@ let main = () => {
     });
   }
 
-  function checkSureBtnLoading({ then, skip, loadingKey }) {
+  function checkSureBtnLoading({ then, skip, loadingKey, storage }) {
     //TODO 卡bug 进寄到家确认信息页面
     let key = !!loadingKey ? loadingKey : "loadingTime";
     if (skip) {
@@ -160,7 +172,9 @@ let main = () => {
         then();
         return true;
       }
-      let newScreenOcr = handleoOrcScreen(1).currentScreenOcr;
+      let newScreenOcr = !!storage
+        ? storage
+        : handleoOrcScreen(1).currentScreenOcr;
       if (
         newScreenOcr.includes("确定") ||
         newScreenOcr.includes("已售罄") ||
@@ -169,7 +183,7 @@ let main = () => {
         state[key] = null;
         then();
       } else {
-        checkSureBtnLoading({ then, skip, loadingKey });
+        checkSureBtnLoading({ then, skip, loadingKey, storage });
       }
     }
   }
@@ -188,7 +202,7 @@ let main = () => {
         y: point.originAcountAddPoint.y,
         unobstructed: true,
       });
-      sleep(50);
+      sleep(20);
     } else if (!config.addOne && hasAdd) {
       handleSimulateClick({
         x: point.originAcountLessPoint.x,
@@ -204,9 +218,11 @@ let main = () => {
     // 是否进入循环  只要第一次点击了确认按钮  就认为进入循环
     state.enterSureLoop = true;
     console.log("等待确认订单页面加载...");
+    let wait = state.loopCount < 30 ? 30 : config.orcSleepTime;
+    let clickTime = state.loopCount < 30 ? 1 : undefined;
     // 等待页面加载完成
     screenIsLoadedWithOcr({
-      wait: state.loopCount < 10 ? 1 : config.orcSleepTime,
+      wait: wait,
       patchStep: "makeSureOrder",
       callBack: ({ mode }) => {
         console.log(mode, "mode确认信息");
@@ -216,6 +232,7 @@ let main = () => {
             x: point.originSureInfoAndPayPoint.x,
             y: point.originSureInfoAndPayPoint.y,
             disabledKey: "originSureInfoAndPayPoint",
+            clickTime,
           });
           handleToPayLoop();
         }
@@ -238,6 +255,7 @@ let main = () => {
             x: point.originThisMarkPoint.x,
             y: point.originThisMarkPoint.y,
             disabledKey: "originThisMarkPoint",
+            clickTime,
           });
           handleToPayLoop();
         }
@@ -247,6 +265,7 @@ let main = () => {
             x: point.originknowMailPoint.x,
             y: point.originknowMailPoint.y,
             disabledKey: "originknowMailPoint",
+            clickTime,
           });
           handleToPayLoop();
         }
@@ -257,6 +276,7 @@ let main = () => {
             x: point.originNoProdPoint.x,
             y: point.originNoProdPoint.y,
             disabledKey: "originNoProdPoint",
+            clickTime,
           });
           handleToPayLoop();
         }
@@ -291,6 +311,7 @@ let main = () => {
       x: point.originSurePoint.x,
       y: point.originSurePoint.y,
       disabledKey: "originSurePoint",
+      clickTime: 1,
     });
 
     handleToPayLoop();
@@ -333,24 +354,29 @@ let main = () => {
   }
 
   // 模拟点击  unobstructed true 不设置clickDisabled
-  function handleSimulateClick({ x, y, wait, unobstructed, disabledKey }) {
+  function handleSimulateClick({
+    x,
+    y,
+    wait,
+    unobstructed,
+    disabledKey,
+    clickTime,
+  }) {
     let key = !!disabledKey ? disabledKey : "clickDisabled";
     if (unobstructed) {
-      utils.simulateClick({ x, y });
+      utils.simulateClick({ x, y, clickTime });
     } else {
-      console.log(state, "state");
       if (state[key]) return;
       threads.start(function () {
         setTimeout(
           () => {
             state[key] = false;
           },
-          !!wait ? wait : 1500
+          !!wait ? wait : 2000
         );
       });
-      utils.simulateClick({ x, y });
+      utils.simulateClick({ x, y, clickTime });
       state[key] = true;
-      console.log(state, "handleSimulateClick-state");
     }
   }
 
@@ -373,11 +399,12 @@ let main = () => {
     function fallbackLogic() {
       console.log("================兜底逻辑 ===================", { state });
       // 兜底逻辑 没有找到 再多等待一会儿再查找
-      screenIsLoadedWithOcr({ callBack, patchStep: "start", wait });
+      // screenIsLoadedWithOcr({ callBack, patchStep: "start", wait });
+      run();
       return;
     }
 
-    console.log("当前的步骤是", { patchStep });
+    console.log("当前的步骤是", { patchStep, markListScreen });
 
     if (markListScreen) {
       // 误点进入自提门店列表页面 马上退出
@@ -495,7 +522,7 @@ let main = () => {
           return;
         } else if (POPMARTLoading) {
           waitForFn({
-            maxWaitTime: 4000,
+            maxWaitTime: 4500,
             loadingKey: "POPMARTLoading",
             next: () => {
               callBack({ mode: "backToPre" });
@@ -518,11 +545,11 @@ let main = () => {
 
   function handleoOrcScreen(wait) {
     let _wait = !!wait ? wait : config.orcSleepTime;
+    sleep(_wait);
     let { currentScreenOcr, elapsedTime, startTime, generateId, endTime } =
       utils.getOrcScreen();
     state.currentScreenOcr = currentScreenOcr;
     state.generateId = generateId;
-    sleep(_wait);
     return { currentScreenOcr, elapsedTime, startTime, generateId, endTime };
   }
 };
