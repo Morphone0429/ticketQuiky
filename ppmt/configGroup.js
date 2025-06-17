@@ -479,6 +479,10 @@ let utils = {
     let POPMARTLoading =
       currentScreenOcr.some((item) => item.includes("POP")) ||
       currentScreenOcr.some((item) => item.includes("MAR")); //popmark 红色loading
+    let newScreenOcr = currentScreenOcr.slice(currentScreenOcr.length - 6);
+    let hasAddAmount =
+      newScreenOcr.some((item) => item.includes("2")) ||
+      newScreenOcr.includes("2");
     return {
       quickBuyScreen,
       chooseDetailScreen,
@@ -490,6 +494,7 @@ let utils = {
       POPMARTLoading,
       hasTrySoon,
       hasSureBtn,
+      hasAddAmount,
     };
   },
 };

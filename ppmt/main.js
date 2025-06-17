@@ -13,6 +13,8 @@ let main = () => {
   run();
   function run() {
     screenIsLoadedWithOcr({
+      patchStep: "start",
+      wait: 1,
       callBack: ({ mode }) => {
         console.log({ mode }, "========mode");
         if (mode === "quickBuyWithCar") {
@@ -21,7 +23,9 @@ let main = () => {
             y: point.originalQuickBtnPointWithCarPoint.y,
             disabledKey: "originalQuickBtnPointWithCarPoint",
             clickTime: 1,
+            wait: 2000
           });
+          sleep(260)
           run();
         }
         if (mode === "quickBuyWithoutCar") {
@@ -30,7 +34,9 @@ let main = () => {
             y: point.originalQuickBtnPointWithOutCarPoint.y,
             disabledKey: "originalQuickBtnPointWithOutCarPoint",
             clickTime: 1,
+            wait: 2000
           });
+          sleep(260)
           run();
         }
         if (mode === "quickBuyError") {
@@ -42,8 +48,11 @@ let main = () => {
           });
           run();
         }
+        if (mode === "fastClickSureBtn") {
+          initBuyMethod({ quick: true });
+        }
         if (mode === "loopChooseDetail") {
-          initBuyMethod();
+          initBuyMethod({ quick: false });
         }
         if (mode === "loopMakeSureOrder") {
           handleToPayLoop();
@@ -53,19 +62,18 @@ let main = () => {
           run();
         }
       },
-      patchStep: "start",
-      wait: 1,
     });
   }
 
   //初始化购买配置页面
-  function initBuyMethod() {
+  function initBuyMethod({ quick }) {
     let run = ({ _point, buyMethod }) => {
       //有规格选项 先选择规格
       if (config.sixMode) {
         handleSimulateClick({
           x: point.originSixModePoint.x,
           y: point.originSixModePoint.y,
+          disabledKey: 'originSixModePoint',
           unobstructed: true,
           clickTime: 1,
         });
@@ -73,26 +81,48 @@ let main = () => {
         handleSimulateClick({
           x: point.originSingleModePoint.x,
           y: point.originSingleModePoint.y,
+          disabledKey: 'originSingleModePoint',
           unobstructed: true,
           clickTime: 1,
         });
       }
       state.buyMethod = buyMethod;
-      handleSimulateClick({
-        x: _point.x,
-        y: _point.y,
-        unobstructed: true,
-        clickTime: 1,
-      });
-      let { hasSureBtn } = utils.patchScreen({
-        currentScreenOcr: state.currentScreenOcr,
-      });
-      // !hasSureBtn && sleep(50);
-      checkSureBtnLoading({
-        then: handleBuyMethod,
-        loadingKey: "sureBtnLoading",
-        storage: hasSureBtn ? state.currentScreenOcr : undefined,
-      });
+      console.log(quick, "quick==============");
+      if (quick) {
+        clickSureBtnWhenHasProd();
+      } else {
+        handleSimulateClick({
+          x: _point.x,
+          y: _point.y,
+          unobstructed: true,
+          clickTime: 1,
+          disabledKey: 'buyMethod'
+        });
+        let { hasSureBtn } = utils.patchScreen({
+          currentScreenOcr: state.currentScreenOcr,
+        });
+        checkSureBtnLoading({
+          then: handleBuyMethod,
+          loadingKey: "sureBtnLoading",
+          storage: hasSureBtn ? state.currentScreenOcr : undefined,
+        });
+      }
+
+      // handleSimulateClick({
+      //   x: _point.x,
+      //   y: _point.y,
+      //   unobstructed: true,
+      //   clickTime: 1,
+      // });
+      // let { hasSureBtn } = utils.patchScreen({
+      //   currentScreenOcr: state.currentScreenOcr,
+      // });
+      // // !hasSureBtn && sleep(50);
+      // checkSureBtnLoading({
+      //   then: handleBuyMethod,
+      //   loadingKey: "sureBtnLoading",
+      //   storage: hasSureBtn ? state.currentScreenOcr : undefined,
+      // });
     };
 
     // 送到家
@@ -124,6 +154,7 @@ let main = () => {
             handleSimulateClick({
               x: point.originSendToHomePoint.x,
               y: point.originSendToHomePoint.y,
+              disabledKey: 'originSendToHomePoint',
               unobstructed: true,
               clickTime: 1,
             });
@@ -139,6 +170,7 @@ let main = () => {
             handleSimulateClick({
               x: point.originGoMarkGetPoint.x,
               y: point.originGoMarkGetPoint.y,
+              disabledKey: 'originGoMarkGetPoint',
               unobstructed: true,
               clickTime: 1,
             });
@@ -189,25 +221,24 @@ let main = () => {
   }
 
   function handleAmount() {
-    if (state.loopCount > 1) return;
-    let newScreenOcr = state.currentScreenOcr.slice(
-      state.currentScreenOcr.length - 6
-    );
-    let hasAdd =
-      newScreenOcr.some((item) => item.includes("2")) ||
-      newScreenOcr.includes("2");
-    if (config.addOne && !hasAdd) {
+    if (state.loopCount > 2) return;
+    let { hasAddAmount } = utils.patchScreen({ currentScreenOcr: state.currentScreenOcr })
+    if (config.addOne && !hasAddAmount) {
       handleSimulateClick({
         x: point.originAcountAddPoint.x,
         y: point.originAcountAddPoint.y,
+        disabledKey: 'originAcountAddPoint',
         unobstructed: true,
+        clickTime: 1,
       });
       sleep(20);
-    } else if (!config.addOne && hasAdd) {
+    } else if (!config.addOne && hasAddAmount) {
       handleSimulateClick({
         x: point.originAcountLessPoint.x,
         y: point.originAcountLessPoint.y,
+        disabledKey: 'originAcountLessPoint',
         unobstructed: true,
+        clickTime: 1,
       });
     }
   }
@@ -218,8 +249,10 @@ let main = () => {
     // 是否进入循环  只要第一次点击了确认按钮  就认为进入循环
     state.enterSureLoop = true;
     console.log("等待确认订单页面加载...");
-    let wait = state.loopCount < 30 ? 30 : config.orcSleepTime;
-    let clickTime = state.loopCount < 30 ? 1 : undefined;
+    // let wait = state.loopCount < 300 ? 30 : config.orcSleepTime;
+    // let clickTime = state.loopCount < 300 ? 1 : undefined;
+    let wait = 30;
+    let clickTime = 1;
     // 等待页面加载完成
     screenIsLoadedWithOcr({
       wait: wait,
@@ -272,12 +305,7 @@ let main = () => {
         // 判断是否有货 如果没货 点击我知道了  循环第一步
         // 两种形式  手动点击 / 自动跳转（一定时间内不点击会自动跳回选择规格页面）
         if (mode === "known") {
-          handleSimulateClick({
-            x: point.originNoProdPoint.x,
-            y: point.originNoProdPoint.y,
-            disabledKey: "originNoProdPoint",
-            clickTime,
-          });
+          backToPreScreen();
           handleToPayLoop();
         }
         // 没货 点击我知道了
@@ -305,16 +333,28 @@ let main = () => {
 
   function clickSureBtnWhenHasProd() {
     handleAmount();
-    state.loopCount++;
-    console.log("循环的次数", state.loopCount);
     handleSimulateClick({
       x: point.originSurePoint.x,
       y: point.originSurePoint.y,
       disabledKey: "originSurePoint",
       clickTime: 1,
     });
-
+    state.loopCount++;
+    console.log("循环的次数", state.loopCount);
     handleToPayLoop();
+    // handleQuickClick({
+    //   next: handleToPayLoop,
+    // });
+  }
+
+  function handleQuickClick({ next }) {
+    console.log(state.loopCount, "firstQuickClick");
+    if (state.loopCount === 1) {
+      // TODO: 最快速度点击到确认信息并支付按钮
+      next && next();
+    } else {
+      next && next();
+    }
   }
 
   // 预售时确定按钮不一定能刷新 会停留在 00:00  需要手动下滑
@@ -378,6 +418,9 @@ let main = () => {
       utils.simulateClick({ x, y, clickTime });
       state[key] = true;
     }
+    console.log('点击了', {
+      disabledKey, x, y,
+    })
   }
 
   function screenIsLoadedWithOcr({ callBack, patchStep, wait }) {
@@ -431,8 +474,13 @@ let main = () => {
         }
       } else if (chooseDetailScreen) {
         // 进入选择规格/购买方式页面
-        callBack({ mode: "loopChooseDetail" });
-        return;
+        if (hasSureBtn) {
+          callBack({ mode: "fastClickSureBtn" }); // 有确定按钮  立即初始化
+          return;
+        } else {
+          callBack({ mode: "loopChooseDetail" });
+          return;
+        }
       } else if (makeSureOrderScreen) {
         // 确认信息页面
         callBack({ mode: "loopMakeSureOrder" });
