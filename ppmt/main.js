@@ -278,7 +278,6 @@ let main = () => {
         }
 
         if (mode === "trySoon") {
-          sleep(1000);
           handleToPayLoop();
         }
 
@@ -314,7 +313,7 @@ let main = () => {
         }
         // 抢到了 自动付款
         if (mode === "toPay") {
-          device.vibrate(1500);
+          device.vibrate(5000);
           sleep(6000);
           let payPoints = point.originPayPoints;
           for (let i = 0; i < payPoints.length; i++) {
@@ -389,6 +388,7 @@ let main = () => {
         x: point.originBackScreenPoint.x,
         y: point.originBackScreenPoint.y,
         disabledKey: "originBackScreenPoint",
+        wiat: 2600
       });
     }
   }
