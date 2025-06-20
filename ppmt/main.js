@@ -6,6 +6,7 @@ let main = () => {
     clickDisabled: false,
     currentScreenOcr: [],
     loadingTime: null,
+    loopMinTime: 2600
   };
   //
   requestScreenCapture();
@@ -23,7 +24,7 @@ let main = () => {
             y: point.originalQuickBtnPointWithCarPoint.y,
             disabledKey: "originalQuickBtnPointWithCarPoint",
             clickTime: 1,
-            wait: 2000
+            wait: state.loopMinTime
           });
           sleep(260)
           run();
@@ -34,7 +35,7 @@ let main = () => {
             y: point.originalQuickBtnPointWithOutCarPoint.y,
             disabledKey: "originalQuickBtnPointWithOutCarPoint",
             clickTime: 1,
-            wait: 2000
+            wait: state.loopMinTime
           });
           sleep(260)
           run();
@@ -42,7 +43,7 @@ let main = () => {
         if (mode === "quickBuyError") {
           //预售时确定按钮不一定能刷新 会停留在 00:00  需要手动下滑
           waitForFn({
-            maxWaitTime: 2000,
+            maxWaitTime: 2300,
             next: utils.trySwipeUp,
             loadingKey: "quickBuyErrorLoading",
           });
@@ -266,6 +267,7 @@ let main = () => {
             y: point.originSureInfoAndPayPoint.y,
             disabledKey: "originSureInfoAndPayPoint",
             clickTime,
+            wait: state.loopMinTime
           });
           handleToPayLoop();
         }
@@ -288,6 +290,7 @@ let main = () => {
             y: point.originThisMarkPoint.y,
             disabledKey: "originThisMarkPoint",
             clickTime,
+            wait: state.loopMinTime
           });
           handleToPayLoop();
         }
@@ -298,6 +301,7 @@ let main = () => {
             y: point.originknowMailPoint.y,
             disabledKey: "originknowMailPoint",
             clickTime,
+            wait: state.loopMinTime
           });
           handleToPayLoop();
         }
@@ -337,6 +341,7 @@ let main = () => {
       y: point.originSurePoint.y,
       disabledKey: "originSurePoint",
       clickTime: 1,
+      wait: state.loopMinTime
     });
     state.loopCount++;
     console.log("循环的次数", state.loopCount);
@@ -388,7 +393,7 @@ let main = () => {
         x: point.originBackScreenPoint.x,
         y: point.originBackScreenPoint.y,
         disabledKey: "originBackScreenPoint",
-        wiat: 2600
+        wait: state.loopMinTime
       });
     }
   }
