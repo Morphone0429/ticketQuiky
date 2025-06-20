@@ -470,9 +470,8 @@ let utils = {
       currentScreenOcr.some((item) => item.includes("合计"));
     let hasAddCar = currentScreenOcr.includes("加入购物车");
     let hasQuickBuyBtn = currentScreenOcr.includes("立即购买");
-    let hasQuickBuyErrorBtn = currentScreenOcr.some((item) =>
-      item.includes("00:00")
-    );
+    let hasQuickBuyErrorBtn = currentScreenOcr.some((item) => item.includes("00:00")) ||
+      currentScreenOcr.some((item) => item.includes("0000"));
     let hasTrySoon = currentScreenOcr.some((item) =>
       item.includes("请稍后重试")
     );

@@ -17,7 +17,7 @@ let main = () => {
       patchStep: "start",
       wait: 1,
       callBack: ({ mode }) => {
-        console.log({ mode }, "========mode");
+        console.log({ mode }, "start========mode");
         if (mode === "quickBuyWithCar") {
           handleSimulateClick({
             x: point.originalQuickBtnPointWithCarPoint.x,
@@ -43,7 +43,7 @@ let main = () => {
         if (mode === "quickBuyError") {
           //预售时确定按钮不一定能刷新 会停留在 00:00  需要手动下滑
           waitForFn({
-            maxWaitTime: 2300,
+            maxWaitTime: 1500,
             next: utils.trySwipeUp,
             loadingKey: "quickBuyErrorLoading",
           });
@@ -88,7 +88,6 @@ let main = () => {
         });
       }
       state.buyMethod = buyMethod;
-      console.log(quick, "quick==============");
       if (quick) {
         clickSureBtnWhenHasProd();
       } else {
@@ -108,22 +107,6 @@ let main = () => {
           storage: hasSureBtn ? state.currentScreenOcr : undefined,
         });
       }
-
-      // handleSimulateClick({
-      //   x: _point.x,
-      //   y: _point.y,
-      //   unobstructed: true,
-      //   clickTime: 1,
-      // });
-      // let { hasSureBtn } = utils.patchScreen({
-      //   currentScreenOcr: state.currentScreenOcr,
-      // });
-      // // !hasSureBtn && sleep(50);
-      // checkSureBtnLoading({
-      //   then: handleBuyMethod,
-      //   loadingKey: "sureBtnLoading",
-      //   storage: hasSureBtn ? state.currentScreenOcr : undefined,
-      // });
     };
 
     // 送到家
