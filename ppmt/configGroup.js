@@ -176,7 +176,7 @@ function patchPointGroup(config) {
       originalQuickBtnPointWithCarPoint: { x: [785, 1179], y: [2567, 2675] }, // 立即购买按钮(有加入购物车)
       originSurePoint: { x: [128, 1149], y: [2446, 2554] }, // 选择购买方式页面有货时 确定按钮
       originThisMarkPoint: { x: [234, 1010], y: [1760, 1840] }, // 确定订单页面 确认门店信息  就是这家按钮
-      originNoProdPoint: { x: [400, 860], y: [1380, 1480] }, // 没货提示 <我知道了>按钮
+      originNoProdPoint: { x: [400, 860], y: [1430, 1463] }, // 没货提示 <我知道了>按钮
       originknowMailPoint: { x: [240, 1020], y: [1700, 1800] }, // 请确认收货地址  确认无误按钮
       originSureInfoAndPayPoint: { x: [780, 1175], y: [2573, 2680] }, //确认订单页面 确认信息并支付
       originBackScreenPoint: { x: [64, 75], y: [190, 230] },

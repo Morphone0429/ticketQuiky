@@ -6,11 +6,11 @@ let main = () => {
     clickDisabled: false,
     currentScreenOcr: [],
     loadingTime: null,
-    loopMinTime: 2600
+    loopMinTime: 2600,
   };
   //
   requestScreenCapture();
-  console.log("脚本开始执行,购买配置:", { config, state });
+  console.log("脚本开始执行,购买配置:", device.brand, { config, state });
   run();
   function run() {
     screenIsLoadedWithOcr({
@@ -24,9 +24,9 @@ let main = () => {
             y: point.originalQuickBtnPointWithCarPoint.y,
             disabledKey: "originalQuickBtnPointWithCarPoint",
             clickTime: 1,
-            wait: state.loopMinTime
+            wait: state.loopMinTime,
           });
-          sleep(260)
+          sleep(260);
           run();
         }
         if (mode === "quickBuyWithoutCar") {
@@ -35,9 +35,9 @@ let main = () => {
             y: point.originalQuickBtnPointWithOutCarPoint.y,
             disabledKey: "originalQuickBtnPointWithOutCarPoint",
             clickTime: 1,
-            wait: state.loopMinTime
+            wait: state.loopMinTime,
           });
-          sleep(260)
+          sleep(260);
           run();
         }
         if (mode === "quickBuyError") {
@@ -74,7 +74,7 @@ let main = () => {
         handleSimulateClick({
           x: point.originSixModePoint.x,
           y: point.originSixModePoint.y,
-          disabledKey: 'originSixModePoint',
+          disabledKey: "originSixModePoint",
           unobstructed: true,
           clickTime: 1,
         });
@@ -82,7 +82,7 @@ let main = () => {
         handleSimulateClick({
           x: point.originSingleModePoint.x,
           y: point.originSingleModePoint.y,
-          disabledKey: 'originSingleModePoint',
+          disabledKey: "originSingleModePoint",
           unobstructed: true,
           clickTime: 1,
         });
@@ -96,7 +96,7 @@ let main = () => {
           y: _point.y,
           unobstructed: true,
           clickTime: 1,
-          disabledKey: 'buyMethod'
+          disabledKey: "buyMethod",
         });
         let { hasSureBtn } = utils.patchScreen({
           currentScreenOcr: state.currentScreenOcr,
@@ -138,7 +138,7 @@ let main = () => {
             handleSimulateClick({
               x: point.originSendToHomePoint.x,
               y: point.originSendToHomePoint.y,
-              disabledKey: 'originSendToHomePoint',
+              disabledKey: "originSendToHomePoint",
               unobstructed: true,
               clickTime: 1,
             });
@@ -154,7 +154,7 @@ let main = () => {
             handleSimulateClick({
               x: point.originGoMarkGetPoint.x,
               y: point.originGoMarkGetPoint.y,
-              disabledKey: 'originGoMarkGetPoint',
+              disabledKey: "originGoMarkGetPoint",
               unobstructed: true,
               clickTime: 1,
             });
@@ -206,12 +206,14 @@ let main = () => {
 
   function handleAmount() {
     if (state.loopCount > 2) return;
-    let { hasAddAmount } = utils.patchScreen({ currentScreenOcr: state.currentScreenOcr })
+    let { hasAddAmount } = utils.patchScreen({
+      currentScreenOcr: state.currentScreenOcr,
+    });
     if (config.addOne && !hasAddAmount) {
       handleSimulateClick({
         x: point.originAcountAddPoint.x,
         y: point.originAcountAddPoint.y,
-        disabledKey: 'originAcountAddPoint',
+        disabledKey: "originAcountAddPoint",
         unobstructed: true,
         clickTime: 1,
       });
@@ -220,7 +222,7 @@ let main = () => {
       handleSimulateClick({
         x: point.originAcountLessPoint.x,
         y: point.originAcountLessPoint.y,
-        disabledKey: 'originAcountLessPoint',
+        disabledKey: "originAcountLessPoint",
         unobstructed: true,
         clickTime: 1,
       });
@@ -250,7 +252,7 @@ let main = () => {
             y: point.originSureInfoAndPayPoint.y,
             disabledKey: "originSureInfoAndPayPoint",
             clickTime,
-            wait: state.loopMinTime
+            wait: state.loopMinTime,
           });
           handleToPayLoop();
         }
@@ -273,7 +275,7 @@ let main = () => {
             y: point.originThisMarkPoint.y,
             disabledKey: "originThisMarkPoint",
             clickTime,
-            wait: state.loopMinTime
+            wait: state.loopMinTime,
           });
           handleToPayLoop();
         }
@@ -284,14 +286,24 @@ let main = () => {
             y: point.originknowMailPoint.y,
             disabledKey: "originknowMailPoint",
             clickTime,
-            wait: state.loopMinTime
+            wait: state.loopMinTime,
           });
           handleToPayLoop();
         }
         // 判断是否有货 如果没货 点击我知道了  循环第一步
         // 两种形式  手动点击 / 自动跳转（一定时间内不点击会自动跳回选择规格页面）
         if (mode === "known") {
-          backToPreScreen();
+          if (device.brand === "OnePlus") {
+            handleSimulateClick({
+              x: point.originNoProdPoint.x,
+              y: point.originNoProdPoint.y,
+              disabledKey: "originNoProdPoint",
+              clickTime,
+            });
+            sleep(260)
+          } else {
+            backToPreScreen();
+          }
           handleToPayLoop();
         }
         // 没货 点击我知道了
@@ -324,7 +336,7 @@ let main = () => {
       y: point.originSurePoint.y,
       disabledKey: "originSurePoint",
       clickTime: 1,
-      wait: state.loopMinTime
+      wait: state.loopMinTime,
     });
     state.loopCount++;
     console.log("循环的次数", state.loopCount);
@@ -376,7 +388,7 @@ let main = () => {
         x: point.originBackScreenPoint.x,
         y: point.originBackScreenPoint.y,
         disabledKey: "originBackScreenPoint",
-        wait: state.loopMinTime
+        wait: state.loopMinTime,
       });
     }
   }
@@ -406,9 +418,11 @@ let main = () => {
       utils.simulateClick({ x, y, clickTime });
       state[key] = true;
     }
-    console.log('点击了', {
-      disabledKey, x, y,
-    })
+    console.log("点击了", {
+      disabledKey,
+      x,
+      y,
+    });
   }
 
   function screenIsLoadedWithOcr({ callBack, patchStep, wait }) {
