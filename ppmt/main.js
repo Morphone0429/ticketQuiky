@@ -257,20 +257,18 @@ let main = () => {
 
   // 确认信息并支付 并开启循环模式
   function handleToPayLoop() {
-    console.log("进入循环");
     // 是否进入循环  只要第一次点击了确认按钮  就认为进入循环
     state.enterSureLoop = true;
-    console.log("等待确认订单页面加载...");
     // let wait = state.loopCount < 300 ? 30 : config.orcSleepTime;
     // let clickTime = state.loopCount < 300 ? 1 : undefined;
-    let wait = 30;
+    let wait = 1;
     let clickTime = 1;
     // 等待页面加载完成
     screenIsLoadedWithOcr({
       wait: wait,
       patchStep: "makeSureOrder",
       callBack: ({ mode }) => {
-        console.log(mode, "mode确认信息");
+        console.log(mode, "当前mode---确认订单页面");
         // 确认信息并支付 按钮
         if (mode === "makeSureOrder") {
           handleSimulateClick({
