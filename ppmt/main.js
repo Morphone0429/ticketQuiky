@@ -7,6 +7,7 @@ let main = () => {
     currentScreenOcr: [],
     loadingTime: null,
     loopMinTime: 3000,
+    stepByClick: "",
   };
   if (!global.javaTimer) {
     global.javaTimer = new java.util.Timer(true);
@@ -317,21 +318,24 @@ let main = () => {
         // 判断是否有货 如果没货 点击我知道了  循环第一步
         // 两种形式  手动点击 / 自动跳转（一定时间内不点击会自动跳回选择规格页面）
         if (mode === "known") {
-          if (device.brand === "OnePlus") {
-            handleSimulateClick({
-              x: point.originNoProdPoint.x,
-              y: point.originNoProdPoint.y,
-              disabledKey: "originNoProdPoint",
-              clickTime,
-            });
-          } else {
-            backToPreScreen();
-          }
+          // backToPreScreen()
+          handleSimulateClick({
+            x: point.originNoProdPoint.x,
+            y: point.originNoProdPoint.y,
+            disabledKey: "originNoProdPoint",
+            clickTime,
+            callBack: () => {
+              state.loopCount++;
+            },
+          });
           handleToPayLoop();
         }
         // 没货 点击我知道了
         if (mode === "nextLoopStart") {
           clickSureBtnWhenHasProd();
+        }
+        if (mode === "jumpLoading") {
+          handleToPayLoop();
         }
         // 抢到了 自动付款
         if (mode === "toPay") {
@@ -343,6 +347,7 @@ let main = () => {
             handleSimulateClick({
               x: _point.x,
               y: _point.y,
+              disabledKey: "originPayPoints",
               unobstructed: true,
             });
             sleep(1000);
@@ -361,7 +366,7 @@ let main = () => {
       clickTime: 1,
       wait: state.loopMinTime,
     });
-    state.loopCount++;
+
     console.log("循环的次数", state.loopCount);
     handleToPayLoop();
     // handleQuickClick({
@@ -421,8 +426,10 @@ let main = () => {
     unobstructed,
     disabledKey,
     clickTime,
+    callBack,
   }) {
     let key = !!disabledKey ? disabledKey : "clickDisabled";
+    state.stepByClick = key;
     if (unobstructed) {
       utils.simulateClick({ x, y, clickTime });
     } else {
@@ -436,11 +443,8 @@ let main = () => {
       utils.simulateClick({ x, y, clickTime });
       state[key] = true;
     }
-    console.log("点击了", {
-      disabledKey,
-      x,
-      y,
-    });
+    console.log("点击了", { key: disabledKey });
+    callBack && callBack();
   }
 
   function screenIsLoadedWithOcr({ callBack, patchStep, wait }) {
@@ -458,7 +462,7 @@ let main = () => {
       makeSureOrderScreen, // 确认信息并支付页面
       markListScreen, // 自提门店列表页面
     } = utils.patchScreen({ currentScreenOcr });
-    console.log({ state }, "=currentScreenOcr");
+    // console.log({ state }, "=currentScreenOcr");
     function fallbackLogic() {
       console.log("================兜底逻辑 ===================", { state });
       // 兜底逻辑 没有找到 再多等待一会儿再查找
@@ -555,9 +559,13 @@ let main = () => {
     if (patchStep === "makeSureOrder") {
       // 有确定按钮 进行下一次循环
       if (chooseDetailScreen) {
-        if (hasSureBtn && state.enterSureLoop) {
+        if (hasSureBtn && state.enterSureLoop && !state.originSurePoint) {
+          // 不能删除
           // sleep(200);
           callBack({ mode: "nextLoopStart" });
+          return;
+        } else {
+          callBack({ mode: "jumpLoading" });
           return;
         }
       }
@@ -589,7 +597,17 @@ let main = () => {
         } else if (hasTrySoon) {
           callBack({ mode: "trySoon" });
           return;
-        } else if (POPMARTLoading && state.loopCount > 10) {
+        } else if (
+          POPMARTLoading &&
+          ["originThisMarkPoint", "originknowMailPoint"].includes(
+            state.stepByClick
+          )
+        ) {
+          console.log(
+            state.stepByClick,
+            state.POPMARTLoading,
+            "=================POPMARTLoading"
+          );
           waitForFn({
             maxWaitTime: 5000,
             loadingKey: "POPMARTLoading",
