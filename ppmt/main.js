@@ -6,9 +6,39 @@ let main = () => {
     clickDisabled: false,
     currentScreenOcr: [],
     loadingTime: null,
-    loopMinTime: 2600,
+    loopMinTime: 3000,
   };
-  //
+  if (!global.javaTimer) {
+    global.javaTimer = new java.util.Timer(true);
+  }
+  events.on("exit", () => {
+    console.log("exit");
+    if (global.javaTimer) {
+      global.javaTimer.cancel();
+      global.javaTimer = null;
+    }
+  });
+  function javaSetTimeout(callback, delay) {
+    const timerTask = new java.util.TimerTask({
+      run: () => {
+        try {
+          // 自动处理 UI 线程操作
+          if (typeof ui !== "undefined") {
+            ui.run(callback);
+          } else {
+            callback();
+          }
+        } catch (e) {
+          console.error("定时任务执行出错: " + e);
+        }
+      },
+    });
+
+    // 正确的调度方法 - 使用两个参数的重载
+    global.javaTimer.schedule(timerTask, delay);
+    return timerTask;
+  }
+
   requestScreenCapture();
   console.log("脚本开始执行,购买配置:", device.brand, { config, state });
   run();
@@ -26,7 +56,6 @@ let main = () => {
             clickTime: 1,
             wait: state.loopMinTime,
           });
-          sleep(260);
           run();
         }
         if (mode === "quickBuyWithoutCar") {
@@ -37,7 +66,6 @@ let main = () => {
             clickTime: 1,
             wait: state.loopMinTime,
           });
-          sleep(260);
           run();
         }
         if (mode === "quickBuyError") {
@@ -124,9 +152,6 @@ let main = () => {
     screenIsLoadedWithOcr({
       callBack: ({ mode }) => {
         if (mode === "hasProd") {
-          console.log(
-            "刷到了 点击进入确认信息页面  开始进行循环点击 <确认-就是这家-我知道了-确认> 模式"
-          );
           clickSureBtnWhenHasProd();
         }
         // 没货 继续刷新
@@ -217,7 +242,7 @@ let main = () => {
         unobstructed: true,
         clickTime: 1,
       });
-      sleep(20);
+      // sleep(20);
     } else if (!config.addOne && hasAddAmount) {
       handleSimulateClick({
         x: point.originAcountLessPoint.x,
@@ -252,7 +277,6 @@ let main = () => {
             y: point.originSureInfoAndPayPoint.y,
             disabledKey: "originSureInfoAndPayPoint",
             clickTime,
-            wait: state.loopMinTime,
           });
           handleToPayLoop();
         }
@@ -300,7 +324,6 @@ let main = () => {
               disabledKey: "originNoProdPoint",
               clickTime,
             });
-            sleep(260)
           } else {
             backToPreScreen();
           }
@@ -347,7 +370,6 @@ let main = () => {
   }
 
   function handleQuickClick({ next }) {
-    console.log(state.loopCount, "firstQuickClick");
     if (state.loopCount === 1) {
       // TODO: 最快速度点击到确认信息并支付按钮
       next && next();
@@ -370,11 +392,10 @@ let main = () => {
       return true;
     }
 
-    threads.start(function () {
-      setTimeout(() => {
-        state[key] = null;
-      }, maxWaitTime + 500);
-    });
+    javaSetTimeout(() => {
+      state[key] = null;
+    }, maxWaitTime + 500);
+
     then && then();
   }
 
@@ -382,7 +403,6 @@ let main = () => {
     let { markListScreen, makeSureOrderScreen } = utils.patchScreen({
       currentScreenOcr: state.currentScreenOcr,
     });
-    // console.log(markListScreen, makeSureOrderScreen, 'markListScreen, makeSureOrderScreen ')
     if (markListScreen || makeSureOrderScreen) {
       handleSimulateClick({
         x: point.originBackScreenPoint.x,
@@ -407,14 +427,12 @@ let main = () => {
       utils.simulateClick({ x, y, clickTime });
     } else {
       if (state[key]) return;
-      threads.start(function () {
-        setTimeout(
-          () => {
-            state[key] = false;
-          },
-          !!wait ? wait : 2000
-        );
-      });
+      javaSetTimeout(
+        () => {
+          state[key] = false;
+        },
+        !!wait ? wait : 2000
+      );
       utils.simulateClick({ x, y, clickTime });
       state[key] = true;
     }
@@ -449,7 +467,7 @@ let main = () => {
       return;
     }
 
-    console.log("当前的步骤是", { patchStep, markListScreen });
+    // console.log("当前的步骤是", { patchStep, markListScreen });
 
     if (markListScreen) {
       // 误点进入自提门店列表页面 马上退出
@@ -538,6 +556,7 @@ let main = () => {
       // 有确定按钮 进行下一次循环
       if (chooseDetailScreen) {
         if (hasSureBtn && state.enterSureLoop) {
+          // sleep(200);
           callBack({ mode: "nextLoopStart" });
           return;
         }
@@ -570,9 +589,9 @@ let main = () => {
         } else if (hasTrySoon) {
           callBack({ mode: "trySoon" });
           return;
-        } else if (POPMARTLoading) {
+        } else if (POPMARTLoading && state.loopCount > 10) {
           waitForFn({
-            maxWaitTime: 4500,
+            maxWaitTime: 5000,
             loadingKey: "POPMARTLoading",
             next: () => {
               callBack({ mode: "backToPre" });
