@@ -175,7 +175,7 @@ function patchPointGroup(config) {
       }, // 立即购买按钮(无加入购物车)
       originalQuickBtnPointWithCarPoint: { x: [785, 1179], y: [2567, 2675] }, // 立即购买按钮(有加入购物车)
       originSurePoint: { x: [128, 1149], y: [2446, 2554] }, // 选择购买方式页面有货时 确定按钮
-      originThisMarkPoint: { x: [234, 1010], y: [1760, 1840] }, // 确定订单页面 确认门店信息  就是这家按钮
+      originThisMarkPoint: { x: [234, 1010], y: [1851, 1853] }, // 确定订单页面 确认门店信息  就是这家按钮
       originNoProdPoint: { x: [400, 860], y: [1430, 1463] }, // 没货提示 <我知道了>按钮
       originknowMailPoint: { x: [240, 1020], y: [1700, 1800] }, // 请确认收货地址  确认无误按钮
       originSureInfoAndPayPoint: { x: [780, 1175], y: [2573, 2680] }, //确认订单页面 确认信息并支付
@@ -283,7 +283,7 @@ function patchPointGroup(config) {
       }, // 立即购买按钮(无加入购物车)
       originalQuickBtnPointWithCarPoint: { x: [911, 1344], y: [2877, 3002] }, // 立即购买按钮(有加入购物车)
       originSurePoint: { x: [131, 1280], y: [2749, 2885] }, // 选择购买方式页面有货时 确定按钮
-      originThisMarkPoint: { x: [294, 1176], y: [1952, 2068] }, // 确定订单页面 确认门店信息  就是这家按钮
+      originThisMarkPoint: { x: [294, 1176], y: [2070, 2074] }, // 确定订单页面 确认门店信息  就是这家按钮
       originNoProdPoint: { x: [450, 996], y: [1544, 1664] }, // 没货提示 <我知道了>按钮
       originknowMailPoint: { x: [292, 1162], y: [1915, 2018] }, // 请确认收货地址  确认无误按钮
       originSureInfoAndPayPoint: { x: [869, 1364], y: [2888, 3031] }, //确认订单页面 确认信息并支付
@@ -389,7 +389,7 @@ function patchPointGroup(config) {
       }, // 立即购买按钮(无加入购物车)
       originalQuickBtnPointWithCarPoint: { x: [686, 982], y: [2204, 2282] }, // 立即购买按钮(有加入购物车)
       originSurePoint: { x: [124, 981], y: [2134, 2173] }, // 选择购买方式页面有货时 确定按钮
-      originThisMarkPoint: { x: [217, 877], y: [1501, 1570] }, // 确定订单页面 确认门店信息  就是这家按钮
+      originThisMarkPoint: { x: [217, 877], y: [1582, 1585] }, // 确定订单页面 确认门店信息  就是这家按钮
       originNoProdPoint: { x: [384, 735], y: [1190, 1242] }, // 没货提示 <我知道了>按钮
       originknowMailPoint: { x: [256, 854], y: [1457, 1543] }, // 请确认收货地址  确认无误按钮
       originSureInfoAndPayPoint: { x: [684, 1007], y: [2204, 2297] }, //确认订单页面 <确认信息并支付>

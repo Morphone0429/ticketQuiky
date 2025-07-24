@@ -6,7 +6,7 @@ let main = () => {
     clickDisabled: false,
     currentScreenOcr: [],
     loadingTime: null,
-    loopMinTime: 3000,
+    loopMinTime: 2000,
     stepByClick: "",
   };
   if (!global.javaTimer) {
@@ -72,7 +72,7 @@ let main = () => {
         if (mode === "quickBuyError") {
           //预售时确定按钮不一定能刷新 会停留在 00:00  需要手动下滑
           waitForFn({
-            maxWaitTime: 1500,
+            maxWaitTime: 2500,
             next: utils.trySwipeUp,
             loadingKey: "quickBuyErrorLoading",
           });
@@ -298,7 +298,7 @@ let main = () => {
             y: point.originThisMarkPoint.y,
             disabledKey: "originThisMarkPoint",
             clickTime,
-            wait: state.loopMinTime,
+            wait: state.loopMinTime + 1000,
           });
           handleToPayLoop();
         }
@@ -309,7 +309,7 @@ let main = () => {
             y: point.originknowMailPoint.y,
             disabledKey: "originknowMailPoint",
             clickTime,
-            wait: state.loopMinTime,
+            wait: state.loopMinTime + 1000,
           });
           handleToPayLoop();
         }
