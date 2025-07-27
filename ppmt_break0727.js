@@ -1,15 +1,15 @@
 auto();
 let state = {
-  loopBuyMethodTime: 3000,
+  loopBuyMethodTime: 600,
   loopBuyMethodCount: 0, // 循环点击送到家 到店取次数
-  loopPlaceOrderKeepTime: 6000, // 循环确认订单流程的最大时长
-  loopPlaceOrderKeepTimeWhenBreak: 3000, // 1350
+  loopPlaceOrderKeepTime: 3000, // 循环确认订单流程的最大时长
+  loopPlaceOrderKeepTimeWhenBreak: 1350, // 1350
   loopPlaceOrderStartTime: 0,
   loopPlaceOrderCount: 0,
   loopPlaceOrderStep: "", // sureAndPayStep sureInfoStep orderResultStep rebackBuyMethodPageStep
   widghtFindTime: 3000, //查找widght的最大时间
   hasStandard: true, //是否有选择规格
-  refreshWithoutFeel: false, // 是否无感刷新
+  refreshWithoutFeel: true, // 是否无感刷新
   breakLimit: true,
   buyMethod: "mark", // home | mark  // 选择的购买方式
   currentMethod: "", // 当前的购买方式
@@ -33,6 +33,7 @@ const orderResultStep = "orderResultStep";
 const rebackBuyMethodPageStep = "rebackBuyMethodPageStep";
 const event$ = events.emitter();
 const storage = storages.create("ppmt_point");
+const storage_state = storages.create("ppmt_state");
 
 if (!global.javaTimer) {
   global.javaTimer = new java.util.Timer(true);
@@ -385,6 +386,7 @@ function loopPlaceOrder() {
       // TODO 限制破盾次数
       if (currentStep === orderResultStep && state.breakLimit) {
         // const keepErrorInfo = ["未营业"];
+        // 订单内商品库存不足,请您重新核对 自动返回
         let errorInfo = findTextViewWidget({ text: "我知道了" })
           .previousSibling()
           .text();
@@ -457,8 +459,9 @@ function patchPlaceOrderFeature({ callback }) {
 
     if (state.loopPlaceOrderStep === rebackBuyMethodPageStep) {
       let buyMethodFeature =
-        checkTextViewWidgetIsExists("购买方式") ||
-        checkTextViewWidgetIsExists("确定");
+        (checkTextViewWidgetIsExists("购买方式") ||
+          checkTextViewWidgetIsExists("确定")) &&
+        !checkTextViewWidgetIsExists("确认信息并支付");
       if (buyMethodFeature) {
         callback({ currentStep: rebackBuyMethodPageStep });
         break;
@@ -495,8 +498,10 @@ function patchPlaceOrderFeature({ callback }) {
         !orderResultErrorFeature
       ) {
         callback({ currentStep: rebackBuyMethodPageStep });
+        break;
       } else {
         callback({ currentStep: sureAndPayStep });
+        break;
       }
     }
 
@@ -611,9 +616,31 @@ function getOrcScreen({ callback } = {}) {
 
 // 初始化配置
 function initConfig() {
+  const storageState = storage_state.get("ppmt_state")
+    ? JSON.parse(storage_state.get("ppmt_state"))
+    : {};
   state.point = storage.get("widghtPoint")
     ? JSON.parse(storage.get("widghtPoint"))
     : {};
+  console.log(Object.hasOwn(storageState, "hasStandard"));
+
+  if (storageState.hasOwnProperty("hasStandard")) {
+    state.hasStandard = storageState.hasStandard;
+  }
+  if (storageState.hasOwnProperty("buyMethod")) {
+    state.buyMethod = storageState.buyMethod;
+  }
+  if (storageState.hasOwnProperty("addOne")) {
+    state.addOne = storageState.addOne;
+  }
+  if (storageState.hasOwnProperty("refreshWithoutFeel")) {
+    state.refreshWithoutFeel = storageState.refreshWithoutFeel;
+  }
+  if (storageState.hasOwnProperty("breakLimit")) {
+    state.breakLimit = storageState.breakLimit;
+  }
+
+  console.log(state, "缓存中提取数据并更新到state============");
   screenIsLoadedWithOcr();
 }
 

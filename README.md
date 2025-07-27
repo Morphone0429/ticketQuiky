@@ -10,3 +10,4 @@
 6. A/B 组 颜色组 预售日期
 7. popmart loading
 8. UI
+9. 自动支付
