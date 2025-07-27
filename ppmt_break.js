@@ -205,6 +205,9 @@ function patchBuyMethodPageBtnStatus() {
   if (state.loopBuyMethodPatchThread) {
     state.loopBuyMethodPatchThread.interrupt();
   }
+  javaSetTimeout(() => {
+    runThread = false;
+  }, state.loopBuyMethodTime);
   state.loopBuyMethodPatchThread = startThread({
     fn: () => {
       while (runThread) {
@@ -222,9 +225,6 @@ function patchBuyMethodPageBtnStatus() {
       }
     },
   });
-  javaSetTimeout(() => {
-    runThread = false;
-  }, state.loopBuyMethodTime);
 }
 
 function handleSimulateClick({
@@ -312,6 +312,9 @@ function patchPageFeature({ callback, text, timeOut, sync }) {
     callback();
   } else {
     let runThread = true;
+    javaSetTimeout(() => {
+      runThread = false;
+    }, timeOut || state.widghtFindTime);
     let t = startThread({
       fn: () => {
         while (runThread) {
@@ -323,9 +326,7 @@ function patchPageFeature({ callback, text, timeOut, sync }) {
         }
       },
     });
-    javaSetTimeout(() => {
-      runThread = false;
-    }, timeOut || state.widghtFindTime);
+
     return t;
   }
 }
@@ -356,6 +357,9 @@ function checkTextViewWidgetIsExists(text) {
 // 匹配当前是哪个页面
 function patchPage({ callback }) {
   let runThread = true;
+  javaSetTimeout(() => {
+    runThread = false;
+  }, 24 * 60 * 60);
   startThread({
     fn: () => {
       while (runThread) {
@@ -393,9 +397,6 @@ function patchPage({ callback }) {
       }
     },
   });
-  javaSetTimeout(() => {
-    runThread = false;
-  }, 24 * 60 * 60);
 }
 
 function watchSwipe() {
@@ -511,6 +512,9 @@ function loopPlaceOrder() {
 
 function patchPlaceOrderFeature({ callback, static = false } = {}) {
   let runThread = true;
+  javaSetTimeout(() => {
+    runThread = false;
+  }, state.widghtFindTime);
   let startTime = Date.now();
   if (state.loopPlaceOrderPatchThread) {
     state.loopPlaceOrderPatchThread.interrupt();
@@ -617,9 +621,6 @@ function patchPlaceOrderFeature({ callback, static = false } = {}) {
       }
     },
   });
-  javaSetTimeout(() => {
-    runThread = false;
-  }, state.widghtFindTime);
 }
 
 function main() {
