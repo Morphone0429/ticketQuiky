@@ -2,22 +2,27 @@ auto();
 let state = {
   loopBuyMethodTime: 3000,
   loopBuyMethodCount: 0, // 循环点击送到家 到店取次数
-  loopPlaceOrderTime: 3000,
+  loopPlaceOrderKeepTime: 6000, // 循环确认订单流程的最大时长
+  loopPlaceOrderKeepTimeWhenBreak: 3000, // 1350
+  loopPlaceOrderStartTime: 0,
   loopPlaceOrderCount: 0,
   loopPlaceOrderStep: "", // sureAndPayStep sureInfoStep orderResultStep rebackBuyMethodPageStep
-  loopPlaceOrderPatchThread: null,
   widghtFindTime: 3000, //查找widght的最大时间
   hasStandard: true, //是否有选择规格
   refreshWithoutFeel: false, // 是否无感刷新
+  breakLimit: true,
   buyMethod: "mark", // home | mark  // 选择的购买方式
   currentMethod: "", // 当前的购买方式
   addOne: true, //是否数量+1
   currentPage: "", //introduction buyMethod placeOrder
   point: {},
+  currentOrcInfo: [],
+  orcThread: null,
 };
 const eventKeys = {
   patchPage: "patchPage",
   swipe: "swipe",
+  orc: "orc",
 };
 const introductionPage = "introduction";
 const buyMethodPage = "buyMethod";
@@ -68,6 +73,8 @@ function javaClearTimeout(timerTask) {
     console.error("无效的 TimerTask 对象");
   }
 }
+
+requestScreenCapture();
 
 // 初始化购买详情页面配置
 function initBuyMethod() {
@@ -237,6 +244,10 @@ function handleSureClick() {
   handleSimulateClick({
     widget: findTextViewWidget({ text: "确定" }),
   });
+  console.log(state.loopPlaceOrderCount, "确认订单页面循环次数");
+  if (state.loopPlaceOrderCount === 0) {
+    // event$.emit(eventKeys.orc, { action: true });
+  }
   state.currentPage = placeOrderPage;
   state.loopPlaceOrderStep = sureAndPayStep;
   event$.emit(eventKeys.patchPage, {
@@ -262,7 +273,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 }
 
 // 创建子线程
-function startThread({ threadKey, fn }) {
+function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
   threadKey && setInterval(() => {}, 1000);
   t.waitFor();
@@ -275,6 +286,9 @@ function patchPageFeature({ callback, text, timeOut, sync }) {
     callback();
   } else {
     let runThread = true;
+    javaSetTimeout(() => {
+      runThread = false;
+    }, timeOut || state.widghtFindTime);
     let t = startThread({
       fn: () => {
         while (runThread) {
@@ -286,9 +300,6 @@ function patchPageFeature({ callback, text, timeOut, sync }) {
         }
       },
     });
-    javaSetTimeout(() => {
-      runThread = false;
-    }, timeOut || state.widghtFindTime);
     return t;
   }
 }
@@ -329,11 +340,28 @@ function watchSwipe() {
   });
 }
 
+function controlLoopPlaceOrderKeepTime({}) {
+  if (state.loopPlaceOrderStartTime === 0) {
+    state.loopPlaceOrderStartTime = Date.now();
+    return;
+  }
+  let endTime = Date.now();
+  let duration = endTime - state.loopPlaceOrderStartTime;
+  let sleepTime = Math.max(
+    state.breakLimit
+      ? state.loopPlaceOrderKeepTimeWhenBreak
+      : state.loopPlaceOrderKeepTime - duration,
+    0
+  );
+  sleep(sleepTime);
+  state.loopPlaceOrderStartTime = Date.now();
+}
+
 // 下单轮询
 function loopPlaceOrder() {
   patchPlaceOrderFeature({
-    callback: ({ currentStep, errorInfo }) => {
-      console.log("currentStep", { currentStep, errorInfo });
+    callback: ({ currentStep }) => {
+      console.log("currentStep", { currentStep, breakLimit: state.breakLimit });
       let stepMap = {
         sureAndPayStep: {
           textFeature: "确认信息并支付",
@@ -352,16 +380,45 @@ function loopPlaceOrder() {
           nextStep: sureAndPayStep,
         },
       };
-      handleSimulateClick({
-        widget: findTextViewWidget({
-          text: stepMap[currentStep].textFeature,
-        }),
-        callback: () => {
-          state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
-          loopPlaceOrder();
-        },
-        widgetKey: currentStep,
-      });
+
+      let btnClick = () => {
+        handleSimulateClick({
+          widget: findTextViewWidget({
+            text: stepMap[currentStep].textFeature,
+          }),
+          callback: () => {
+            state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
+            if (currentStep === sureInfoStep) {
+              state.loopPlaceOrderCount = state.loopPlaceOrderCount + 1;
+            }
+            loopPlaceOrder();
+          },
+          widgetKey: currentStep,
+        });
+      };
+
+      // 当前步骤是 确认门店/邮寄地址信息时  判断是否要破盾
+      // TODO 限制破盾次数
+      if (currentStep === orderResultStep && state.breakLimit) {
+        // const keepErrorInfo = ["未营业"];
+        let errorInfo = findTextViewWidget({ text: "我知道了" })
+          .previousSibling()
+          .text();
+        let match = errorInfo.match(/未营业|当前排队人数/);
+        console.log(errorInfo, match);
+        if (match) {
+          stepMap.orderResultStep = {
+            textFeature: "确认信息并支付",
+            nextStep: sureInfoStep,
+          };
+        }
+      } else {
+        stepMap.orderResultStep = {
+          textFeature: "我知道了",
+          nextStep: rebackBuyMethodPageStep,
+        };
+      }
+      btnClick();
     },
   });
 }
@@ -369,10 +426,12 @@ function loopPlaceOrder() {
 function patchPlaceOrderFeature({ callback }) {
   let startTime = Date.now();
   let endTime = Date.now();
+  let isFirstEnter = state.loopPlaceOrderCount === 0;
   while (endTime - startTime < state.widghtFindTime) {
     if (state.loopPlaceOrderStep === sureAndPayStep) {
       let sureAndPayFeature = checkTextViewWidgetIsExists("确认信息并支付");
-      if (sureAndPayFeature) {
+      console.log({ sureAndPayFeature, duration: Date.now() - startTime });
+      if (sureAndPayFeature || isFirstEnter) {
         callback({ currentStep: sureAndPayStep });
         break;
       }
@@ -384,9 +443,9 @@ function patchPlaceOrderFeature({ callback }) {
             checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
             checkTextViewWidgetIsExists("就是这家");
-      if (sureMarkOrMailInfo) {
-        sleep(5000);
-        state.loopPlaceOrderCount = state.loopPlaceOrderCount + 1;
+      if (sureMarkOrMailInfo || isFirstEnter) {
+        // event$.emit(eventKeys.orc, { action: false });
+        controlLoopPlaceOrderKeepTime();
         callback({ currentStep: sureInfoStep });
         break;
       }
@@ -524,11 +583,42 @@ function debounce(func, wait) {
   };
 }
 
+function screenIsLoadedWithOcr({ callback, wait } = {}) {
+  event$.on(eventKeys.orc, ({ action }) => {
+    state.currentOrcInfo = [];
+    threads.shutDownAll();
+    if (action) {
+      startThread({
+        fn: () => {
+          while (true) {
+            let { currentScreenOcr } = getOrcScreen();
+            state.currentOrcInfo = currentScreenOcr;
+          }
+        },
+      });
+    }
+  });
+}
+
+function getOrcScreen({ callback } = {}) {
+  let startTime = Date.now();
+  let img = images.captureScreen();
+  let region = [0, 0.2, -1, 0.6];
+  let currentScreenOcr = ocr(img, region).map((i) => i.trim());
+  img.recycle();
+  let endTime = Date.now();
+  let elapsedTime = endTime - startTime;
+  let generateId = startTime + "-" + elapsedTime;
+  callback && callback();
+  return { currentScreenOcr, elapsedTime, startTime, generateId, endTime };
+}
+
 // 初始化配置
 function initConfig() {
   state.point = storage.get("widghtPoint")
     ? JSON.parse(storage.get("widghtPoint"))
     : {};
+  screenIsLoadedWithOcr();
 }
 
 function main() {
