@@ -381,22 +381,6 @@ function loopPlaceOrder() {
         },
       };
 
-      let btnClick = () => {
-        handleSimulateClick({
-          widget: findTextViewWidget({
-            text: stepMap[currentStep].textFeature,
-          }),
-          callback: () => {
-            state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
-            if (currentStep === sureInfoStep) {
-              state.loopPlaceOrderCount = state.loopPlaceOrderCount + 1;
-            }
-            loopPlaceOrder();
-          },
-          widgetKey: currentStep,
-        });
-      };
-
       // 当前步骤是 确认门店/邮寄地址信息时  判断是否要破盾
       // TODO 限制破盾次数
       if (currentStep === orderResultStep && state.breakLimit) {
@@ -418,7 +402,19 @@ function loopPlaceOrder() {
           nextStep: rebackBuyMethodPageStep,
         };
       }
-      btnClick();
+      handleSimulateClick({
+        widget: findTextViewWidget({
+          text: stepMap[currentStep].textFeature,
+        }),
+        callback: () => {
+          state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
+          if (currentStep === sureInfoStep) {
+            state.loopPlaceOrderCount = state.loopPlaceOrderCount + 1;
+          }
+          loopPlaceOrder();
+        },
+        widgetKey: currentStep,
+      });
     },
   });
 }
