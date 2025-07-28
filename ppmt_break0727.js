@@ -150,7 +150,19 @@ function patchBuyMethodPageBtnStatus() {
     }
   } else {
     if (state.refreshWithoutFeel) {
-      handleQuickBuyClick();
+      handleQuickBuyClick({
+        fn: () => {
+          patchPageFeature({
+            text: "选择预售批次",
+            callback: () => {
+              console.log("选择预售批次");
+              handleSimulateClick({
+                widget: findTextViewWidget({ text: "购买方式" }).previousSibling(),
+              });
+            },
+          });
+        }
+      });
     } else {
       if (state.currentMethod === "home") {
         state.currentMethod = "mark";
@@ -307,7 +319,7 @@ function patchPageFeature({ callback, text, timeOut, sync }) {
 }
 
 // 点击立即购买
-function handleQuickBuyClick({ fn, extraFn } = {}) {
+function handleQuickBuyClick({ fn } = {}) {
   handleSimulateClick({
     widget: findTextViewWidget({ text: "立即购买" }),
     callback: fn
