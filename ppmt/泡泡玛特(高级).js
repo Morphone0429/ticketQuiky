@@ -1,4 +1,4 @@
-const path = '/sdcard/脚本/ppmt_break0727.js';
+const path = '/sdcard/脚本/ppmt_break.js';
 
 try {
   floaty.closeAll();
@@ -67,8 +67,9 @@ var win = floaty.window(
           <text text='原地刷新' textSize='14sp' textColor='#FFFFFF' marginTop='3' />
           <radiogroup id='refreshWithoutFeel' orientation='horizontal'>
             <radio id='refreshWithoutFeel_true' text='是' textColor='#FFFFFF' scaleX='0.85' scaleY='0.85' checked='true' />
-            <radio id='refreshWithoutFeel_false' text='否' textColor='#FFFFFF' scaleX='0.85' scaleY='0.85' />
+            <radio id='refreshWithoutFeel_false' text='否' textColor='#FFFFFF' scaleX='0.85' scaleY='0.85' marginRight='32' />
           </radiogroup>
+          <text text='长按下列按钮生效' textSize='10sp' textColor='#FFFFFF' marginTop='3' />
         </horizontal>
         <horizontal>
           <text text='破盾模式' textSize='14sp' textColor='#FFFFFF' marginTop='3' />
@@ -76,8 +77,8 @@ var win = floaty.window(
             <radio id='breakLimit_true' text='是' textColor='#FFFFFF' scaleX='0.85' scaleY='0.85' checked='true' />
             <radio id='breakLimit_false' text='否' textColor='#FFFFFF' scaleX='0.85' scaleY='0.85' />
           </radiogroup>
-
-          <button marginLeft='58' id='closeDrawer' text='长按关闭弹窗' layout_weight='1' textColor='#FFFFFF' bg='#CCFF0000' height='22dp' textSize='10sp' padding='2dp' />
+          <button id='resetConfig' text='清理缓存' layout_weight='1' textColor='#FFFFFF' bg='#2196F3' height='22dp' textSize='10sp' padding='2dp' marginRight='4' />
+          <button id='closeDrawer' text='长按关闭' layout_weight='1' textColor='#FFFFFF' bg='#CCFF0000' height='22dp' textSize='10sp' padding='2dp' />
         </horizontal>
         <horizontal>
           <text text='购买方式刷新速度' textSize='14sp' textColor='#FFFFFF' marginTop='3' marginRight='6' />
@@ -207,6 +208,13 @@ win.closeDrawer.on('long_click', () => {
   }
   engines.myEngine().forceStop();
 });
+win.resetConfig.on('long_click', () => {
+  storage.clear()
+  seekbarInitSet()
+  win.breakLimit_true.checked = true
+  win.refreshWithoutFeel_true.checked = true
+});
+
 
 function setConfig({ type }) {
   let hasStandard = type.includes('have');
@@ -239,7 +247,7 @@ function setConfig({ type }) {
 }
 
 function seekbarInitSet() {
-  // storage.clear()
+
   let ppmtState = storage.get('ppmt_state') ? JSON.parse(storage.get('ppmt_state')) : {};
   console.log(ppmtState)
   Object.keys(seekbarMap).forEach(key => {
@@ -256,8 +264,7 @@ function seekbarInitSet() {
         // console.log(seekBar, progress, fromUser, key);
         let newProgress = Math.max(seekbarMap[key].min, progress)
         win[`${key}Text`].setText(newProgress + ' ms');
-        ppmtState[key] = {}
-        ppmtState[key].progress = newProgress;
+        ppmtState[key] = newProgress;
         storage.put('ppmt_state', JSON.stringify(ppmtState));
       },
     });
