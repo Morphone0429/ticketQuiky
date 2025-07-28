@@ -212,17 +212,17 @@ function setConfig({ type }) {
   let hasStandard = type.includes('have');
   let buyMethod = type.includes('home') ? 'home' : 'mark';
   let addOne = type.includes('more');
-  // console.log({
-  //   hasStandard,
-  //   buyMethod,
-  //   addOne,
-  //   refreshWithoutFeel_true: win.refreshWithoutFeel_true.checked,
-  //   refreshWithoutFeel_false: win.refreshWithoutFeel_false.checked,
-  //   breakLimit_true: win.breakLimit_true.checked,
-  //   breakLimit_false: win.breakLimit_false.checked,
-  //   loopBuyMethodTime: win.loopBuyMethodTime.progress,
-  //   loopPlaceOrderKeepTime: win.loopPlaceOrderKeepTime.progress
-  // });
+  console.log({
+    hasStandard,
+    buyMethod,
+    addOne,
+    refreshWithoutFeel_true: win.refreshWithoutFeel_true.checked,
+    refreshWithoutFeel_false: win.refreshWithoutFeel_false.checked,
+    breakLimit_true: win.breakLimit_true.checked,
+    breakLimit_false: win.breakLimit_false.checked,
+    loopBuyMethodTime: win.loopBuyMethodTime.progress,
+    loopPlaceOrderKeepTime: win.loopPlaceOrderKeepTime.progress
+  });
 
   let storageState = {
     hasStandard,

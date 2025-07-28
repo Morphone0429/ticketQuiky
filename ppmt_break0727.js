@@ -18,6 +18,7 @@ let state = {
   point: {},
   currentOrcInfo: [],
   orcThread: null,
+  countdownErrorStartTime: 0,
 };
 const eventKeys = {
   patchPage: "patchPage",
@@ -321,6 +322,20 @@ function findTextViewWidget({ text }) {
     .findOne(state.widghtFindTime);
 }
 
+function trySwipeUp({ fn } = {}) {
+  // 获取屏幕尺寸
+  let width = device.width;
+  let height = device.height;
+  // 设置下拉起始点和结束点（从屏幕中部向下滑动）
+  let startX = width / 2;
+  let startY = height / 2;
+  let endY = startY + 800; // 下拉距离，可根据需要调整
+  // 执行下拉手势
+  gesture(1000, [startX, startY], [startX, endY]);
+  // 等待刷新完成（时间可根据实际情况调整）},
+  fn && fn()
+}
+
 function checkTextViewWidgetIsExists(text) {
   return className("android.widget.TextView").text(text).exists();
 }
@@ -537,7 +552,8 @@ function watchPage({ callback }) {
   while (true) {
     let feature0 =
       checkTextViewWidgetIsExists("购物车") ||
-      checkTextViewWidgetIsExists("立即购买");
+      checkTextViewWidgetIsExists("立即购买") ||
+      textContains("距离开售时间").exists();
     let feature1 = checkTextViewWidgetIsExists("购买方式");
     let feature2 = checkTextViewWidgetIsExists("确认信息并支付");
     console.log({ feature0, feature1, feature2 });
@@ -558,9 +574,29 @@ function watchPage({ callback }) {
       break;
     }
     if (feature0 && !feature1 && !feature2) {
-      state.currentPage = introductionPage;
-      callback({ page: introductionPage });
-      break;
+      if (checkTextViewWidgetIsExists("立即购买")) {
+        state.currentPage = introductionPage;
+        callback({ page: introductionPage });
+        break;
+      } else {
+        console.log('倒计时:', textContains("距离开售时间").findOne(20).text())
+        // 距离开售时间还剩00:00 异常问题 持续2s 则刷新页面
+        if (textContains("距离开售时间还剩00:00").exists()
+          || textContains("距离开售时间还剩00：00").exists()
+          || textContains("距离开售时间还剩 00:00").exists()
+          || textContains("距离开售时间还剩 00：00").exists()
+        ) {
+          // if (textContains("立即购买").exists()) {
+          if (state.countdownErrorStartTime === 0) {
+            state.countdownErrorStartTime = Date.now()
+          }
+          if (Date.now() - state.countdownErrorStartTime > 2000) {
+            state.countdownErrorStartTime = state.countdownErrorStartTime + 24 * 60 * 60 * 1000
+            trySwipeUp()
+          }
+        }
+      }
+
     }
     if (!feature0 && !feature1 && !feature2) {
       // TODO 无法获取控件
@@ -635,16 +671,15 @@ function initConfig() {
     addOne: state.addOne,
     breakLimit: state.breakLimit,
     loopBuyMethodTime: state.loopBuyMethodTime,
-    loopPlaceOrderKeepTime: state.loopPlaceOrderKeepTime
+    loopPlaceOrderKeepTime: state.loopPlaceOrderKeepTime,
     loopPlaceOrderKeepTimeWhenBreak: state.loopPlaceOrderKeepTimeWhenBreak
   }, "初始化数据state============");
 
-  screenIsLoadedWithOcr();
+  // screenIsLoadedWithOcr();  先不启用该功能
 }
 
 function main() {
   initConfig();
-  // return
   patchPage();
   watchPage({
     callback: ({ page }) => {
