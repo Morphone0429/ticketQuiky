@@ -276,7 +276,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => {}, 1000);
+  threadKey && setInterval(() => { }, 1000);
   t.waitFor();
   return t;
 }
@@ -336,12 +336,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) {}
+      } catch (error) { }
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({}) {
+function controlLoopPlaceOrderKeepTime({ }) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -351,7 +351,7 @@ function controlLoopPlaceOrderKeepTime({}) {
   let sleepTime = Math.max(
     state.breakLimit
       ? state.loopPlaceOrderKeepTimeWhenBreak
-      : state.loopPlaceOrderKeepTime - duration,
+      : (state.loopPlaceOrderKeepTime - duration),
     0
   );
   sleep(sleepTime);
@@ -438,9 +438,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         // event$.emit(eventKeys.orc, { action: false });
         controlLoopPlaceOrderKeepTime();
@@ -474,9 +474,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
