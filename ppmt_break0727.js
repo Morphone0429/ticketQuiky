@@ -622,30 +622,29 @@ function initConfig() {
   state.point = storage.get("widghtPoint")
     ? JSON.parse(storage.get("widghtPoint"))
     : {};
-  console.log(Object.hasOwn(storageState, "hasStandard"));
+  const state_keys = ["hasStandard", "buyMethod", "addOne", "refreshWithoutFeel", "breakLimit", "loopBuyMethodTime", "loopPlaceOrderKeepTime", "loopPlaceOrderKeepTimeWhenBreak"]
+  state_keys.forEach((key) => {
+    if (storageState.hasOwnProperty(key)) {
+      state[key] = storageState[key];
+    }
+  })
+  console.log({
+    hasStandard: state.hasStandard,
+    buyMethod: state.buyMethod,
+    addOne: state.addOne,
+    addOne: state.addOne,
+    breakLimit: state.breakLimit,
+    loopBuyMethodTime: state.loopBuyMethodTime,
+    loopPlaceOrderKeepTime: state.loopPlaceOrderKeepTime
+    loopPlaceOrderKeepTimeWhenBreak: state.loopPlaceOrderKeepTimeWhenBreak
+  }, "初始化数据state============");
 
-  if (storageState.hasOwnProperty("hasStandard")) {
-    state.hasStandard = storageState.hasStandard;
-  }
-  if (storageState.hasOwnProperty("buyMethod")) {
-    state.buyMethod = storageState.buyMethod;
-  }
-  if (storageState.hasOwnProperty("addOne")) {
-    state.addOne = storageState.addOne;
-  }
-  if (storageState.hasOwnProperty("refreshWithoutFeel")) {
-    state.refreshWithoutFeel = storageState.refreshWithoutFeel;
-  }
-  if (storageState.hasOwnProperty("breakLimit")) {
-    state.breakLimit = storageState.breakLimit;
-  }
-
-  console.log(state, "缓存中提取数据并更新到state============");
   screenIsLoadedWithOcr();
 }
 
 function main() {
   initConfig();
+  // return
   patchPage();
   watchPage({
     callback: ({ page }) => {

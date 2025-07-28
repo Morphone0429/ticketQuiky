@@ -1,243 +1,113 @@
-const path = "/sdcard/脚本/ppmt_break0727.js";
+const path = '/sdcard/脚本/ppmt_break0727.js';
 
 try {
   floaty.closeAll();
 } catch (e) {
-  log("关闭旧窗口异常：" + e);
+  log('关闭旧窗口异常：' + e);
 }
 
 const sw = device.width;
 const sh = device.height;
-log("屏幕尺寸: " + sw + " × " + sh);
-log("创建悬浮窗...");
+log('屏幕尺寸: ' + sw + ' × ' + sh);
+log('创建悬浮窗...');
+const storage = storages.create('ppmt_state');
+let btnTextConfig = {
+  have_home: '端到家',
+  have_market: '端到店',
+  no_home: '大娃到家',
+  no_market: '大娃到店',
+  have_home_more: '端到家2',
+  have_market_more: '端到店2',
+  no_home_more: '大娃到家2',
+  no_market_more: '大娃到店2',
+};
 
-let win = floaty.window(
-  <frame id="root" bg="#01000000">
+let seekbarMap = {
+  loopBuyMethodTime: {
+    max: 3000,
+    min: 100,
+    default: 1500,
+    progress: 0
+  },
+  loopPlaceOrderKeepTime: {
+    max: 6200,
+    min: 800,
+    default: 3000,
+    progress: 0
+  },
+  loopPlaceOrderKeepTimeWhenBreak: {
+    max: 2980,
+    min: 100,
+    default: 1580,
+    progress: 0
+  }
+};
+
+var win = floaty.window(
+  <frame id='root' bg='#01000000'>
     <vertical>
       {/* 可拖动标题 */}
-      <text
-        id="drag"
-        text="ppmt抢购助手"
-        textSize="16sp"
-        textColor="#FFFFFF"
-        bg="#CC000000"
-        padding="8"
-        gravity="center"
-        w="*"
-      />
-      {/* 内容区 */}
-      <vertical bg="#80000000" padding="10 5 10 10">
+      <text id='drag' text='🔥老天保佑金山银山💰🔥' textSize='16sp' textColor='#FFFFFF' bg='#CC000000' padding='8' gravity='center' w='*' />
+      {/* 内容区  '#80000000'*/}
+      <vertical bg='#80000000' padding='10 5 10 10'>
         <horizontal>
-          <button
-            id="mainScript"
-            text="开始"
-            layout_weight="1"
-            textColor="#FFFFFF"
-            bg="#77ffffff"
-            height="32dp"
-            textSize="14sp"
-            padding="2dp"
-            marginRight="8dp"
-          />
-
-          <button
-            id="restartScript"
-            text="重启"
-            layout_weight="1"
-            textColor="#FFFFFF"
-            bg="#804CAF50"
-            height="32dp"
-            textSize="14sp"
-            padding="2dp"
-            marginRight="8dp"
-          />
-
-          <button
-            id="closeDrawer"
-            text="关闭弹窗"
-            layout_weight="1"
-            textColor="#FFFFFF"
-            bg="#77ffffff"
-            height="32dp"
-            textSize="14sp"
-            padding="2dp"
-          />
+          <button id='have_home' text={btnTextConfig.have_home} textSize='12sp' w='66' height='32dp' bg='#000000' textColor='#FFFFFF' margin='2' padding='2' />
+          <button id='have_market' text={btnTextConfig.have_market} textSize='12sp' w='66' height='32dp' bg='#000000' textColor='#FFFFFF' margin='2' padding='2' />
+          <button id='no_home' text={btnTextConfig.no_home} textSize='12sp' w='66' height='32dp' bg='#000000' textColor='#FFFFFF' margin='2' padding='2' />
+          <button id='no_market' text={btnTextConfig.no_market} textSize='12sp' w='66' height='32dp' bg='#000000' textColor='#FFFFFF' margin='2' padding='2' />
+        </horizontal>
+        <horizontal>
+          <button id='have_home_more' text={btnTextConfig.have_home_more} textSize='12sp' w='66' height='32dp' bg='#000000' textColor='#FFFFFF' margin='2' padding='2' />
+          <button id='have_market_more' text={btnTextConfig.have_market_more} textSize='12sp' w='66' height='32dp' bg='#000000' textColor='#FFFFFF' margin='2' padding='2' />
+          <button id='no_home_more' text={btnTextConfig.no_home_more} textSize='12sp' w='66' height='32dp' bg='#000000' textColor='#FFFFFF' margin='2' padding='2' />
+          <button id='no_market_more' text={btnTextConfig.no_market_more} textSize='12sp' w='66' height='32dp' bg='#000000' textColor='#FFFFFF' margin='2' padding='2' />
         </horizontal>
 
         <horizontal>
-          <text
-            text="选择规格"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-          />
-          <radiogroup id="specification" orientation="horizontal">
-            <radio
-              id="bigBaby"
-              text="大娃"
-              textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-              checked="true"
-            />
-            <radio
-              id="wholeBaby"
-              text="端(整盒)"
-              textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-            />
+          <text text='原地刷新' textSize='14sp' textColor='#FFFFFF' marginTop='3' />
+          <radiogroup id='refreshWithoutFeel' orientation='horizontal'>
+            <radio id='refreshWithoutFeel_true' text='是' textColor='#FFFFFF' scaleX='0.85' scaleY='0.85' checked='true' />
+            <radio id='refreshWithoutFeel_false' text='否' textColor='#FFFFFF' scaleX='0.85' scaleY='0.85' />
           </radiogroup>
         </horizontal>
         <horizontal>
-          <text
-            text="选择购买方式"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-          />
-          <radiogroup id="mode" orientation="horizontal">
-            <radio
-              id="home"
-              text="(送到家)"
-              textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-              checked="true"
-            />
-            <radio
-              id="mark"
-              text="(到店取)"
-              textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-            />
+          <text text='破盾模式' textSize='14sp' textColor='#FFFFFF' marginTop='3' />
+          <radiogroup id='breakLimit' orientation='horizontal'>
+            <radio id='breakLimit_true' text='是' textColor='#FFFFFF' scaleX='0.85' scaleY='0.85' checked='true' />
+            <radio id='breakLimit_false' text='否' textColor='#FFFFFF' scaleX='0.85' scaleY='0.85' />
           </radiogroup>
+
+          <button marginLeft='58' id='closeDrawer' text='长按关闭弹窗' layout_weight='1' textColor='#FFFFFF' bg='#CCFF0000' height='22dp' textSize='10sp' padding='2dp' />
         </horizontal>
         <horizontal>
-          <text
-            text="选择数量"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-          />
-          <radiogroup id="count" orientation="horizontal">
-            <radio
-              id="one"
-              text="1"
-              textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-              checked="true"
-            />
-            <radio
-              id="two"
-              text="2"
-              textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-            />
-          </radiogroup>
+          <text text='购买方式刷新速度' textSize='14sp' textColor='#FFFFFF' marginTop='3' marginRight='6' />
+          <text id='loopBuyMethodTimeText' textSize='14sp' textColor='#ffffff' marginTop='3' />
         </horizontal>
+        <seekbar id='loopBuyMethodTime' max={seekbarMap.loopBuyMethodTime.max} progress='0' progressTint='#2196F3' />
         <horizontal>
-          <text
-            text="原地刷新"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-          />
-          <radiogroup id="refreshWithoutFeel" orientation="horizontal">
-            <radio
-              id="refreshWithoutFeel_true"
-              text="是"
-              textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-              checked="true"
-            />
-            <radio
-              id="refreshWithoutFeel_false"
-              text="否"
-              textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-            />
-          </radiogroup>
+          <text text='破盾速度' textSize='14sp' textColor='#FFFFFF' marginTop='3' marginRight='6' />
+          <text id='loopPlaceOrderKeepTimeWhenBreakText' textSize='14sp' textColor='#ffffff' marginTop='3' />
         </horizontal>
+        <seekbar id='loopPlaceOrderKeepTimeWhenBreak' max={seekbarMap.loopPlaceOrderKeepTimeWhenBreak.max} progress='0' progressTint='#2196F3' />
         <horizontal>
-          <text
-            text="破盾模式"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-          />
-          <radiogroup id="breakLimit" orientation="horizontal">
-            <radio
-              id="breakLimit_true"
-              text="是"
-              textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-              checked="true"
-            />
-            <radio
-              id="breakLimit_false"
-              text="否"
-              textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-            />
-          </radiogroup>
+          <text text='非破盾速度(常规)' textSize='14sp' textColor='#FFFFFF' marginTop='3' marginRight='6' />
+          <text id='loopPlaceOrderKeepTimeText' textSize='14sp' textColor='#ffffff' marginTop='3' />
         </horizontal>
-        <horizontal>
-          <text
-            text="购买方式刷新速度"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-            marginRight="6"
-          />
-          <text
-            id="speedText0"
-            text="200 ms"
-            textSize="14sp"
-            textColor="#ffffff"
-            marginTop="3"
-          />
-        </horizontal>
-        <seekbar id="speed" max="1000" progress="200" progressTint="#2196F3" />
-        <horizontal>
-          <text
-            text="确认信息并支付速度"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-            marginRight="6"
-          />
-          <text
-            id="speedText0"
-            text="200 ms"
-            textSize="14sp"
-            textColor="#ffffff"
-            marginTop="3"
-          />
-        </horizontal>
-        <seekbar id="speed" max="1000" progress="200" progressTint="#2196F3" />
+        <seekbar id='loopPlaceOrderKeepTime' max={seekbarMap.loopPlaceOrderKeepTime.max} progress='0' progressTint='#2196F3' />
       </vertical>
     </vertical>
   </frame>
 );
-log("悬浮窗对象已创建 ✔");
+log('悬浮窗对象已创建 ✔');
 win.setPosition(0, 200);
-log("初始位置已设置 ✔");
-log("win.count: " + win.count);
-log("win.speed: " + win.speed);
+log('初始位置已设置 ✔');
+
 // ========== 自适应尺寸 ==========
 ui.post(() => {
   const w = win.getWidth();
   const h = win.getHeight();
   win.setSize(w, h);
-  log("自适应尺寸完成: " + w + " × " + h);
+  log('自适应尺寸完成: ' + w + ' × ' + h);
 });
 
 // ========== 拖动实现（带日志） ==========
@@ -249,7 +119,7 @@ win.drag.setOnTouchListener(function (v, e) {
       downY = e.getRawY();
       dx = win.getX();
       dy = win.getY();
-      log("拖动开始: down(" + downX + "," + downY + ")");
+      log('拖动开始: down(' + downX + ',' + downY + ')');
       return true;
     case e.ACTION_MOVE:
       const newX = dx + (e.getRawX() - downX);
@@ -257,61 +127,144 @@ win.drag.setOnTouchListener(function (v, e) {
       win.setPosition(newX, newY);
       return true;
     case e.ACTION_UP:
-      log("拖动结束: 当前坐标(" + win.getX() + "," + win.getY() + ")");
+      log('拖动结束: 当前坐标(' + win.getX() + ',' + win.getY() + ')');
       return true;
   }
   return false;
 });
 var execution = null;
-console.log(win.mainScript.getText());
-win.mainScript.on("click", () => {
-  setConfig();
-    let currentText = win.mainScript.getText();
-    let targetText = currentText === "开始" ? "停止" : "开始";
-    let stopColor = "#77ffffff";
-    let runColor = "#FF0000";
-    let newColor =
-      currentText === "开始"
-        ? colors.parseColor(runColor)
-        : colors.parseColor(stopColor);
-    win.mainScript.setText(targetText);
-    win.mainScript.setBackgroundColor(newColor);
-    win.closeDrawer.setEnabled(currentText === "开始" ? false : true);
-    currentText === "开始"
-      ? (execution = engines.execScriptFile(path))
-      : execution && execution.getEngine().forceStop();
+
+function shortcutBtnClick({ type }) {
+  console.log('选择的基本类型');
+  setConfig({ type });
+  let targetText = btnTextConfig[type];
+  let stopColor = '#FF0000';
+  let originColor = '#000000';
+  if (win[type].getText() === targetText) {
+    let newColor = colors.parseColor(stopColor);
+    if (!files.exists(path)) {
+      toast('脚本文件不存在: ' + path);
+      exit();
+    }
+    execution = engines.execScriptFile(path);
+    win[type].setText('停止');
+    win[type].setBackgroundColor(newColor);
+    win.closeDrawer.setEnabled(false);
+    for (let key in btnTextConfig) {
+      let text = btnTextConfig[key];
+      if (win[key] && type !== key) {
+        win[key].setEnabled(false);
+      }
+    }
+  } else {
+    if (execution) {
+      execution.getEngine().forceStop();
+    }
+    let newColor = colors.parseColor(originColor);
+    win[type].setText(targetText);
+    win[type].setBackgroundColor(newColor);
+    win.closeDrawer.setEnabled(true);
+    for (let key in btnTextConfig) {
+      let text = btnTextConfig[key];
+      if (win[key]) {
+        win[key].setEnabled(true);
+      }
+    }
+  }
+}
+
+win.have_home.click(() => {
+  shortcutBtnClick({ type: 'have_home' });
 });
 
-win.closeDrawer.on("click", () => {
+win.have_market.click(() => {
+  shortcutBtnClick({ type: 'have_market' });
+});
+win.no_home.click(() => {
+  shortcutBtnClick({ type: 'no_home' });
+});
+win.no_market.click(() => {
+  shortcutBtnClick({ type: 'no_market' });
+});
+
+// -----------more---------------
+win.have_home_more.click(() => {
+  shortcutBtnClick({ type: 'have_home_more' });
+});
+win.have_market_more.click(() => {
+  shortcutBtnClick({ type: 'have_market_more' });
+});
+win.no_home_more.click(() => {
+  shortcutBtnClick({ type: 'no_home_more' });
+});
+win.no_market_more.click(() => {
+  shortcutBtnClick({ type: 'no_market_more' });
+});
+
+win.closeDrawer.on('long_click', () => {
   if (execution) {
     execution.getEngine().forceStop();
   }
   engines.myEngine().forceStop();
 });
 
-function setConfig() {
-  console.log({
-    bigBaby: win.bigBaby.checked,
-    wholeBaby: win.wholeBaby.checked,
-    mark: win.mark.checked,
-    home: win.home.checked,
-    one: win.one.checked,
-    two: win.two.checked,
-    refreshWithoutFeel_true: win.refreshWithoutFeel_true.checked,
-    refreshWithoutFeel_false: win.refreshWithoutFeel_false.checked,
-    breakLimit_true: win.breakLimit_true.checked,
-    breakLimit_false: win.breakLimit_false.checked,
-  });
-  const storage = storages.create("ppmt_state");
+function setConfig({ type }) {
+  let hasStandard = type.includes('have');
+  let buyMethod = type.includes('home') ? 'home' : 'mark';
+  let addOne = type.includes('more');
+  // console.log({
+  //   hasStandard,
+  //   buyMethod,
+  //   addOne,
+  //   refreshWithoutFeel_true: win.refreshWithoutFeel_true.checked,
+  //   refreshWithoutFeel_false: win.refreshWithoutFeel_false.checked,
+  //   breakLimit_true: win.breakLimit_true.checked,
+  //   breakLimit_false: win.breakLimit_false.checked,
+  //   loopBuyMethodTime: win.loopBuyMethodTime.progress,
+  //   loopPlaceOrderKeepTime: win.loopPlaceOrderKeepTime.progress
+  // });
+
   let storageState = {
-    hasStandard: win.wholeBaby.checked,
-    buyMethod: win.home.checked ? "home" : "mark",
-    addOne: win.two.checked,
+    hasStandard,
+    buyMethod,
+    addOne,
     refreshWithoutFeel: win.refreshWithoutFeel_true.checked,
     breakLimit: win.breakLimit_true.checked,
+    loopBuyMethodTime: win.loopBuyMethodTime.progress,
+    loopPlaceOrderKeepTime: win.loopPlaceOrderKeepTime.progress,
+    loopPlaceOrderKeepTimeWhenBreak: win.loopPlaceOrderKeepTimeWhenBreak.progress
   };
 
-  storage.put("ppmt_state", JSON.stringify(storageState));
+  storage.put('ppmt_state', JSON.stringify(storageState));
 }
 
-setInterval(() => {}, 1000);
+function seekbarInitSet() {
+  // storage.clear()
+  let ppmtState = storage.get('ppmt_state') ? JSON.parse(storage.get('ppmt_state')) : {};
+  console.log(ppmtState)
+  Object.keys(seekbarMap).forEach(key => {
+    console.log(key)
+    win[key].progress = seekbarMap[key].default
+    win[`${key}Text`].setText(seekbarMap[key].default + ' ms');
+
+    if (ppmtState.hasOwnProperty(key)) {
+      win[key].progress = ppmtState[key].progress
+      win[`${key}Text`].setText(ppmtState[key].progress + ' ms');
+    }
+    win[key].setOnSeekBarChangeListener({
+      onProgressChanged: function (seekBar, progress, fromUser) {
+        // console.log(seekBar, progress, fromUser, key);
+        let newProgress = Math.max(seekbarMap[key].min, progress)
+        win[`${key}Text`].setText(newProgress + ' ms');
+        ppmtState[key] = {}
+        ppmtState[key].progress = newProgress;
+        storage.put('ppmt_state', JSON.stringify(ppmtState));
+      },
+    });
+  })
+
+}
+
+seekbarInitSet();
+
+setInterval(() => { }, 1000);
