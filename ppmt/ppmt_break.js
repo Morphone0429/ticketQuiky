@@ -157,11 +157,13 @@ function patchBuyMethodPageBtnStatus() {
             callback: () => {
               console.log("选择预售批次");
               handleSimulateClick({
-                widget: findTextViewWidget({ text: "购买方式" }).previousSibling(),
+                widget: findTextViewWidget({
+                  text: "购买方式",
+                }).previousSibling(),
               });
             },
           });
-        }
+        },
       });
     } else {
       if (state.currentMethod === "home") {
@@ -289,7 +291,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => { }, 1000);
+  threadKey && setInterval(() => {}, 1000);
   t.waitFor();
   return t;
 }
@@ -322,7 +324,7 @@ function patchPageFeature({ callback, text, timeOut, sync }) {
 function handleQuickBuyClick({ fn } = {}) {
   handleSimulateClick({
     widget: findTextViewWidget({ text: "立即购买" }),
-    callback: fn
+    callback: fn,
   });
 }
 
@@ -343,7 +345,7 @@ function trySwipeUp({ fn } = {}) {
   // 执行下拉手势
   gesture(1000, [startX, startY], [startX, endY]);
   // 等待刷新完成（时间可根据实际情况调整）},
-  fn && fn()
+  fn && fn();
 }
 
 function checkTextViewWidgetIsExists(text) {
@@ -361,12 +363,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) { }
+      } catch (error) {}
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({ }) {
+function controlLoopPlaceOrderKeepTime({}) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -376,7 +378,7 @@ function controlLoopPlaceOrderKeepTime({ }) {
   let sleepTime = Math.max(
     state.breakLimit
       ? state.loopPlaceOrderKeepTimeWhenBreak
-      : (state.loopPlaceOrderKeepTime - duration),
+      : state.loopPlaceOrderKeepTime - duration,
     0
   );
   sleep(sleepTime);
@@ -463,9 +465,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-          checkTextViewWidgetIsExists("请确认收货信息")
+            checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-          checkTextViewWidgetIsExists("就是这家");
+            checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         // event$.emit(eventKeys.orc, { action: false });
         controlLoopPlaceOrderKeepTime();
@@ -499,9 +501,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-          checkTextViewWidgetIsExists("请确认收货信息")
+            checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-          checkTextViewWidgetIsExists("就是这家");
+            checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
@@ -589,24 +591,29 @@ function watchPage({ callback }) {
         callback({ page: introductionPage });
         break;
       } else {
-        console.log('倒计时:', textContains("距离开售时间").findOne(20).text())
+        console.log(
+          "倒计时:",
+          textContains("距离开售时间").exists() &&
+            textContains("距离开售时间").findOne(20).text()
+        );
         // 距离开售时间还剩00:00 异常问题 持续2s 则刷新页面
-        if (textContains("距离开售时间还剩00:00").exists()
-          || textContains("距离开售时间还剩00：00").exists()
-          || textContains("距离开售时间还剩 00:00").exists()
-          || textContains("距离开售时间还剩 00：00").exists()
+        if (
+          textContains("距离开售时间还剩00:00").exists() ||
+          textContains("距离开售时间还剩00：00").exists() ||
+          textContains("距离开售时间还剩 00:00").exists() ||
+          textContains("距离开售时间还剩 00：00").exists()
         ) {
           // if (textContains("立即购买").exists()) {
           if (state.countdownErrorStartTime === 0) {
-            state.countdownErrorStartTime = Date.now()
+            state.countdownErrorStartTime = Date.now();
           }
           if (Date.now() - state.countdownErrorStartTime > 2000) {
-            state.countdownErrorStartTime = state.countdownErrorStartTime + 24 * 60 * 60 * 1000
-            trySwipeUp()
+            state.countdownErrorStartTime =
+              state.countdownErrorStartTime + 24 * 60 * 60 * 1000;
+            trySwipeUp();
           }
         }
       }
-
     }
     if (!feature0 && !feature1 && !feature2) {
       // TODO 无法获取控件
@@ -668,22 +675,34 @@ function initConfig() {
   state.point = storage.get("widghtPoint")
     ? JSON.parse(storage.get("widghtPoint"))
     : {};
-  const state_keys = ["hasStandard", "buyMethod", "addOne", "refreshWithoutFeel", "breakLimit", "loopBuyMethodTime", "loopPlaceOrderKeepTime", "loopPlaceOrderKeepTimeWhenBreak"]
+  const state_keys = [
+    "hasStandard",
+    "buyMethod",
+    "addOne",
+    "refreshWithoutFeel",
+    "breakLimit",
+    "loopBuyMethodTime",
+    "loopPlaceOrderKeepTime",
+    "loopPlaceOrderKeepTimeWhenBreak",
+  ];
   state_keys.forEach((key) => {
     if (storageState.hasOwnProperty(key)) {
       state[key] = storageState[key];
     }
-  })
-  console.log({
-    hasStandard: state.hasStandard,
-    buyMethod: state.buyMethod,
-    addOne: state.addOne,
-    addOne: state.addOne,
-    breakLimit: state.breakLimit,
-    loopBuyMethodTime: state.loopBuyMethodTime,
-    loopPlaceOrderKeepTime: state.loopPlaceOrderKeepTime,
-    loopPlaceOrderKeepTimeWhenBreak: state.loopPlaceOrderKeepTimeWhenBreak
-  }, "初始化数据state============");
+  });
+  console.log(
+    {
+      hasStandard: state.hasStandard,
+      buyMethod: state.buyMethod,
+      addOne: state.addOne,
+      addOne: state.addOne,
+      breakLimit: state.breakLimit,
+      loopBuyMethodTime: state.loopBuyMethodTime,
+      loopPlaceOrderKeepTime: state.loopPlaceOrderKeepTime,
+      loopPlaceOrderKeepTimeWhenBreak: state.loopPlaceOrderKeepTimeWhenBreak,
+    },
+    "初始化数据state============"
+  );
 
   // screenIsLoadedWithOcr();  先不启用该功能
 }
