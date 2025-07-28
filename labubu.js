@@ -248,8 +248,8 @@ function seekbarInitSet() {
     win[`${key}Text`].setText(seekbarMap[key].default + ' ms');
 
     if (ppmtState.hasOwnProperty(key)) {
-      win[key].progress = ppmtState[key].progress
-      win[`${key}Text`].setText(ppmtState[key].progress + ' ms');
+      win[key].progress = ppmtState[key]
+      win[`${key}Text`].setText(ppmtState[key] + ' ms');
     }
     win[key].setOnSeekBarChangeListener({
       onProgressChanged: function (seekBar, progress, fromUser) {

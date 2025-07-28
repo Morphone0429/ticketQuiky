@@ -307,13 +307,11 @@ function patchPageFeature({ callback, text, timeOut, sync }) {
 }
 
 // 点击立即购买
-function handleQuickBuyClick({ fn } = {}) {
-  let quickBuyButton = findTextViewWidget({ text: "立即购买" });
-  if (quickBuyButton) {
-    console.log("立即购买按钮点击");
-    quickBuyButton.click();
-  }
-  fn && fn();
+function handleQuickBuyClick({ fn, extraFn } = {}) {
+  handleSimulateClick({
+    widget: findTextViewWidget({ text: "立即购买" }),
+    callback: fn
+  });
 }
 
 function findTextViewWidget({ text }) {
