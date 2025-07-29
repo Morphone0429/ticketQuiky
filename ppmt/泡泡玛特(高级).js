@@ -265,6 +265,14 @@ var win = floaty.window(
             textColor="#ffffff"
             marginTop="3"
           />
+          <text
+            id="console"
+            text="无障碍状态"
+            textSize="12sp"
+            textColor="#FFFFFF"
+            marginTop="3"
+            marginLeft="20"
+          />
         </horizontal>
         <seekbar
           id="loopPlaceOrderKeepTimeWhenBreak"
@@ -490,9 +498,13 @@ function checkHamibot() {
   console.log(isEnabled);
   toast("Hamibot无障碍状态: " + (isEnabled ? "✅ 已开启" : "❌ 未开启"));
   !isEnabled && toast("请重启hamibot 无障碍服务");
+  win.console.setText(`hamibot无障碍:${isEnabled ? "✅ 开启" : "❌ 关闭"}`);
 }
 
-checkHamibot();
+ui.run(function () {
+  checkHamibot();
+});
+// checkHamibot();
 
 ui.run(function () {
   seekbarInitSet();
