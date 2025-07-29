@@ -670,6 +670,7 @@ function debounce(func, wait) {
 function weiXinPay() {
   console.log('pay start')
   device.vibrate(6000);
+  device.setBrightness(255)
   sleep(6000);
   let key = device.model
   console.log(state.mockPoints[key])
