@@ -709,7 +709,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
                 popLodingstartTime = Date.now();
               }
               let keepTime = Date.now() - popLodingstartTime;
-              console("poploading持续的时间:", keepTime);
+              console.log("poploading持续的时间:", keepTime);
               if (Date.now() - popLodingstartTime > 5000) {
                 handleSimulateClick({
                   widget: id("gy").findOne(state.widghtFindTime),
@@ -727,7 +727,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
                 sureBtnStartTime = Date.now();
               }
               let keepTime = Date.now() - sureBtnStartTime;
-              console("确定按钮持续的时间:", keepTime);
+              console.log("确定按钮持续的时间:", keepTime);
               if (keepTime > 2000) {
                 state.loopPlaceOrderStep = "";
                 loopPlaceOrder();
