@@ -36,6 +36,8 @@ const event$ = events.emitter();
 const storage = storages.create("ppmt_point");
 const storage_state = storages.create("ppmt_state");
 
+
+
 if (!global.javaTimer) {
   global.javaTimer = new java.util.Timer(true);
 }
@@ -239,6 +241,26 @@ function handleSimulateClick({
   callback && callback();
 }
 
+// 模拟点击
+function simulateClick({ x, y, clickTime } = {}) {
+  if (!x || !y) return;
+  let _x = random(x[0], x[1]);
+  let _y = random(y[0], y[1]);
+  click(_x, _y);
+  // if (!!clickTime) {
+  //   press(_x, _y, clickTime);
+  // } else {
+  //   let _random = random(1, 11);
+  //   let isEven = _random % 2 === 0;
+  //   if (isEven) {
+  //     let _randomDuration = random(20, 40) || 30;
+  //     press(_x, _y, _randomDuration);
+  //   } else {
+  //     click(_x, _y);
+  //   }
+  // }
+}
+
 // 点击确定按钮
 function handleSureClick() {
   // if (state.loopBuyMethodCount < 4) return;
@@ -291,7 +313,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => {}, 1000);
+  threadKey && setInterval(() => { }, 1000);
   t.waitFor();
   return t;
 }
@@ -363,12 +385,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) {}
+      } catch (error) { }
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({}) {
+function controlLoopPlaceOrderKeepTime({ }) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -431,6 +453,14 @@ function loopPlaceOrder() {
           nextStep: rebackBuyMethodPageStep,
         };
       }
+
+      if (currentStep === rebackBuyMethodPageStep) {
+        event$.emit(eventKeys.orc, { action: false })
+      }
+      if (currentStep === sureInfoStep) {
+        event$.emit(eventKeys.orc, { action: true })
+      }
+
       handleSimulateClick({
         widget: findTextViewWidget({
           text: stepMap[currentStep].textFeature,
@@ -465,9 +495,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         // event$.emit(eventKeys.orc, { action: false });
         controlLoopPlaceOrderKeepTime();
@@ -501,9 +531,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
@@ -594,7 +624,7 @@ function watchPage({ callback }) {
         console.log(
           "倒计时:",
           textContains("距离开售时间").exists() &&
-            textContains("距离开售时间").findOne(20).text()
+          textContains("距离开售时间").findOne(20).text()
         );
         // 距离开售时间还剩00:00 异常问题 持续2s 则刷新页面
         if (
@@ -637,6 +667,21 @@ function debounce(func, wait) {
   };
 }
 
+function weiXinPay() {
+  console.log('pay start')
+  device.vibrate(6000);
+  sleep(6000);
+  let key = device.model
+  console.log(state.mockPoints[key])
+  if (!state.mockPoints[key]) return
+  let payPoints = state.mockPoints[key];
+  for (let i = 0; i < payPoints.length; i++) {
+    let _point = payPoints[i];
+    simulateClick(_point)
+    sleep(1000);
+  }
+}
+
 function screenIsLoadedWithOcr({ callback, wait } = {}) {
   event$.on(eventKeys.orc, ({ action }) => {
     state.currentOrcInfo = [];
@@ -647,6 +692,12 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
           while (true) {
             let { currentScreenOcr } = getOrcScreen();
             state.currentOrcInfo = currentScreenOcr;
+            console.log(state.currentOrcInfo, '匹配当前的 orc内容')
+            if (currentScreenOcr.includes("微信支付") || currentScreenOcr.includes("支付环境存在风险")) {
+              console.log('开始支付')
+              weiXinPay()
+              break
+            }
           }
         },
       });
@@ -669,6 +720,7 @@ function getOrcScreen({ callback } = {}) {
 
 // 初始化配置
 function initConfig() {
+  screenIsLoadedWithOcr();
   const storageState = storage_state.get("ppmt_state")
     ? JSON.parse(storage_state.get("ppmt_state"))
     : {};
@@ -704,8 +756,28 @@ function initConfig() {
     "初始化数据state============"
   );
 
-  // screenIsLoadedWithOcr();  先不启用该功能
+  let mockPoints = {
+    PDSM00: [
+      { x: [447, 654], y: [1774, 1845] }, //2
+      { x: [447, 654], y: [1774, 1845] }, // 2
+      { x: [447, 654], y: [2232, 2307] }, // 0
+      { x: [807, 955], y: [1774, 1845] }, // 3
+      { x: [447, 654], y: [2232, 2307] }, // 0
+      { x: [107, 249], y: [2081, 2153] }, // 7
+    ], // oppoReno5pro
+    PJX110: [
+      { x: [927, 1121], y: [2040, 2125] }, //3
+      { x: [927, 1121], y: [2040, 2125] }, //3
+      { x: [520, 763], y: [2592, 2670] }, // 0
+      { x: [116, 346], y: [2220, 2320] }, // 4
+      { x: [520, 763], y: [2040, 2125] }, // 2
+      { x: [927, 1121], y: [2403, 2496] }, // 9
+    ]// 1+ 3ace
+  }
+  state.mockPoints = mockPoints
 }
+
+
 
 function main() {
   initConfig();
