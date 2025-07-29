@@ -19,6 +19,7 @@ let state = {
   currentOrcInfo: [],
   orcThread: null,
   countdownErrorStartTime: 0,
+  clickCount: 0
 };
 const eventKeys = {
   patchPage: "patchPage",
@@ -237,6 +238,7 @@ function handleSimulateClick({
       error && error();
     }
   }
+  state.clickCount = state.clickCount + 1
   sleep(sleepTime);
   callback && callback();
 }
@@ -283,9 +285,6 @@ function handleSureClick() {
     widget: findTextViewWidget({ text: "确定" }),
   });
   console.log(state.loopPlaceOrderCount, "确认订单页面循环次数");
-  if (state.loopPlaceOrderCount === 0) {
-    // event$.emit(eventKeys.orc, { action: true });
-  }
   state.currentPage = placeOrderPage;
   state.loopPlaceOrderStep = sureAndPayStep;
   event$.emit(eventKeys.patchPage, {
@@ -454,7 +453,7 @@ function loopPlaceOrder() {
         };
       }
 
-      if (currentStep === rebackBuyMethodPageStep) {
+      if (currentStep === sureAndPayStep) {
         event$.emit(eventKeys.orc, { action: false })
       }
       if (currentStep === sureInfoStep) {
@@ -499,7 +498,6 @@ function patchPlaceOrderFeature({ callback }) {
           : checkTextViewWidgetIsExists("请确认以下信息") ||
           checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
-        // event$.emit(eventKeys.orc, { action: false });
         controlLoopPlaceOrderKeepTime();
         callback({ currentStep: sureInfoStep });
         break;
@@ -688,16 +686,50 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
     state.currentOrcInfo = [];
     threads.shutDownAll();
     if (action) {
+      let popLodingstartTime = 0
+      let sureBtnStartTime = 0
       startThread({
         fn: () => {
           while (true) {
             let { currentScreenOcr } = getOrcScreen();
             state.currentOrcInfo = currentScreenOcr;
-            console.log(state.currentOrcInfo, '匹配当前的 orc内容')
+            // console.log(state.currentOrcInfo, '匹配当前的 orc内容')
             if (currentScreenOcr.includes("微信支付") || currentScreenOcr.includes("支付环境存在风险")) {
               console.log('开始支付')
               weiXinPay()
               break
+            }
+            let POPMARTLoading =
+              currentScreenOcr.some((item) => item.includes("POP")) ||
+              currentScreenOcr.some((item) => item.includes("MAR")); //popmark 红色loading
+            // 兼容loading 过长 无法点击
+            if (POPMARTLoading) {
+              if (popLodingstartTime === 0) {
+                popLodingstartTime = Date.now();
+              }
+              let keepTime = Date.now() - popLodingstartTime
+              console('poploading持续的时间:', keepTime)
+              if (Date.now() - popLodingstartTime > 5000) {
+                handleSimulateClick({ widget: id("gy").findOne(state.widghtFindTime) })
+                state.loopPlaceOrderStep = ''
+                loopPlaceOrder()
+                break
+              }
+            }
+            let hasSureBtn =
+              currentScreenOcr.includes("确定") ||
+              currentScreenOcr.some((item) => item.includes("确定"));
+            if (hasSureBtn) {
+              if (sureBtnStartTime === 0) {
+                sureBtnStartTime = Date.now();
+              }
+              let keepTime = Date.now() - sureBtnStartTime
+              console('确定按钮持续的时间:', keepTime)
+              if (keepTime > 2000) {
+                state.loopPlaceOrderStep = ''
+                loopPlaceOrder()
+                break
+              }
             }
           }
         },
