@@ -177,12 +177,7 @@ var win = floaty.window(
               marginRight="32"
             />
           </radiogroup>
-          <text
-            text="长按下列按钮生效"
-            textSize="10sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-          />
+          <text text='下列按钮长按生效' textSize='10sp' textColor='#FFFFFF' marginTop='3' />
         </horizontal>
         <horizontal>
           <text
@@ -208,28 +203,9 @@ var win = floaty.window(
               scaleY="0.85"
             />
           </radiogroup>
-          <button
-            id="resetConfig"
-            text="清理缓存"
-            layout_weight="1"
-            textColor="#FFFFFF"
-            bg="#2196F3"
-            height="22dp"
-            textSize="10sp"
-            padding="2dp"
-            marginRight="4"
-          />
-          <button
-            id="closeDrawer"
-            text="长按关闭"
-            layout_weight="1"
-            textColor="#FFFFFF"
-            bg="#CCFF0000"
-            height="22dp"
-            textSize="10sp"
-            padding="2dp"
-          />
-        </horizontal>
+          <button id='resetConfig' text='重置设置' layout_weight='1' textColor='#FFFFFF' bg='#2196F3' height='22dp' textSize='10sp' padding='2dp' marginRight='4' />
+          <button id='closeDrawer' text='关闭弹窗' layout_weight='1' textColor='#FFFFFF' bg='#CCFF0000' height='22dp' textSize='10sp' padding='2dp' />
+        </horizontal >
         <horizontal>
           <text
             text="购买方式刷新速度"
@@ -293,9 +269,9 @@ var win = floaty.window(
           progress="0"
           progressTint="#2196F3"
         />
-      </vertical>
-    </vertical>
-  </frame>
+      </vertical >
+    </vertical >
+  </frame >
 );
 log("悬浮窗对象已创建 ✔");
 win.setPosition(0, 200);
@@ -475,4 +451,4 @@ ui.run(function () {
   seekbarInitSet();
 });
 
-setInterval(() => {}, 1000);
+setInterval(() => { }, 1000);
