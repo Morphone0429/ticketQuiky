@@ -646,10 +646,6 @@ function watchPage({ callback }) {
     if (!feature0 && !feature1 && !feature2) {
       // TODO 无法获取控件
       // 判断指定包名的无障碍服务是否开启
-      if (!checkHamibot()) {
-        toast('请重启hamibot 无障碍服务')
-        break
-      }
     }
   }
 }
@@ -814,23 +810,7 @@ function initConfig() {
   state.mockPoints = mockPoints
 }
 
-function checkHamibot() {
-  // 获取目标包名
-  let targetPackage = app.getPackageName('Hamibot'); // 替换为你要检测的包名
-  console.log(targetPackage, 'targetPackage')
-  // 检查无障碍服务是否启用（适用于 Auto.js 6.3+）
-  let accessibilityManager = context.getSystemService("accessibility");
-  let serviceList = accessibilityManager.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_GENERIC);
-  let isEnabled = false;
-  for (let service of serviceList) {
-    if (service.getId().toLowerCase().includes(targetPackage.toLowerCase())) {
-      isEnabled = true;
-      break;
-    }
-  }
-  console.log(isEnabled)
-  toast("Hamibot无障碍状态: " + (isEnabled ? "✅ 已开启" : "❌ 未开启"));
-}
+
 
 
 

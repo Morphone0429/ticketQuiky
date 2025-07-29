@@ -177,7 +177,12 @@ var win = floaty.window(
               marginRight="32"
             />
           </radiogroup>
-          <text text='下列按钮长按生效' textSize='10sp' textColor='#FFFFFF' marginTop='3' />
+          <text
+            text="下列按钮长按生效"
+            textSize="10sp"
+            textColor="#FFFFFF"
+            marginTop="3"
+          />
         </horizontal>
         <horizontal>
           <text
@@ -203,9 +208,28 @@ var win = floaty.window(
               scaleY="0.85"
             />
           </radiogroup>
-          <button id='resetConfig' text='重置设置' layout_weight='1' textColor='#FFFFFF' bg='#2196F3' height='22dp' textSize='10sp' padding='2dp' marginRight='4' />
-          <button id='closeDrawer' text='关闭弹窗' layout_weight='1' textColor='#FFFFFF' bg='#CCFF0000' height='22dp' textSize='10sp' padding='2dp' />
-        </horizontal >
+          <button
+            id="resetConfig"
+            text="重置设置"
+            layout_weight="1"
+            textColor="#FFFFFF"
+            bg="#2196F3"
+            height="22dp"
+            textSize="10sp"
+            padding="2dp"
+            marginRight="4"
+          />
+          <button
+            id="closeDrawer"
+            text="关闭弹窗"
+            layout_weight="1"
+            textColor="#FFFFFF"
+            bg="#CCFF0000"
+            height="22dp"
+            textSize="10sp"
+            padding="2dp"
+          />
+        </horizontal>
         <horizontal>
           <text
             text="购买方式刷新速度"
@@ -269,9 +293,9 @@ var win = floaty.window(
           progress="0"
           progressTint="#2196F3"
         />
-      </vertical >
-    </vertical >
-  </frame >
+      </vertical>
+    </vertical>
+  </frame>
 );
 log("悬浮窗对象已创建 ✔");
 win.setPosition(0, 200);
@@ -447,8 +471,31 @@ function seekbarInitSet() {
   });
 }
 
+function checkHamibot() {
+  // 获取目标包名
+  let targetPackage = app.getPackageName("Hamibot"); // 替换为你要检测的包名
+  console.log(targetPackage, "targetPackage");
+  // 检查无障碍服务是否启用（适用于 Auto.js 6.3+）
+  let accessibilityManager = context.getSystemService("accessibility");
+  let serviceList = accessibilityManager.getEnabledAccessibilityServiceList(
+    android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_GENERIC
+  );
+  let isEnabled = false;
+  for (let service of serviceList) {
+    if (service.getId().toLowerCase().includes(targetPackage.toLowerCase())) {
+      isEnabled = true;
+      break;
+    }
+  }
+  console.log(isEnabled);
+  toast("Hamibot无障碍状态: " + (isEnabled ? "✅ 已开启" : "❌ 未开启"));
+  !isEnabled && toast("请重启hamibot 无障碍服务");
+}
+
+checkHamibot();
+
 ui.run(function () {
   seekbarInitSet();
 });
 
-setInterval(() => { }, 1000);
+setInterval(() => {}, 1000);
