@@ -30,7 +30,7 @@ let seekbarMap = {
     progress: 0,
   },
   loopPlaceOrderKeepTime: {
-    max: 6200,
+    max: 8500,
     min: 800,
     default: 3500,
     progress: 0,
@@ -510,4 +510,4 @@ ui.run(function () {
   seekbarInitSet();
 });
 
-setInterval(() => {}, 1000);
+setInterval(() => { }, 1000);
