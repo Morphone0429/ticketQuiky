@@ -622,18 +622,9 @@ function watchPage({ callback }) {
         callback({ page: introductionPage });
         break;
       } else {
-        console.log(
-          "倒计时:",
-          textContains("距离开售时间").exists() &&
-            textContains("距离开售时间").findOne(20).text()
-        );
+        console.log("倒计时:", textContains("距离开售时间").exists());
         // 距离开售时间还剩00:00 异常问题 持续2s 则刷新页面
-        if (
-          textContains("距离开售时间还剩00:00").exists() ||
-          textContains("距离开售时间还剩00：00").exists() ||
-          textContains("距离开售时间还剩 00:00").exists() ||
-          textContains("距离开售时间还剩 00：00").exists()
-        ) {
+        if (textContains("距离开售时间还剩00:00").exists()) {
           // if (textContains("立即购买").exists()) {
           if (state.countdownErrorStartTime === 0) {
             state.countdownErrorStartTime = Date.now();
