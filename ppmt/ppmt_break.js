@@ -207,7 +207,6 @@ function patchBuyMethodPageBtnStatus() {
 
 function handleSimulateClick({
   widget,
-  mockClick = false,
   callback,
   error,
   widgetKey,
@@ -227,7 +226,7 @@ function handleSimulateClick({
       storage.put("widghtPoint", JSON.stringify(storagePoints));
     }
     widget.click();
-  } else if (mockClick) {
+  } else {
     const x = state.point[widgetKey].x;
     const y = state.point[widgetKey].y;
     if (x && y) {
@@ -281,6 +280,7 @@ function handleSureClick() {
   }
   handleSimulateClick({
     widget: findTextViewWidget({ text: "确定" }),
+    widgetKey: 'sureBtn'
   });
   console.log(state.loopPlaceOrderCount, "确认订单页面循环次数");
   state.currentPage = placeOrderPage;
@@ -310,7 +310,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => {}, 1000);
+  threadKey && setInterval(() => { }, 1000);
   t.waitFor();
   return t;
 }
@@ -382,12 +382,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) {}
+      } catch (error) { }
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({}) {
+function controlLoopPlaceOrderKeepTime({ }) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -408,7 +408,7 @@ function controlLoopPlaceOrderKeepTime({}) {
 function loopPlaceOrder() {
   patchPlaceOrderFeature({
     callback: ({ currentStep }) => {
-      console.log("currentStep", { currentStep, breakLimit: state.breakLimit });
+      console.log("currentStep", { currentStep, breakLimit: state.breakLimit, });
       let stepMap = {
         sureAndPayStep: {
           textFeature: "确认信息并支付",
@@ -438,7 +438,7 @@ function loopPlaceOrder() {
           .text();
         let match = errorInfo.match(/未营业|当前排队人数/);
         console.log(errorInfo, match);
-        if (match) {
+        if (match && checkTextViewWidgetIsExists("确认信息并支付")) {
           stepMap.orderResultStep = {
             textFeature: "确认信息并支付",
             nextStep: sureInfoStep,
@@ -457,7 +457,6 @@ function loopPlaceOrder() {
       if (currentStep === sureInfoStep) {
         event$.emit(eventKeys.orc, { action: true });
       }
-
       handleSimulateClick({
         widget: findTextViewWidget({
           text: stepMap[currentStep].textFeature,
@@ -481,7 +480,8 @@ function patchPlaceOrderFeature({ callback }) {
   let isFirstEnter = state.loopPlaceOrderCount === 0;
   while (endTime - startTime < state.widghtFindTime) {
     if (state.loopPlaceOrderStep === sureAndPayStep) {
-      let sureAndPayFeature = checkTextViewWidgetIsExists("确认信息并支付");
+      let sureAndPayFeature = checkTextViewWidgetIsExists("确认信息并支付")
+        || checkTextViewWidgetIsExists("确认订单");
       console.log({ sureAndPayFeature, duration: Date.now() - startTime });
       if (sureAndPayFeature || isFirstEnter) {
         callback({ currentStep: sureAndPayStep });
@@ -492,9 +492,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         controlLoopPlaceOrderKeepTime();
         callback({ currentStep: sureInfoStep });
@@ -527,9 +527,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
@@ -593,7 +593,7 @@ function watchPage({ callback }) {
       checkTextViewWidgetIsExists("立即购买") ||
       textContains("距离开售时间").exists();
     let feature1 = checkTextViewWidgetIsExists("购买方式");
-    let feature2 = checkTextViewWidgetIsExists("确认信息并支付");
+    let feature2 = checkTextViewWidgetIsExists("确认信息并支付") || checkTextViewWidgetIsExists("确认订单");
     console.log({ feature0, feature1, feature2 });
     if (
       (feature0 && feature1 && feature2) ||
@@ -620,7 +620,7 @@ function watchPage({ callback }) {
         console.log(
           "倒计时:",
           textContains("距离开售时间").exists() &&
-            textContains("距离开售时间").findOne(20).text()
+          textContains("距离开售时间").findOne(20).text()
         );
         // 距离开售时间还剩00:00 异常问题 持续2s 则刷新页面
         if (
