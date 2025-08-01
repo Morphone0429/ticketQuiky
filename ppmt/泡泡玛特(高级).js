@@ -47,16 +47,25 @@ var win = floaty.window(
   <frame id="root" bg="#01000000">
     <vertical>
       {/* 可拖动标题 */}
-      <text
-        id="drag"
-        text="🔥老天保佑金山银山💰🔥"
-        textSize="16sp"
-        textColor="#FFFFFF"
-        bg="#CC000000"
-        padding="8"
-        gravity="center"
-        w="*"
-      />
+      <horizontal bg="#000000" gravity="center_vertical" weightSum="1">
+        <text
+          id="drag"
+          text="🔥老天保佑金山银山💰🔥"
+          textSize="16sp"
+          textColor="#FFFFFF"
+          padding="8"
+          marginLeft="8"
+        />
+
+        <space layout_weight="1" />  <!-- 占位空白元素 -->
+        <text
+          id="collapsibleBtn"
+          textSize="16sp"
+          textColor="#FFFFFF"
+          marginRight="10"
+        />
+      </horizontal>
+
       {/* 内容区  '#80000000'*/}
       <vertical bg="#80000000" padding="10 5 10 10">
         <horizontal>
@@ -151,156 +160,157 @@ var win = floaty.window(
             padding="2"
           />
         </horizontal>
-
-        <horizontal>
-          <text
-            text="原地刷新"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-          />
-          <radiogroup id="refreshWithoutFeel" orientation="horizontal">
-            <radio
-              id="refreshWithoutFeel_true"
-              text="是"
+        <vertical id="collapsibleContent" visibility="visible">
+          <horizontal>
+            <text
+              text="原地刷新"
+              textSize="14sp"
               textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-              checked="true"
+              marginTop="3"
             />
-            <radio
-              id="refreshWithoutFeel_false"
-              text="否"
+            <radiogroup id="refreshWithoutFeel" orientation="horizontal">
+              <radio
+                id="refreshWithoutFeel_true"
+                text="是"
+                textColor="#FFFFFF"
+                scaleX="0.85"
+                scaleY="0.85"
+                checked="true"
+              />
+              <radio
+                id="refreshWithoutFeel_false"
+                text="否"
+                textColor="#FFFFFF"
+                scaleX="0.85"
+                scaleY="0.85"
+                marginRight="32"
+              />
+            </radiogroup>
+            <text
+              text="下列按钮长按生效"
+              textSize="10sp"
               textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-              marginRight="32"
+              marginTop="3"
             />
-          </radiogroup>
-          <text
-            text="下列按钮长按生效"
-            textSize="10sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-          />
-        </horizontal>
-        <horizontal>
-          <text
-            text="破盾模式"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-          />
-          <radiogroup id="breakLimit" orientation="horizontal">
-            <radio
-              id="breakLimit_true"
-              text="是"
+          </horizontal>
+          <horizontal>
+            <text
+              text="破盾模式"
+              textSize="14sp"
               textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
-              checked="true"
+              marginTop="3"
             />
-            <radio
-              id="breakLimit_false"
-              text="否"
+            <radiogroup id="breakLimit" orientation="horizontal">
+              <radio
+                id="breakLimit_true"
+                text="是"
+                textColor="#FFFFFF"
+                scaleX="0.85"
+                scaleY="0.85"
+                checked="true"
+              />
+              <radio
+                id="breakLimit_false"
+                text="否"
+                textColor="#FFFFFF"
+                scaleX="0.85"
+                scaleY="0.85"
+              />
+            </radiogroup>
+            <button
+              id="resetConfig"
+              text="重置设置"
+              layout_weight="1"
               textColor="#FFFFFF"
-              scaleX="0.85"
-              scaleY="0.85"
+              bg="#2196F3"
+              height="22dp"
+              textSize="10sp"
+              padding="2dp"
+              marginRight="4"
             />
-          </radiogroup>
-          <button
-            id="resetConfig"
-            text="重置设置"
-            layout_weight="1"
-            textColor="#FFFFFF"
-            bg="#2196F3"
-            height="22dp"
-            textSize="10sp"
-            padding="2dp"
-            marginRight="4"
+            <button
+              id="closeDrawer"
+              text="关闭弹窗"
+              layout_weight="1"
+              textColor="#FFFFFF"
+              bg="#CCFF0000"
+              height="22dp"
+              textSize="10sp"
+              padding="2dp"
+            />
+          </horizontal>
+          <horizontal>
+            <text
+              text="购买方式刷新速度"
+              textSize="14sp"
+              textColor="#FFFFFF"
+              marginTop="3"
+              marginRight="6"
+            />
+            <text
+              id="loopBuyMethodTimeText"
+              textSize="14sp"
+              textColor="#ffffff"
+              marginTop="3"
+            />
+          </horizontal>
+          <seekbar
+            id="loopBuyMethodTime"
+            max={seekbarMap.loopBuyMethodTime.max}
+            progress="0"
+            progressTint="#2196F3"
           />
-          <button
-            id="closeDrawer"
-            text="关闭弹窗"
-            layout_weight="1"
-            textColor="#FFFFFF"
-            bg="#CCFF0000"
-            height="22dp"
-            textSize="10sp"
-            padding="2dp"
+          <horizontal>
+            <text
+              text="破盾速度"
+              textSize="14sp"
+              textColor="#FFFFFF"
+              marginTop="3"
+              marginRight="6"
+            />
+            <text
+              id="loopPlaceOrderKeepTimeWhenBreakText"
+              textSize="14sp"
+              textColor="#ffffff"
+              marginTop="3"
+            />
+            <text
+              id="console"
+              text="无障碍状态"
+              textSize="12sp"
+              textColor="#FFFFFF"
+              marginTop="3"
+              marginLeft="20"
+            />
+          </horizontal>
+          <seekbar
+            id="loopPlaceOrderKeepTimeWhenBreak"
+            max={seekbarMap.loopPlaceOrderKeepTimeWhenBreak.max}
+            progress="0"
+            progressTint="#2196F3"
           />
-        </horizontal>
-        <horizontal>
-          <text
-            text="购买方式刷新速度"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-            marginRight="6"
+          <horizontal>
+            <text
+              text="非破盾速度(常规)"
+              textSize="14sp"
+              textColor="#FFFFFF"
+              marginTop="3"
+              marginRight="6"
+            />
+            <text
+              id="loopPlaceOrderKeepTimeText"
+              textSize="14sp"
+              textColor="#ffffff"
+              marginTop="3"
+            />
+          </horizontal>
+          <seekbar
+            id="loopPlaceOrderKeepTime"
+            max={seekbarMap.loopPlaceOrderKeepTime.max}
+            progress="0"
+            progressTint="#2196F3"
           />
-          <text
-            id="loopBuyMethodTimeText"
-            textSize="14sp"
-            textColor="#ffffff"
-            marginTop="3"
-          />
-        </horizontal>
-        <seekbar
-          id="loopBuyMethodTime"
-          max={seekbarMap.loopBuyMethodTime.max}
-          progress="0"
-          progressTint="#2196F3"
-        />
-        <horizontal>
-          <text
-            text="破盾速度"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-            marginRight="6"
-          />
-          <text
-            id="loopPlaceOrderKeepTimeWhenBreakText"
-            textSize="14sp"
-            textColor="#ffffff"
-            marginTop="3"
-          />
-          <text
-            id="console"
-            text="无障碍状态"
-            textSize="12sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-            marginLeft="20"
-          />
-        </horizontal>
-        <seekbar
-          id="loopPlaceOrderKeepTimeWhenBreak"
-          max={seekbarMap.loopPlaceOrderKeepTimeWhenBreak.max}
-          progress="0"
-          progressTint="#2196F3"
-        />
-        <horizontal>
-          <text
-            text="非破盾速度(常规)"
-            textSize="14sp"
-            textColor="#FFFFFF"
-            marginTop="3"
-            marginRight="6"
-          />
-          <text
-            id="loopPlaceOrderKeepTimeText"
-            textSize="14sp"
-            textColor="#ffffff"
-            marginTop="3"
-          />
-        </horizontal>
-        <seekbar
-          id="loopPlaceOrderKeepTime"
-          max={seekbarMap.loopPlaceOrderKeepTime.max}
-          progress="0"
-          progressTint="#2196F3"
-        />
+        </vertical>
       </vertical>
     </vertical>
   </frame>
@@ -347,6 +357,7 @@ function shortcutBtnClick({ type }) {
   let targetText = btnTextConfig[type];
   let stopColor = "#FF0000";
   let originColor = "#000000";
+  toggleContent()
   if (win[type].getText() === targetText) {
     let newColor = colors.parseColor(stopColor);
     if (!files.exists(path)) {
@@ -457,7 +468,6 @@ function seekbarInitSet() {
   let ppmtState = storage.get("ppmt_state")
     ? JSON.parse(storage.get("ppmt_state"))
     : {};
-  console.log(ppmtState);
   Object.keys(seekbarMap).forEach((key) => {
     console.log(key);
     win[key].progress = seekbarMap[key].default;
@@ -504,10 +514,32 @@ function checkHamibot() {
 ui.run(function () {
   checkHamibot();
 });
-// checkHamibot();
 
 ui.run(function () {
   seekbarInitSet();
 });
+
+
+ui.run(function () {
+  // 初始化设置
+  win.collapsibleContent.setVisibility(android.view.View.VISIBLE);  // 默认隐藏
+  win.collapsibleBtn.setText("收起▲");  // 初始箭头向下
+});
+
+
+// 绑定点击事件
+win.collapsibleBtn.on("click", toggleContent);
+
+function toggleContent() {
+  ui.run(function () {
+    if (win.collapsibleContent.getVisibility() === android.view.View.VISIBLE) {
+      win.collapsibleContent.setVisibility(android.view.View.GONE);
+      win.collapsibleBtn.setText("展开▼");
+    } else {
+      win.collapsibleContent.setVisibility(android.view.View.VISIBLE);
+      win.collapsibleBtn.setText("收起▲");
+    }
+  });
+}
 
 setInterval(() => { }, 1000);
