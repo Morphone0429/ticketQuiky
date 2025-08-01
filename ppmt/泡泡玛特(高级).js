@@ -64,8 +64,20 @@ var win = floaty.window(
           textColor="#FFFFFF"
           marginRight="10"
         />
-      </horizontal>
 
+      </horizontal>
+      <text
+        id="infoText"
+        text="脚本状态"
+        textSize="8sp"
+        textColor="#ffffff"
+        maxLines="2"
+        ellipsize="end"
+        w="*"
+        bg="#80000000"
+        paddingLeft="10"
+        paddingTop="3"
+      />
       {/* 内容区  '#80000000'*/}
       <vertical bg="#80000000" padding="10 5 10 10">
         <horizontal>
@@ -310,7 +322,9 @@ var win = floaty.window(
             progress="0"
             progressTint="#2196F3"
           />
+
         </vertical>
+
       </vertical>
     </vertical>
   </frame>
@@ -362,6 +376,8 @@ function shortcutBtnClick({ type }) {
     visible: win[type].getText() !== targetText
   })
   if (win[type].getText() === targetText) {
+    let flag = checkHamibot()
+    if (!flag) return
     let newColor = colors.parseColor(stopColor);
     if (!files.exists(path)) {
       toast("脚本文件不存在: " + path);
@@ -492,7 +508,7 @@ function seekbarInitSet() {
   });
 }
 
-function checkHamibot() {
+function checkHamibot({ prompt = true } = {}) {
   // 获取目标包名
   let targetPackage = app.getPackageName("Hamibot"); // 替换为你要检测的包名
   console.log(targetPackage, "targetPackage");
@@ -509,9 +525,12 @@ function checkHamibot() {
     }
   }
   console.log(isEnabled);
-  toast("Hamibot无障碍状态: " + (isEnabled ? "✅ 已开启" : "❌ 未开启"));
-  !isEnabled && toast("请重启hamibot 无障碍服务");
-  win.console.setText(`hamibot无障碍:${isEnabled ? "✅ 开启" : "❌ 关闭"}`);
+  if (prompt) {
+    toast("Hamibot无障碍状态: " + (isEnabled ? "✅ 已开启" : "❌ 未开启"));
+    !isEnabled && toast("请重启hamibot 无障碍服务");
+    win.console.setText(`hamibot无障碍:${isEnabled ? "✅ 开启" : "❌ 关闭"}`);
+  }
+  return isEnabled
 }
 
 ui.run(function () {
@@ -524,6 +543,12 @@ ui.run(function () {
 
 
 ui.run(function () {
+  let infoText = `原地刷新(${win.refreshWithoutFeel_true.checked ? '✅' : '❌'})破盾(${win.breakLimit_true.checked ? '✅' : '❌'})购买方式(${win.loopBuyMethodTime.progress}ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress}ms)`
+  win.infoText.setText(infoText)
+  win.infoText.setVisibility(android.view.View.GONE);
+});
+
+ui.run(function () {
   // 初始化设置
   win.collapsibleContent.setVisibility(android.view.View.VISIBLE);  // 默认隐藏
   win.collapsibleBtn.setText("收起▲");  // 初始箭头向下
@@ -534,27 +559,33 @@ ui.run(function () {
 win.collapsibleBtn.on("click", toggleContent);
 
 function toggleContent({ enforce = false, visible = false } = {}) {
+  const open = () => {
+    win.collapsibleContent.setVisibility(android.view.View.VISIBLE);
+    win.collapsibleBtn.setText("收起▲");
+    win.infoText.setVisibility(android.view.View.GONE);
+    win.infoText.setText("脚本状态")
+  }
+  const close = () => {
+    win.collapsibleContent.setVisibility(android.view.View.GONE);
+    win.collapsibleBtn.setText("展开▼");
+    let infoText = `原地刷新(${win.refreshWithoutFeel_true.checked ? '✅' : '❌'})破盾(${win.breakLimit_true.checked ? '✅' : '❌'})购买方式(${win.loopBuyMethodTime.progress}ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress}ms)`
+    win.infoText.setVisibility(android.view.View.VISIBLE);
+    win.infoText.setText(infoText)
+  }
   ui.run(function () {
     if (enforce) {
       if (visible) {
-        win.collapsibleContent.setVisibility(android.view.View.VISIBLE);
-        win.collapsibleBtn.setText("收起▲");
+        open()
       } else {
-        win.collapsibleContent.setVisibility(android.view.View.GONE);
-        win.collapsibleBtn.setText("展开▼");
+        close()
       }
     } else {
       if (win.collapsibleContent.getVisibility() === android.view.View.VISIBLE) {
-        win.collapsibleContent.setVisibility(android.view.View.GONE);
-        win.collapsibleBtn.setText("展开▼");
+        close()
       } else {
-        win.collapsibleContent.setVisibility(android.view.View.VISIBLE);
-        win.collapsibleBtn.setText("收起▲");
+        open()
       }
     }
-
-
-
   });
 }
 
