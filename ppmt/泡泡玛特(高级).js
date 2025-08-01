@@ -357,7 +357,10 @@ function shortcutBtnClick({ type }) {
   let targetText = btnTextConfig[type];
   let stopColor = "#FF0000";
   let originColor = "#000000";
-  toggleContent()
+  toggleContent({
+    enforce: true,
+    visible: win[type].getText() !== targetText
+  })
   if (win[type].getText() === targetText) {
     let newColor = colors.parseColor(stopColor);
     if (!files.exists(path)) {
@@ -530,15 +533,28 @@ ui.run(function () {
 // 绑定点击事件
 win.collapsibleBtn.on("click", toggleContent);
 
-function toggleContent() {
+function toggleContent({ enforce = false, visible = false } = {}) {
   ui.run(function () {
-    if (win.collapsibleContent.getVisibility() === android.view.View.VISIBLE) {
-      win.collapsibleContent.setVisibility(android.view.View.GONE);
-      win.collapsibleBtn.setText("展开▼");
+    if (enforce) {
+      if (visible) {
+        win.collapsibleContent.setVisibility(android.view.View.VISIBLE);
+        win.collapsibleBtn.setText("收起▲");
+      } else {
+        win.collapsibleContent.setVisibility(android.view.View.GONE);
+        win.collapsibleBtn.setText("展开▼");
+      }
     } else {
-      win.collapsibleContent.setVisibility(android.view.View.VISIBLE);
-      win.collapsibleBtn.setText("收起▲");
+      if (win.collapsibleContent.getVisibility() === android.view.View.VISIBLE) {
+        win.collapsibleContent.setVisibility(android.view.View.GONE);
+        win.collapsibleBtn.setText("展开▼");
+      } else {
+        win.collapsibleContent.setVisibility(android.view.View.VISIBLE);
+        win.collapsibleBtn.setText("收起▲");
+      }
     }
+
+
+
   });
 }
 
