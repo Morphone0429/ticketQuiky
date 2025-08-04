@@ -7,7 +7,7 @@ let state = {
   loopPlaceOrderStartTime: 0,
   loopPlaceOrderCount: 0,
   loopPlaceOrderStep: "", // sureAndPayStep sureInfoStep orderResultStep rebackBuyMethodPageStep
-  widghtFindTime: 5000, //查找widght的最大时间
+  widghtFindTime: 3000, //查找widght的最大时间
   hasStandard: true, //是否有选择规格
   refreshWithoutFeel: true, // 是否无感刷新
   breakLimit: true,
@@ -225,7 +225,7 @@ function handleSimulateClick({
       storagePoints[widgetKey] = point;
       storage.put("widghtPoint", JSON.stringify(storagePoints));
     }
-    console.log("当前点击的widget:", widget.text() ? widget.text() : widget);
+    console.log('当前点击的widget:', widget.text())
     widget.click();
   } else {
     const x = state.point[widgetKey].x;
@@ -311,7 +311,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => {}, 1000);
+  threadKey && setInterval(() => { }, 1000);
   t.waitFor();
   return t;
 }
@@ -383,12 +383,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) {}
+      } catch (error) { }
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({}) {
+function controlLoopPlaceOrderKeepTime({ }) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -409,12 +409,7 @@ function controlLoopPlaceOrderKeepTime({}) {
 function loopPlaceOrder() {
   patchPlaceOrderFeature({
     callback: ({ currentStep }) => {
-      event$.emit(eventKeys.orc, { action: false });
-      console.log("currentStep", {
-        currentStep,
-        breakLimit: state.breakLimit,
-        loopPlaceOrderStep: state.loopPlaceOrderStep,
-      });
+      console.log("currentStep", { currentStep, breakLimit: state.breakLimit });
       let stepMap = {
         sureAndPayStep: {
           textFeature: "确认信息并支付",
@@ -439,17 +434,16 @@ function loopPlaceOrder() {
       if (currentStep === orderResultStep && state.breakLimit) {
         // const keepErrorInfo = ["未营业"];
         // 订单内商品库存不足,请您重新核对 自动返回
-        let errorWidget = findTextViewWidget({ text: "我知道了" });
-        if (errorWidget) {
-          let errorInfo = errorWidget.previousSibling().text();
-          let match = errorInfo.match(/未营业|当前排队人数/);
-          console.log(errorInfo, match);
-          if (match && checkTextViewWidgetIsExists("确认信息并支付")) {
-            stepMap.orderResultStep = {
-              textFeature: "确认信息并支付",
-              nextStep: sureInfoStep,
-            };
-          }
+        let errorInfo = findTextViewWidget({ text: "我知道了" })
+          .previousSibling()
+          .text();
+        let match = errorInfo.match(/未营业|当前排队人数/);
+        console.log(errorInfo, match);
+        if (match && checkTextViewWidgetIsExists("确认信息并支付")) {
+          stepMap.orderResultStep = {
+            textFeature: "确认信息并支付",
+            nextStep: sureInfoStep,
+          };
         }
       } else {
         stepMap.orderResultStep = {
@@ -458,19 +452,17 @@ function loopPlaceOrder() {
         };
       }
 
-      // if (currentStep === sureAndPayStep) {
-      //   event$.emit(eventKeys.orc, { action: false });
-      // }
-
-      // if (currentStep === sureInfoStep) {
-      //   event$.emit(eventKeys.orc, { action: true });
-      // }
+      if (currentStep === sureAndPayStep) {
+        event$.emit(eventKeys.orc, { action: false });
+      }
+      if (currentStep === sureInfoStep) {
+        event$.emit(eventKeys.orc, { action: true });
+      }
       handleSimulateClick({
         widget: findTextViewWidget({
           text: stepMap[currentStep].textFeature,
         }),
         callback: () => {
-          event$.emit(eventKeys.orc, { action: true });
           state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
           if (currentStep === sureInfoStep) {
             state.loopPlaceOrderCount = state.loopPlaceOrderCount + 1;
@@ -487,7 +479,6 @@ function patchPlaceOrderFeature({ callback }) {
   let startTime = Date.now();
   let endTime = Date.now();
   let isFirstEnter = state.loopPlaceOrderCount === 0;
-  console.log({ loopPlaceOrderStep: state.loopPlaceOrderStep }, "当前循环步骤");
   while (endTime - startTime < state.widghtFindTime) {
     if (state.loopPlaceOrderStep === sureAndPayStep) {
       let sureAndPayFeature =
@@ -503,9 +494,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         controlLoopPlaceOrderKeepTime();
         callback({ currentStep: sureInfoStep });
@@ -540,9 +531,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
@@ -707,7 +698,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               break;
             }
             let POPMARTLoading =
-              currentScreenOcr.some((item) => item.includes("POP M")) ||
+              currentScreenOcr.some((item) => item.includes("POP")) ||
               currentScreenOcr.some((item) => item.includes("MAR")); //popmark 红色loading
             // 兼容loading 过长 无法点击
             if (POPMARTLoading) {
@@ -716,7 +707,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               }
               let keepTime = Date.now() - popLodingstartTime;
               console.log("poploading持续的时间:", keepTime);
-              if (Date.now() - popLodingstartTime > state.widghtFindTime) {
+              if (Date.now() - popLodingstartTime > 5000) {
                 handleSimulateClick({
                   widget: id("gy").findOne(state.widghtFindTime),
                 });
