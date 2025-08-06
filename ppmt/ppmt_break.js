@@ -7,7 +7,7 @@ let state = {
   loopPlaceOrderStartTime: 0,
   loopPlaceOrderCount: 0,
   loopPlaceOrderStep: "", // sureAndPayStep sureInfoStep orderResultStep rebackBuyMethodPageStep
-  widghtFindTime: 5500, //查找widght的最大时间
+  widghtFindTime: 10000, //查找widght的最大时间
   hasStandard: true, //是否有选择规格
   refreshWithoutFeel: true, // 是否无感刷新
   breakLimit: true,

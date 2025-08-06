@@ -24,21 +24,21 @@ let btnTextConfig = {
 
 let seekbarMap = {
   loopBuyMethodTime: {
-    max: 3000,
+    max: 4000,
     min: 100,
-    default: 1300,
+    default: 1150,
     progress: 0,
   },
   loopPlaceOrderKeepTime: {
-    max: 8500,
+    max: 10000,
     min: 800,
-    default: 3500,
+    default: 3100,
     progress: 0,
   },
   loopPlaceOrderKeepTimeWhenBreak: {
-    max: 2980,
+    max: 3000,
     min: 100,
-    default: 1700,
+    default: 1480,
     progress: 0,
   },
 };
@@ -542,7 +542,7 @@ function closeContent() {
   // 初始化设置
   win.collapsibleContent.setVisibility(android.view.View.GONE); // 默认隐藏
   win.collapsibleBtn.setText("展开▼");
-  let flag = checkHamibot({prompt: false});
+  let flag = checkHamibot({ prompt: false });
   let infoText = "";
   if (flag) {
     infoText = `原地刷新(${
@@ -552,8 +552,8 @@ function closeContent() {
     }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${
       win.loopPlaceOrderKeepTime.progress
     }ms)`;
-  }else {
-  infoText = `hamibot无障碍未开启❌,脚本无法执行，请打开无障碍管理器锁定hamibot`;
+  } else {
+    infoText = `hamibot无障碍未开启❌,脚本无法执行，请打开无障碍管理器锁定hamibot`;
   }
 
   win.infoText.setVisibility(android.view.View.VISIBLE);
