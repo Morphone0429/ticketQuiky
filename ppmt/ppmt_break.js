@@ -22,7 +22,7 @@ let state = {
   clickCount: 0,
   popLodingstartTime: 0,
   sureBtnStartTime: 0,
-  isDev: true,
+  isDev: false,
 };
 const eventKeys = {
   patchPage: "patchPage",
