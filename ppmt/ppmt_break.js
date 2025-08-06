@@ -7,7 +7,7 @@ let state = {
   loopPlaceOrderStartTime: 0,
   loopPlaceOrderCount: 0,
   loopPlaceOrderStep: "", // sureAndPayStep sureInfoStep orderResultStep rebackBuyMethodPageStep
-  widghtFindTime: 5000, //查找widght的最大时间
+  widghtFindTime: 5500, //查找widght的最大时间
   hasStandard: true, //是否有选择规格
   refreshWithoutFeel: true, // 是否无感刷新
   breakLimit: true,
@@ -226,7 +226,10 @@ function handleSimulateClick({
       storagePoints[widgetKey] = point;
       storage.put("widghtPoint", JSON.stringify(storagePoints));
     }
-    console.log("当前点击的widget:", widget.text() ? widget.text() : widget);
+    console.log(
+      "当前点击的widget:",
+      widget.text() ? widget.text() : widget.center()
+    );
     widget.click();
   } else {
     const x = state.point[widgetKey].x;
@@ -312,7 +315,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => { }, 1000);
+  threadKey && setInterval(() => {}, 1000);
   t.waitFor();
   return t;
 }
@@ -384,12 +387,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) { }
+      } catch (error) {}
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({ }) {
+function controlLoopPlaceOrderKeepTime({}) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -457,11 +460,8 @@ function loopPlaceOrder() {
           nextStep: rebackBuyMethodPageStep,
         };
       }
-
-      if (currentStep === sureAndPayStep) {
-        state.screenOrcStatus = false;
-        event$.emit(eventKeys.orc, { action: false });
-      }
+      state.screenOrcStatus = false;
+      event$.emit(eventKeys.orc, { action: false });
       if (currentStep === sureInfoStep) {
         state.screenOrcStatus = true;
         event$.emit(eventKeys.orc, { action: true });
@@ -503,9 +503,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-          checkTextViewWidgetIsExists("请确认收货信息")
+            checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-          checkTextViewWidgetIsExists("就是这家");
+            checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         controlLoopPlaceOrderKeepTime();
         callback({ currentStep: sureInfoStep });
@@ -540,9 +540,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-          checkTextViewWidgetIsExists("请确认收货信息")
+            checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-          checkTextViewWidgetIsExists("就是这家");
+            checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
@@ -690,6 +690,8 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
     // 如果有正在运行的OCR线程，先停止它
     if (state.orcThread) {
       state.orcThread.interrupt();
+      state.orcThread.join(1000);
+      console.log(threads.currentThread(), state.orcThread, "orcThread线程");
       state.orcThread = null;
     }
 
@@ -727,7 +729,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             }
             let keepTime = Date.now() - popLodingstartTime;
             console.log("poploading持续的时间:", keepTime);
-            if (Date.now() - popLodingstartTime > state.widghtFindTime) {
+            if (Date.now() - popLodingstartTime > state.widghtFindTime - 500) {
               handleSimulateClick({
                 widget: id("gy").findOne(state.widghtFindTime),
               });
@@ -737,22 +739,22 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               break;
             }
           }
-          let hasSureBtn =
-            currentScreenOcr.includes("确定") ||
-            currentScreenOcr.some((item) => item.includes("确定"));
-          if (hasSureBtn) {
-            if (sureBtnStartTime === 0) {
-              sureBtnStartTime = Date.now();
-            }
-            let keepTime = Date.now() - sureBtnStartTime;
-            console.log("确定按钮持续的时间:", keepTime);
-            if (keepTime > 2000) {
-              state.loopPlaceOrderStep = rebackBuyMethodPageStep;
-              loopPlaceOrder();
-              // event$.emit(eventKeys.patchPage, { page: placeOrderPage });
-              break;
-            }
-          }
+          // let hasSureBtn =
+          //   currentScreenOcr.includes("确定") ||
+          //   currentScreenOcr.some((item) => item.includes("确定"));
+          // if (hasSureBtn) {
+          //   if (sureBtnStartTime === 0) {
+          //     sureBtnStartTime = Date.now();
+          //   }
+          //   let keepTime = Date.now() - sureBtnStartTime;
+          //   console.log("确定按钮持续的时间:", keepTime);
+          //   if (keepTime > 2000) {
+          //     state.loopPlaceOrderStep = rebackBuyMethodPageStep;
+          //     loopPlaceOrder();
+          //     // event$.emit(eventKeys.patchPage, { page: placeOrderPage });
+          //     break;
+          //   }
+          // }
         }
       },
     });
