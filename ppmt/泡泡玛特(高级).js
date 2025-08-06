@@ -32,7 +32,7 @@ let seekbarMap = {
   loopPlaceOrderKeepTime: {
     max: 10000,
     min: 800,
-    default: 3100,
+    default: 3300,
     progress: 0,
   },
   loopPlaceOrderKeepTimeWhenBreak: {

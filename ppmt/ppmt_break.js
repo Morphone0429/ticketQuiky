@@ -20,7 +20,9 @@ let state = {
   orcThread: null,
   countdownErrorStartTime: 0,
   clickCount: 0,
-  screenOrcStatus: false,
+  popLodingstartTime: 0,
+  sureBtnStartTime: 0,
+  isDev: true,
 };
 const eventKeys = {
   patchPage: "patchPage",
@@ -288,6 +290,7 @@ function handleSureClick() {
     widgetKey: "sureBtn",
   });
   console.log(state.loopPlaceOrderCount, "确认订单页面循环次数");
+
   state.currentPage = placeOrderPage;
   state.loopPlaceOrderStep = sureAndPayStep;
   event$.emit(eventKeys.patchPage, {
@@ -446,7 +449,7 @@ function loopPlaceOrder() {
         if (errorWidget) {
           let errorInfo = errorWidget.previousSibling().text();
           let match = errorInfo.match(/未营业|当前排队人数/);
-          console.log(errorInfo, match);
+          console.log(errorInfo);
           if (match && checkTextViewWidgetIsExists("确认信息并支付")) {
             stepMap.orderResultStep = {
               textFeature: "确认信息并支付",
@@ -460,25 +463,50 @@ function loopPlaceOrder() {
           nextStep: rebackBuyMethodPageStep,
         };
       }
-      state.screenOrcStatus = false;
-      event$.emit(eventKeys.orc, { action: false });
-      if (currentStep === sureInfoStep) {
-        state.screenOrcStatus = true;
+      state.popLodingstartTime = 0;
+      state.sureBtnStartTime = 0;
+      if (currentStep === sureInfoStep && state.loopPlaceOrderCount === 0) {
         event$.emit(eventKeys.orc, { action: true });
       }
-      handleSimulateClick({
-        widget: findTextViewWidget({
-          text: stepMap[currentStep].textFeature,
-        }),
-        callback: () => {
-          state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
-          if (currentStep === sureInfoStep) {
-            state.loopPlaceOrderCount = state.loopPlaceOrderCount + 1;
-          }
-          loopPlaceOrder();
-        },
-        widgetKey: currentStep,
-      });
+
+      if (state.isDev) {
+        if (
+          state.loopPlaceOrderCount % 3 === 2 &&
+          currentStep === orderResultStep
+        ) {
+          handleSimulateClick({
+            widget: id("gy").findOne(state.widghtFindTime),
+          });
+        } else {
+          handleSimulateClick({
+            widget: findTextViewWidget({
+              text: stepMap[currentStep].textFeature,
+            }),
+            callback: () => {
+              state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
+              if (currentStep === sureInfoStep) {
+                state.loopPlaceOrderCount = state.loopPlaceOrderCount + 1;
+              }
+              loopPlaceOrder();
+            },
+            widgetKey: currentStep,
+          });
+        }
+      } else {
+        handleSimulateClick({
+          widget: findTextViewWidget({
+            text: stepMap[currentStep].textFeature,
+          }),
+          callback: () => {
+            state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
+            if (currentStep === sureInfoStep) {
+              state.loopPlaceOrderCount = state.loopPlaceOrderCount + 1;
+            }
+            loopPlaceOrder();
+          },
+          widgetKey: currentStep,
+        });
+      }
     },
   });
 }
@@ -517,6 +545,15 @@ function patchPlaceOrderFeature({ callback }) {
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       if (orderResultErrorFeature) {
         callback({ currentStep: orderResultStep });
+        break;
+      }
+      // 自动返回时兜底
+      let buyMethodFeature =
+        (checkTextViewWidgetIsExists("购买方式") ||
+          checkTextViewWidgetIsExists("确定")) &&
+        !checkTextViewWidgetIsExists("确认信息并支付");
+      if (buyMethodFeature) {
+        callback({ currentStep: rebackBuyMethodPageStep });
         break;
       }
     }
@@ -703,11 +740,9 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
 
     console.log("启动OCR线程");
     state.currentOrcInfo = [];
-    let popLodingstartTime = 0;
-    let sureBtnStartTime = 0;
     state.orcThread = startThread({
       fn: () => {
-        while (state.screenOrcStatus) {
+        while (true) {
           let { currentScreenOcr } = getOrcScreen();
           state.currentOrcInfo = currentScreenOcr;
           // console.log(state.currentOrcInfo, '匹配当前的 orc内容')
@@ -724,37 +759,39 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             currentScreenOcr.some((item) => item.includes("MAR")); //popmark 红色loading
           // 兼容loading 过长 无法点击
           if (POPMARTLoading) {
-            if (popLodingstartTime === 0) {
-              popLodingstartTime = Date.now();
+            if (state.popLodingstartTime === 0) {
+              state.popLodingstartTime = Date.now();
             }
-            let keepTime = Date.now() - popLodingstartTime;
+            let keepTime = Date.now() - state.popLodingstartTime;
             console.log("poploading持续的时间:", keepTime);
-            if (Date.now() - popLodingstartTime > state.widghtFindTime - 500) {
+            if (
+              Date.now() - state.popLodingstartTime >
+              state.widghtFindTime - 500
+            ) {
+              console.log("点击左上角返回按钮");
               handleSimulateClick({
                 widget: id("gy").findOne(state.widghtFindTime),
               });
               state.loopPlaceOrderStep = rebackBuyMethodPageStep;
               loopPlaceOrder();
-              // event$.emit(eventKeys.patchPage, { page: placeOrderPage });
-              break;
+              // break;
             }
           }
-          // let hasSureBtn =
-          //   currentScreenOcr.includes("确定") ||
-          //   currentScreenOcr.some((item) => item.includes("确定"));
-          // if (hasSureBtn) {
-          //   if (sureBtnStartTime === 0) {
-          //     sureBtnStartTime = Date.now();
-          //   }
-          //   let keepTime = Date.now() - sureBtnStartTime;
-          //   console.log("确定按钮持续的时间:", keepTime);
-          //   if (keepTime > 2000) {
-          //     state.loopPlaceOrderStep = rebackBuyMethodPageStep;
-          //     loopPlaceOrder();
-          //     // event$.emit(eventKeys.patchPage, { page: placeOrderPage });
-          //     break;
-          //   }
-          // }
+          let hasSureBtn =
+            currentScreenOcr.includes("确定") ||
+            currentScreenOcr.some((item) => item.includes("确定"));
+          if (hasSureBtn) {
+            if (state.sureBtnStartTime === 0) {
+              state.sureBtnStartTime = Date.now();
+            }
+            let keepTime = Date.now() - state.sureBtnStartTime;
+            console.log("确定按钮持续的时间:", keepTime);
+            if (keepTime > 450) {
+              state.loopPlaceOrderStep = rebackBuyMethodPageStep;
+              loopPlaceOrder();
+              // break;
+            }
+          }
         }
       },
     });
