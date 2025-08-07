@@ -7,7 +7,7 @@ let state = {
   loopPlaceOrderStartTime: 0,
   loopPlaceOrderCount: 0,
   loopPlaceOrderStep: "", // sureAndPayStep sureInfoStep orderResultStep rebackBuyMethodPageStep
-  widghtFindTime: 3000, //查找widght的最大时间
+  widghtFindTime: 10000, //查找widght的最大时间
   hasStandard: true, //是否有选择规格
   refreshWithoutFeel: true, // 是否无感刷新
   breakLimit: true,
@@ -23,8 +23,8 @@ let state = {
   popLodingstartTime: 0,
   sureBtnStartTime: 0,
   isLoopStatus: false,
-  isDev: false,
-  isMock: false,
+  isDev: true,
+  isMock: true,
 };
 const eventKeys = {
   patchPage: "patchPage",
@@ -140,6 +140,7 @@ function patchBuyMethodPageBtnStatus() {
    */
   let startTime = Date.now();
   let endTime = Date.now();
+  // let count = 0;  // 测试使用
   if (state.loopBuyMethodCount === 0) {
     if (state.buyMethod === "home") {
       state.currentMethod = "home";
@@ -200,6 +201,8 @@ function patchBuyMethodPageBtnStatus() {
         currentMethod: state.currentMethod,
         buyMethod: state.buyMethod,
       });
+      // count++;
+      // if (count < 5) return undefined;
       handleSureClick();
       return "break";
     }
@@ -214,6 +217,12 @@ function handleSimulateClick({
   widgetKey = "",
   sleepTime = 0,
 } = {}) {
+  // 防止确认订单轮询时 点击两次 开启多个loop
+  if (
+    state.widgetDisabled === widgetKey &&
+    state.currentPage === placeOrderPage
+  )
+    return;
   if (widget) {
     if (widgetKey) {
       let point = {
@@ -229,6 +238,7 @@ function handleSimulateClick({
     }
     console.log("当前点击的widget:", {
       widget: widget.text() ? widget.text() : widget.center(),
+      widgetDisabled: state.widgetDisabled,
       widgetKey,
       currentPage: state.currentPage,
     });
@@ -242,6 +252,7 @@ function handleSimulateClick({
       error && error();
     }
   }
+  state.widgetDisabled = widgetKey;
   state.clickCount = state.clickCount + 1;
   sleep(sleepTime);
   callback && callback();
@@ -520,7 +531,7 @@ function loopPlaceOrder() {
 }
 
 function patchPlaceOrderFeature({ callback }) {
-  console.log(state.isLoopStatus, "==========循环是否在进行中isLoopStatus");
+  console.log(state.isLoopStatus, "==========state.isLoopStatus");
   if (state.isLoopStatus) return;
   let startTime = Date.now();
   let endTime = Date.now();
@@ -537,8 +548,8 @@ function patchPlaceOrderFeature({ callback }) {
         checkTextViewWidgetIsExists("确认订单");
       console.log({ sureAndPayFeature, duration: Date.now() - startTime });
       if (sureAndPayFeature || isFirstEnter) {
-        state.isLoopStatus = false;
         callback({ currentStep: sureAndPayStep });
+        state.isLoopStatus = false;
         break;
       }
     }
@@ -551,9 +562,8 @@ function patchPlaceOrderFeature({ callback }) {
             checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         controlLoopPlaceOrderKeepTime();
-        state.isLoopStatus = false;
         callback({ currentStep: sureInfoStep });
-
+        state.isLoopStatus = false;
         break;
       }
     }
@@ -561,9 +571,8 @@ function patchPlaceOrderFeature({ callback }) {
     if (state.loopPlaceOrderStep === orderResultStep) {
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       if (orderResultErrorFeature) {
-        state.isLoopStatus = false;
         callback({ currentStep: orderResultStep });
-
+        state.isLoopStatus = false;
         break;
       }
       // 自动返回时兜底
@@ -572,9 +581,8 @@ function patchPlaceOrderFeature({ callback }) {
           checkTextViewWidgetIsExists("确定")) &&
         !checkTextViewWidgetIsExists("确认信息并支付");
       if (buyMethodFeature) {
-        state.isLoopStatus = false;
         callback({ currentStep: rebackBuyMethodPageStep });
-
+        state.isLoopStatus = false;
         break;
       }
     }
@@ -585,9 +593,8 @@ function patchPlaceOrderFeature({ callback }) {
           checkTextViewWidgetIsExists("确定")) &&
         !checkTextViewWidgetIsExists("确认信息并支付");
       if (buyMethodFeature) {
-        state.isLoopStatus = false;
         callback({ currentStep: rebackBuyMethodPageStep });
-
+        state.isLoopStatus = false;
         break;
       }
     }
@@ -609,15 +616,13 @@ function patchPlaceOrderFeature({ callback }) {
         checkTextViewWidgetIsExists("确定");
 
       if (sureMarkOrMailInfo) {
-        state.isLoopStatus = false;
         callback({ currentStep: sureInfoStep });
-
+        state.isLoopStatus = false;
         break;
       }
       if (orderResultErrorFeature) {
-        state.isLoopStatus = false;
         callback({ currentStep: orderResultStep });
-
+        state.isLoopStatus = false;
         break;
       }
 
@@ -627,18 +632,18 @@ function patchPlaceOrderFeature({ callback }) {
         !sureMarkOrMailInfo &&
         !orderResultErrorFeature
       ) {
-        state.isLoopStatus = false;
         callback({ currentStep: rebackBuyMethodPageStep });
-
+        state.isLoopStatus = false;
         break;
       } else {
-        state.isLoopStatus = false;
         callback({ currentStep: sureAndPayStep });
+        state.isLoopStatus = false;
         break;
       }
     }
-    state.isLoopStatus = false;
+
     endTime = Date.now();
+    state.isLoopStatus = false;
   }
 }
 
@@ -797,8 +802,9 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               keepTime,
               state.loopPlaceOrderStep
             );
-            if (keepTime > 8500 && keepTime < 99999) {
+            if (keepTime > 500 && keepTime < 99999) {
               console.log("点击左上角返回按钮");
+              state.widgetDisabled = undefined;
               handleSimulateClick({
                 widget: id("gy").findOne(state.widghtFindTime),
               });
@@ -819,9 +825,15 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               keepTime,
               state.loopPlaceOrderStep
             );
-            if (keepTime > 600 && keepTime < 99999) {
+            if (keepTime > 500 && keepTime < 99999) {
               state.sureBtnStartTime = 0;
+              state.widgetDisabled = undefined;
               state.loopPlaceOrderStep = "";
+              state.widghtFindTime = 500;
+              javaSetTimeout(() => {
+                state.widghtFindTime = 10000;
+              }, 90);
+              sleep(100);
               loopPlaceOrder();
             }
           }
