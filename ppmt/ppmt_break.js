@@ -22,7 +22,7 @@ let state = {
   clickCount: 0,
   popLodingstartTime: 0,
   sureBtnStartTime: 0,
-  isDev: true,
+  isDev: false,
 };
 const eventKeys = {
   patchPage: "patchPage",
@@ -212,9 +212,11 @@ function handleSimulateClick({
   widget,
   callback,
   error,
-  widgetKey,
+  widgetKey = '',
   sleepTime = 0,
 } = {}) {
+  // 防止确认订单轮询时 点击两次 开启多个loop
+  if (state.widgetDisabled === widgetKey && state.currentPage === placeOrderPage) return;
   if (widget) {
     if (widgetKey) {
       let point = {
@@ -242,6 +244,7 @@ function handleSimulateClick({
       error && error();
     }
   }
+  state.widgetDisabled = widgetKey
   state.clickCount = state.clickCount + 1;
   sleep(sleepTime);
   callback && callback();
@@ -519,7 +522,7 @@ function patchPlaceOrderFeature({ callback }) {
   let startTime = Date.now();
   let endTime = Date.now();
   let isFirstEnter = state.loopPlaceOrderCount === 0;
-  console.log({ loopPlaceOrderStep: state.loopPlaceOrderStep }, "当前循环步骤");
+  console.log({ loopPlaceOrderStep: state.loopPlaceOrderStep }, "期望匹配的步骤");
   while (endTime - startTime < state.widghtFindTime) {
     if (state.loopPlaceOrderStep === sureAndPayStep) {
       let sureAndPayFeature =
@@ -770,6 +773,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             console.log("poploading持续的时间:", keepTime, state.loopPlaceOrderStep);
             if (keepTime > 9500 && keepTime < 99999) {
               console.log("点击左上角返回按钮");
+              state.widgetDisabled = ''
               handleSimulateClick({
                 widget: id("gy").findOne(state.widghtFindTime),
               });
@@ -786,14 +790,13 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             }
             let keepTime = Date.now() - state.sureBtnStartTime;
             console.log("确定按钮持续的时间:", keepTime, state.loopPlaceOrderStep);
-            if (keepTime > 330 && keepTime < 99999) {
-              state.widghtFindTime = 350
+            if (keepTime > 500 && keepTime < 99999) {
+              state.widgetDisabled = ''
+              state.widghtFindTime = 500
               javaSetTimeout(() => {
                 state.widghtFindTime = 10000;
               }, 50);
-            }
-            if (keepTime > 450 && keepTime < 99999) {
-              state.widghtFindTime = 10000
+              sleep(100)
               state.loopPlaceOrderStep = "";
               loopPlaceOrder();
             }
