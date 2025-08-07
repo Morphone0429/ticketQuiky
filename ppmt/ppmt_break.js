@@ -23,6 +23,7 @@ let state = {
   popLodingstartTime: 0,
   sureBtnStartTime: 0,
   isDev: false,
+  isMock: false
 };
 const eventKeys = {
   patchPage: "patchPage",
@@ -231,8 +232,7 @@ function handleSimulateClick({
       storage.put("widghtPoint", JSON.stringify(storagePoints));
     }
     console.log(
-      "当前点击的widget:",
-      widget.text() ? widget.text() : widget.center()
+      "当前点击的widget:", { widget: widget.text() ? widget.text() : widget.center(), widgetDisabled: state.widgetDisabled, widgetKey, currentPage: state.currentPage }
     );
     widget.click();
   } else {
@@ -474,7 +474,14 @@ function loopPlaceOrder() {
         event$.emit(eventKeys.orc, { action: true });
       }
 
-      if (state.isDev) {
+      if (currentStep === orderResultStep && state.isDev) {
+        let errorWidget = findTextViewWidget({ text: "我知道了" });
+        if (errorWidget) {
+          let errorInfo = errorWidget.previousSibling().text();
+          console.log(errorInfo, '结果信息,仅dev环境可用');
+        }
+      }
+      if (state.isMock) {
         const isC = Math.floor(Math.random() * 10) % 2 === 1
         console.log("isDev循环时模拟的次数%", isC, currentStep)
         if (
@@ -789,14 +796,15 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             }
             let keepTime = Date.now() - state.sureBtnStartTime;
             console.log("确定按钮持续的时间:", keepTime, state.loopPlaceOrderStep);
-            if (keepTime > 200 && keepTime < 99999) {
+            if (keepTime > 500 && keepTime < 99999) {
+              state.sureBtnStartTime = 0
               state.widgetDisabled = ''
-              state.widghtFindTime = 200
+              state.loopPlaceOrderStep = "";
+              state.widghtFindTime = 500
               javaSetTimeout(() => {
                 state.widghtFindTime = 10000;
-              }, 50);
+              }, 90);
               sleep(100)
-              state.loopPlaceOrderStep = "";
               loopPlaceOrder();
             }
           }
