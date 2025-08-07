@@ -22,7 +22,7 @@ let state = {
   clickCount: 0,
   popLodingstartTime: 0,
   sureBtnStartTime: 0,
-  isDev: false,
+  isDev: true,
 };
 const eventKeys = {
   patchPage: "patchPage",
@@ -318,7 +318,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => {}, 1000);
+  threadKey && setInterval(() => { }, 1000);
   t.waitFor();
   return t;
 }
@@ -390,12 +390,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) {}
+      } catch (error) { }
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({}) {
+function controlLoopPlaceOrderKeepTime({ }) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -414,11 +414,15 @@ function controlLoopPlaceOrderKeepTime({}) {
 
 // 下单轮询
 function loopPlaceOrder() {
+  state.popLodingstartTime = 0;
+  state.sureBtnStartTime = 0;
   patchPlaceOrderFeature({
     callback: ({ currentStep }) => {
       console.log("currentStep", {
         currentStep,
         breakLimit: state.breakLimit,
+        popLodingstartTime: state.popLodingstartTime,
+        sureBtnStartTime: state.sureBtnStartTime,
         loopPlaceOrderStep: state.loopPlaceOrderStep,
       });
       let stepMap = {
@@ -444,7 +448,7 @@ function loopPlaceOrder() {
       // TODO 限制破盾次数
       if (currentStep === orderResultStep && state.breakLimit) {
         // const keepErrorInfo = ["未营业"];
-        // 订单内商品库存不足,请您重新核对 自动返回
+        // 订单内商品库存不足,请您重新核对 || 同一时间下单人数过多，建议您稍后重试 自动返回
         let errorWidget = findTextViewWidget({ text: "我知道了" });
         if (errorWidget) {
           let errorInfo = errorWidget.previousSibling().text();
@@ -463,15 +467,15 @@ function loopPlaceOrder() {
           nextStep: rebackBuyMethodPageStep,
         };
       }
-      state.popLodingstartTime = 0;
-      state.sureBtnStartTime = 0;
       if (currentStep === sureInfoStep && state.loopPlaceOrderCount === 0) {
         event$.emit(eventKeys.orc, { action: true });
       }
 
       if (state.isDev) {
+        const isC = Math.floor(Math.random() * 10) % 2 === 1
+        console.log("isDev循环时模拟的次数%", isC, currentStep)
         if (
-          state.loopPlaceOrderCount % 3 === 2 &&
+          isC &&
           currentStep === orderResultStep
         ) {
           handleSimulateClick({
@@ -531,9 +535,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         controlLoopPlaceOrderKeepTime();
         callback({ currentStep: sureInfoStep });
@@ -577,9 +581,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
@@ -758,23 +762,19 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             currentScreenOcr.some((item) => item.includes("POP M")) ||
             currentScreenOcr.some((item) => item.includes("MAR")); //popmark 红色loading
           // 兼容loading 过长 无法点击
-          if (POPMARTLoading) {
+          if (POPMARTLoading && state.loopPlaceOrderStep === orderResultStep) {
             if (state.popLodingstartTime === 0) {
               state.popLodingstartTime = Date.now();
             }
             let keepTime = Date.now() - state.popLodingstartTime;
-            console.log("poploading持续的时间:", keepTime);
-            if (
-              Date.now() - state.popLodingstartTime >
-              state.widghtFindTime - 500
-            ) {
+            console.log("poploading持续的时间:", keepTime, state.loopPlaceOrderStep);
+            if (keepTime > 9500 && keepTime < 99999) {
               console.log("点击左上角返回按钮");
               handleSimulateClick({
                 widget: id("gy").findOne(state.widghtFindTime),
               });
               state.loopPlaceOrderStep = rebackBuyMethodPageStep;
               loopPlaceOrder();
-              // break;
             }
           }
           let hasSureBtn =
@@ -785,11 +785,17 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               state.sureBtnStartTime = Date.now();
             }
             let keepTime = Date.now() - state.sureBtnStartTime;
-            console.log("确定按钮持续的时间:", keepTime);
-            if (keepTime > 450) {
-              state.loopPlaceOrderStep = rebackBuyMethodPageStep;
+            console.log("确定按钮持续的时间:", keepTime, state.loopPlaceOrderStep);
+            if (keepTime > 330 && keepTime < 99999) {
+              state.widghtFindTime = 350
+              javaSetTimeout(() => {
+                state.widghtFindTime = 10000;
+              }, 50);
+            }
+            if (keepTime > 450 && keepTime < 99999) {
+              state.widghtFindTime = 10000
+              state.loopPlaceOrderStep = "";
               loopPlaceOrder();
-              // break;
             }
           }
         }
