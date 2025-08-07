@@ -577,7 +577,7 @@ function patchPlaceOrderFeature({ callback }) {
     }
 
     // 脚本在确认信息页面启动 需要初始化一下loopPlaceOrderStep
-    if (!state.loopPlaceOrderStep && endTime - startTime > 1600) {
+    if (!state.loopPlaceOrderStep && endTime - startTime > 10) {
       let sureAndPayFeature =
         checkTextViewWidgetIsExists("确认信息并支付") ||
         checkTextViewWidgetIsExists("确认订单");
@@ -706,7 +706,6 @@ function debounce(func, wait) {
     // 如果距离上次执行超过 wait 时间，则立即执行
     console.log(now - lastExecTime, "now - lastExecTime");
     if (now - lastExecTime > wait) {
-      console.log(222233);
       func.apply(this, args);
       lastExecTime = now; // 更新执行时间
     }
@@ -790,9 +789,9 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             }
             let keepTime = Date.now() - state.sureBtnStartTime;
             console.log("确定按钮持续的时间:", keepTime, state.loopPlaceOrderStep);
-            if (keepTime > 500 && keepTime < 99999) {
+            if (keepTime > 200 && keepTime < 99999) {
               state.widgetDisabled = ''
-              state.widghtFindTime = 500
+              state.widghtFindTime = 200
               javaSetTimeout(() => {
                 state.widghtFindTime = 10000;
               }, 50);
