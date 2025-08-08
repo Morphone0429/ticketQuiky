@@ -7,7 +7,7 @@ let state = {
   loopPlaceOrderStartTime: 0,
   loopPlaceOrderCount: 0,
   loopPlaceOrderStep: "", // sureAndPayStep sureInfoStep orderResultStep rebackBuyMethodPageStep
-  widghtFindTime: 10000, //查找widght的最大时间
+  widghtFindTime: 3000, //查找widght的最大时间
   hasStandard: true, //是否有选择规格
   refreshWithoutFeel: true, // 是否无感刷新
   breakLimit: true,
@@ -447,7 +447,7 @@ function loopPlaceOrder() {
 
       // 当前步骤是 确认门店/邮寄地址信息时  判断是否要破盾
       // TODO 限制破盾次数
-      if (currentStep === orderResultStep && state.breakLimit && state.loopPlaceOrderCount < 20) {
+      if (currentStep === orderResultStep && state.breakLimit && (state.isDev ? state.loopPlaceOrderCount < 999999 : state.loopPlaceOrderCount < 20)) {
         // const keepErrorInfo = ["未营业"];
         // 订单内商品库存不足,请您重新核对 || 同一时间下单人数过多，建议您稍后重试 自动返回
         let errorWidget = findTextViewWidget({ text: "我知道了" });
@@ -658,6 +658,7 @@ function patchPage() {
               from: introductionPage,
             });
           },
+          findMaxTime: 10 * 1000
         });
       }
     }
