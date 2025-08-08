@@ -24,6 +24,7 @@ let state = {
   sureBtnStartTime: 0,
   quickBuyStartTime: 0,
   isLoopStatus: false,
+  waitForLoadingMaxTime: 8 * 1000,
   isDev: false,
   isMock: false,
 };
@@ -319,7 +320,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => { }, 1000);
+  threadKey && setInterval(() => {}, 1000);
   t.waitFor();
   return t;
 }
@@ -391,12 +392,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) { }
+      } catch (error) {}
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({ }) {
+function controlLoopPlaceOrderKeepTime({}) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -447,7 +448,13 @@ function loopPlaceOrder() {
 
       // 当前步骤是 确认门店/邮寄地址信息时  判断是否要破盾
       // TODO 限制破盾次数
-      if (currentStep === orderResultStep && state.breakLimit && (state.isDev ? state.loopPlaceOrderCount < 999999 : state.loopPlaceOrderCount < 20)) {
+      if (
+        currentStep === orderResultStep &&
+        state.breakLimit &&
+        (state.isDev
+          ? state.loopPlaceOrderCount < 999999
+          : state.loopPlaceOrderCount < 20)
+      ) {
         // const keepErrorInfo = ["未营业"];
         // 订单内商品库存不足,请您重新核对 || 同一时间下单人数过多，建议您稍后重试 自动返回
         let errorWidget = findTextViewWidget({ text: "我知道了" });
@@ -527,7 +534,12 @@ function patchPlaceOrderFeature({ callback }) {
     { loopPlaceOrderStep: state.loopPlaceOrderStep },
     "期望匹配的步骤"
   );
-  while (endTime - startTime < state.widghtFindTime) {
+  while (
+    endTime - startTime <
+    (state.loopPlaceOrderStep === orderResultStep
+      ? state.waitForLoadingMaxTime + 1000
+      : state.widghtFindTime)
+  ) {
     state.isLoopStatus = true;
     if (state.loopPlaceOrderStep === sureAndPayStep) {
       let sureAndPayFeature =
@@ -544,9 +556,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-          checkTextViewWidgetIsExists("请确认收货信息")
+            checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-          checkTextViewWidgetIsExists("就是这家");
+            checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         controlLoopPlaceOrderKeepTime();
         state.isLoopStatus = false;
@@ -598,9 +610,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-          checkTextViewWidgetIsExists("请确认收货信息")
+            checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-          checkTextViewWidgetIsExists("就是这家");
+            checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
@@ -658,7 +670,7 @@ function patchPage() {
               from: introductionPage,
             });
           },
-          findMaxTime: 10 * 1000
+          findMaxTime: 10 * 1000,
         });
       }
     }
@@ -804,7 +816,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               keepTime,
               state.loopPlaceOrderStep
             );
-            if (keepTime > 8000 && keepTime < 99999) {
+            if (keepTime > state.waitForLoadingMaxTime && keepTime < 99999) {
               console.log("点击左上角返回按钮");
               handleSimulateClick({
                 widget: id("gy").findOne(state.widghtFindTime),
@@ -846,10 +858,10 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               state.quickBuyStartTime
             );
             if (keepTime > 300 && keepTime < 99999) {
-              state.quickBuyStartTime = 0
+              state.quickBuyStartTime = 0;
               handleQuickBuyClick({
-                fn: () => { }
-              })
+                fn: () => {},
+              });
             }
           }
         }
@@ -874,7 +886,7 @@ function getOrcScreen({ callback } = {}) {
 // 初始化配置
 function initConfig() {
   screenIsLoadedWithOcr();
-  event$.emit(eventKeys.orc, { action: true })
+  event$.emit(eventKeys.orc, { action: true });
   const storageState = storage_state.get("ppmt_state")
     ? JSON.parse(storage_state.get("ppmt_state"))
     : {};
