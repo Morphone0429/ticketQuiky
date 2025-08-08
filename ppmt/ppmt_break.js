@@ -7,7 +7,7 @@ let state = {
   loopPlaceOrderStartTime: 0,
   loopPlaceOrderCount: 0,
   loopPlaceOrderStep: "", // sureAndPayStep sureInfoStep orderResultStep rebackBuyMethodPageStep
-  widghtFindTime: 3000, //查找widght的最大时间
+  widghtFindTime: 10000, //查找widght的最大时间
   hasStandard: true, //是否有选择规格
   refreshWithoutFeel: true, // 是否无感刷新
   breakLimit: true,
@@ -22,8 +22,9 @@ let state = {
   clickCount: 0,
   popLodingstartTime: 0,
   sureBtnStartTime: 0,
+  quickBuyStartTime: 0,
   isLoopStatus: false,
-  isDev: false,
+  isDev: true,
   isMock: false,
 };
 const eventKeys = {
@@ -318,7 +319,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => {}, 1000);
+  threadKey && setInterval(() => { }, 1000);
   t.waitFor();
   return t;
 }
@@ -348,17 +349,17 @@ function patchPageFeature({ callback, text, timeOut, sync }) {
 }
 
 // 点击立即购买
-function handleQuickBuyClick({ fn } = {}) {
+function handleQuickBuyClick({ fn, findMaxTime } = {}) {
   handleSimulateClick({
-    widget: findTextViewWidget({ text: "立即购买" }),
+    widget: findTextViewWidget({ text: "立即购买", findMaxTime }),
     callback: fn,
   });
 }
 
-function findTextViewWidget({ text }) {
+function findTextViewWidget({ text, findMaxTime }) {
   return className("android.widget.TextView")
     .text(text)
-    .findOne(state.widghtFindTime);
+    .findOne(findMaxTime ? findMaxTime : state.widghtFindTime);
 }
 
 function trySwipeUp({ fn } = {}) {
@@ -390,12 +391,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) {}
+      } catch (error) { }
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({}) {
+function controlLoopPlaceOrderKeepTime({ }) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -466,9 +467,6 @@ function loopPlaceOrder() {
           textFeature: "我知道了",
           nextStep: rebackBuyMethodPageStep,
         };
-      }
-      if (currentStep === sureInfoStep && state.loopPlaceOrderCount === 0) {
-        event$.emit(eventKeys.orc, { action: true });
       }
 
       if (currentStep === orderResultStep && state.isDev) {
@@ -546,9 +544,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         controlLoopPlaceOrderKeepTime();
         state.isLoopStatus = false;
@@ -600,9 +598,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
@@ -645,15 +643,23 @@ function patchPlaceOrderFeature({ callback }) {
 function patchPage() {
   event$.on(eventKeys.patchPage, ({ page }) => {
     if (page === introductionPage) {
-      handleQuickBuyClick({
-        fn: () => {
-          state.currentPage = buyMethodPage;
-          event$.emit(eventKeys.patchPage, {
-            page: buyMethodPage,
-            from: introductionPage,
-          });
-        },
-      });
+      if (state.isDev) {
+        state.currentPage = buyMethodPage;
+        event$.emit(eventKeys.patchPage, {
+          page: buyMethodPage,
+          from: introductionPage,
+        });
+      } else {
+        handleQuickBuyClick({
+          fn: () => {
+            state.currentPage = buyMethodPage;
+            event$.emit(eventKeys.patchPage, {
+              page: buyMethodPage,
+              from: introductionPage,
+            });
+          },
+        });
+      }
     }
     if (page === buyMethodPage) {
       initBuyMethod();
@@ -797,7 +803,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               keepTime,
               state.loopPlaceOrderStep
             );
-            if (keepTime > 8500 && keepTime < 99999) {
+            if (keepTime > 8000 && keepTime < 99999) {
               console.log("点击左上角返回按钮");
               handleSimulateClick({
                 widget: id("gy").findOne(state.widghtFindTime),
@@ -825,6 +831,26 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               loopPlaceOrder();
             }
           }
+
+          // 倒计时火爆未能成功进入规格页面
+          let hasQuickBuyBtn = currentScreenOcr.includes("立即购买");
+          if (hasQuickBuyBtn) {
+            if (state.quickBuyStartTime === 0) {
+              state.quickBuyStartTime = Date.now();
+            }
+            let keepTime = Date.now() - state.quickBuyStartTime;
+            console.log(
+              "立即购买按钮持续的时间:",
+              keepTime,
+              state.quickBuyStartTime
+            );
+            if (keepTime > 300 && keepTime < 99999) {
+              state.quickBuyStartTime = 0
+              handleQuickBuyClick({
+                fn: () => { }
+              })
+            }
+          }
         }
       },
     });
@@ -847,6 +873,7 @@ function getOrcScreen({ callback } = {}) {
 // 初始化配置
 function initConfig() {
   screenIsLoadedWithOcr();
+  event$.emit(eventKeys.orc, { action: true })
   const storageState = storage_state.get("ppmt_state")
     ? JSON.parse(storage_state.get("ppmt_state"))
     : {};
