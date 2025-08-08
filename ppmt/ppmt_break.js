@@ -24,7 +24,7 @@ let state = {
   sureBtnStartTime: 0,
   quickBuyStartTime: 0,
   isLoopStatus: false,
-  isDev: true,
+  isDev: false,
   isMock: false,
 };
 const eventKeys = {
@@ -447,7 +447,7 @@ function loopPlaceOrder() {
 
       // 当前步骤是 确认门店/邮寄地址信息时  判断是否要破盾
       // TODO 限制破盾次数
-      if (currentStep === orderResultStep && state.breakLimit) {
+      if (currentStep === orderResultStep && state.breakLimit && state.loopPlaceOrderCount < 20) {
         // const keepErrorInfo = ["未营业"];
         // 订单内商品库存不足,请您重新核对 || 同一时间下单人数过多，建议您稍后重试 自动返回
         let errorWidget = findTextViewWidget({ text: "我知道了" });
