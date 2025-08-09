@@ -26,7 +26,6 @@ let state = {
   isLoopStatus: false,
   waitForLoadingMaxTime: 8 * 1000,
   isDev: false,
-  isMock: false,
 };
 const eventKeys = {
   patchPage: "patchPage",
@@ -507,7 +506,7 @@ function loopPlaceOrder() {
           widgetKey: currentStep,
         });
       };
-      if (state.isMock) {
+      if (state.isDev) {
         const isC = Math.floor(Math.random() * 10) % 2 === 1;
         console.log("isDev循环时模拟的次数%", isC, currentStep);
         if (isC && currentStep === orderResultStep) {
@@ -655,7 +654,7 @@ function patchPlaceOrderFeature({ callback }) {
 function patchPage() {
   event$.on(eventKeys.patchPage, ({ page }) => {
     if (page === introductionPage) {
-      if (state.isMock) {
+      if (state.isDev) {
         state.currentPage = buyMethodPage;
         event$.emit(eventKeys.patchPage, {
           page: buyMethodPage,
