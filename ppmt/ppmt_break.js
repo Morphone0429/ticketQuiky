@@ -92,7 +92,7 @@ function initBuyMethod() {
   if (state.hasStandard) {
     console.log("选择规格-----> 一端");
     handleSimulateClick({
-      widget: textContains("整盒含").findOne(state.widghtFindTime),
+      widget: textContains("整盒含").findOne(state.widghtFindTime * 5),
     });
   }
   // 初始化 购买方式
@@ -236,10 +236,12 @@ function handleSimulateClick({
     });
     widget.click();
   } else {
-    const x = state.point[widgetKey].x;
-    const y = state.point[widgetKey].y;
-    if (x && y) {
-      press(x, y, 1);
+    if (state.point[widgetKey]) {
+      const x = state.point[widgetKey].x;
+      const y = state.point[widgetKey].y;
+      if (x && y) {
+        press(x, y, 1);
+      }
     } else {
       error && error();
     }
@@ -416,6 +418,9 @@ function controlLoopPlaceOrderKeepTime({}) {
 
 // 下单轮询
 function loopPlaceOrder() {
+  if (state.loopPlaceOrderCount > 40) {
+    state.breakLimit = false;
+  }
   state.popLodingstartTime = 0;
   state.sureBtnStartTime = 0;
   patchPlaceOrderFeature({
@@ -426,6 +431,7 @@ function loopPlaceOrder() {
         popLodingstartTime: state.popLodingstartTime,
         sureBtnStartTime: state.sureBtnStartTime,
         loopPlaceOrderStep: state.loopPlaceOrderStep,
+        loopPlaceOrderCount: state.loopPlaceOrderCount,
       });
       let stepMap = {
         sureAndPayStep: {
@@ -448,13 +454,7 @@ function loopPlaceOrder() {
 
       // 当前步骤是 确认门店/邮寄地址信息时  判断是否要破盾
       // TODO 限制破盾次数
-      if (
-        currentStep === orderResultStep &&
-        state.breakLimit &&
-        (state.isDev
-          ? state.loopPlaceOrderCount < 999999
-          : state.loopPlaceOrderCount < 20)
-      ) {
+      if (currentStep === orderResultStep && state.breakLimit) {
         // const keepErrorInfo = ["未营业"];
         // 订单内商品库存不足,请您重新核对 || 同一时间下单人数过多，建议您稍后重试 自动返回
         let errorWidget = findTextViewWidget({ text: "我知道了" });
@@ -483,33 +483,20 @@ function loopPlaceOrder() {
           console.log(errorInfo, "结果信息,仅dev环境可用");
         }
       }
-      if (state.isMock) {
-        const isC = Math.floor(Math.random() * 10) % 2 === 1;
-        console.log("isDev循环时模拟的次数%", isC, currentStep);
-        if (isC && currentStep === orderResultStep) {
-          handleSimulateClick({
-            widget: id("gy").findOne(state.widghtFindTime),
-          });
-        } else {
-          handleSimulateClick({
-            widget: findTextViewWidget({
-              text: stepMap[currentStep].textFeature,
-            }),
-            callback: () => {
-              state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
-              if (currentStep === sureInfoStep) {
-                state.loopPlaceOrderCount = state.loopPlaceOrderCount + 1;
-              }
-              loopPlaceOrder();
-            },
-            widgetKey: currentStep,
-          });
-        }
-      } else {
+      let targetWidget = findTextViewWidget({
+        text: stepMap[currentStep].textFeature,
+      });
+      if (
+        currentStep === orderResultStep &&
+        !state.breakLimit &&
+        checkTextViewWidgetIsExists("我知道了")
+      ) {
+        targetWidget = id("gy").findOne(state.widghtFindTime);
+      }
+
+      const nextClick = () => {
         handleSimulateClick({
-          widget: findTextViewWidget({
-            text: stepMap[currentStep].textFeature,
-          }),
+          widget: targetWidget,
           callback: () => {
             state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
             if (currentStep === sureInfoStep) {
@@ -519,6 +506,19 @@ function loopPlaceOrder() {
           },
           widgetKey: currentStep,
         });
+      };
+      if (state.isMock) {
+        const isC = Math.floor(Math.random() * 10) % 2 === 1;
+        console.log("isDev循环时模拟的次数%", isC, currentStep);
+        if (isC && currentStep === orderResultStep) {
+          handleSimulateClick({
+            widget: id("gy").findOne(state.widghtFindTime),
+          });
+        } else {
+          nextClick();
+        }
+      } else {
+        nextClick();
       }
     },
   });
@@ -655,7 +655,7 @@ function patchPlaceOrderFeature({ callback }) {
 function patchPage() {
   event$.on(eventKeys.patchPage, ({ page }) => {
     if (page === introductionPage) {
-      if (state.isDev) {
+      if (state.isMock) {
         state.currentPage = buyMethodPage;
         event$.emit(eventKeys.patchPage, {
           page: buyMethodPage,

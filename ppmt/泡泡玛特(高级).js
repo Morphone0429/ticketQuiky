@@ -376,7 +376,6 @@ function shortcutBtnClick({ type }) {
       toast("脚本文件不存在: " + path);
       exit();
     }
-    execution = engines.execScriptFile(path);
     win[type].setText("停止");
     win[type].setBackgroundColor(newColor);
     win.closeDrawer.setEnabled(false);
@@ -386,6 +385,7 @@ function shortcutBtnClick({ type }) {
         win[key].setEnabled(false);
       }
     }
+    execution = engines.execScriptFile(path);
   } else {
     if (execution) {
       execution.getEngine().forceStop();
