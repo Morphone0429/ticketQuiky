@@ -23,6 +23,8 @@ let state = {
   popLodingstartTime: 0,
   sureBtnStartTime: 0,
   quickBuyStartTime: 0,
+  markListStartTime: 0,
+  makeSureOrderStartTime: 0,
   isLoopStatus: false,
   waitForLoadingMaxTime: 8 * 1000,
   isDev: false,
@@ -475,13 +477,6 @@ function loopPlaceOrder() {
         };
       }
 
-      if (currentStep === orderResultStep && state.isDev) {
-        let errorWidget = findTextViewWidget({ text: "我知道了" });
-        if (errorWidget) {
-          let errorInfo = errorWidget.previousSibling().text();
-          console.log(errorInfo, "结果信息,仅dev环境可用");
-        }
-      }
       let targetWidget = findTextViewWidget({
         text: stepMap[currentStep].textFeature,
       });
@@ -490,9 +485,21 @@ function loopPlaceOrder() {
         !state.breakLimit &&
         checkTextViewWidgetIsExists("我知道了")
       ) {
-        targetWidget = id("gy").findOne(state.widghtFindTime);
+        let errorWidget = findTextViewWidget({ text: "我知道了" });
+        let errorInfo = errorWidget.previousSibling().text();
+        console.log(errorInfo, "targetWidget  结果信息");
+        if (!errorInfo.match(/订单内商品库存不足/)) {
+          targetWidget = id("gy").findOne(state.widghtFindTime);
+        }
       }
-
+      if (
+        currentStep === sureAndPayStep &&
+        state.loopPlaceOrderCount === 0 &&
+        state.point.sureAndPayStep
+      ) {
+        console.log("确认信息并支付按钮第一次点击 使用缓存坐标");
+        targetWidget = null;
+      }
       const nextClick = () => {
         handleSimulateClick({
           widget: targetWidget,
@@ -533,17 +540,16 @@ function patchPlaceOrderFeature({ callback }) {
     { loopPlaceOrderStep: state.loopPlaceOrderStep },
     "期望匹配的步骤"
   );
-  while (
-    endTime - startTime <
-    (state.loopPlaceOrderStep === orderResultStep
-      ? state.waitForLoadingMaxTime + 1000
-      : state.widghtFindTime)
-  ) {
+  const maxTime =
+    state.loopPlaceOrderStep === orderResultStep
+      ? state.waitForLoadingMaxTime + 2000
+      : state.widghtFindTime;
+  while (endTime - startTime < maxTime) {
     state.isLoopStatus = true;
     if (state.loopPlaceOrderStep === sureAndPayStep) {
       let sureAndPayFeature =
-        checkTextViewWidgetIsExists("确认信息并支付") ||
-        checkTextViewWidgetIsExists("确认订单");
+        checkTextViewWidgetIsExists("确认订单") ||
+        checkTextViewWidgetIsExists("确认信息并支付");
       console.log({ sureAndPayFeature, duration: Date.now() - startTime });
       if (sureAndPayFeature || isFirstEnter) {
         state.isLoopStatus = false;
@@ -597,6 +603,23 @@ function patchPlaceOrderFeature({ callback }) {
         state.isLoopStatus = false;
         callback({ currentStep: rebackBuyMethodPageStep });
 
+        break;
+      }
+    }
+
+    if (endTime - startTime > maxTime - 500) {
+      // 进入兜底逻辑
+      console.log("进入兜底逻辑!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      let makeSureOrderScreen =
+        state.currentOrcInfo.some((item) => item.includes("确认信息")) ||
+        state.currentOrcInfo.some((item) => item.includes("合计"));
+      if (makeSureOrderScreen) {
+        console.log("点击左上角返回按钮");
+        state.loopPlaceOrderStep = rebackBuyMethodPageStep;
+        handleSimulateClick({
+          widget: id("gy").findOne(state.widghtFindTime),
+        });
+        loopPlaceOrder();
         break;
       }
     }
@@ -817,17 +840,20 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             );
             if (keepTime > state.waitForLoadingMaxTime && keepTime < 99999) {
               console.log("点击左上角返回按钮");
+              state.loopPlaceOrderStep = rebackBuyMethodPageStep;
               handleSimulateClick({
                 widget: id("gy").findOne(state.widghtFindTime),
               });
-              state.loopPlaceOrderStep = rebackBuyMethodPageStep;
               loopPlaceOrder();
             }
           }
           let hasSureBtn =
             currentScreenOcr.includes("确定") ||
             currentScreenOcr.some((item) => item.includes("确定"));
-          if (hasSureBtn) {
+          if (
+            hasSureBtn &&
+            state.loopPlaceOrderStep !== rebackBuyMethodPageStep
+          ) {
             if (state.sureBtnStartTime === 0) {
               state.sureBtnStartTime = Date.now();
             }
@@ -861,6 +887,33 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               handleQuickBuyClick({
                 fn: () => {},
               });
+            }
+          }
+
+          // 门店列表页面立即返回
+          let markListScreen =
+            currentScreenOcr.includes("自提门店列表") ||
+            currentScreenOcr.includes("自提门店") ||
+            currentScreenOcr.some((item) => item.includes("门店列表"));
+          if (markListScreen) {
+            if (state.markListStartTime === 0) {
+              state.markListStartTime = Date.now();
+            }
+            let keepTime = Date.now() - state.markListStartTime;
+            console.log(
+              "poploading持续的时间:",
+              keepTime,
+              state.markListStartTime
+            );
+            if (keepTime > 1000 && keepTime < 99999) {
+              state.markListStartTime = 0;
+              let backBtn = id("gx").findOne(state.widghtFindTime);
+              if (backBtn) {
+                click(backBtn.bounds().centerX(), backBtn.bounds().centerY());
+              }
+            }
+            if (keepTime > 99999) {
+              state.markListStartTime = 0;
             }
           }
         }
