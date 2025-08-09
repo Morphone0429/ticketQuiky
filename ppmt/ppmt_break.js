@@ -210,6 +210,17 @@ function patchBuyMethodPageBtnStatus() {
   }
 }
 
+function goBackClick() {
+  // gx
+  if (id("gy").exists()) {
+    handleSimulateClick({
+      widget: id("gy").findOne(state.widghtFindTime),
+    });
+  } else {
+    console.log("未找到返回的控件");
+  }
+}
+
 function handleSimulateClick({
   widget,
   callback,
@@ -517,9 +528,7 @@ function loopPlaceOrder() {
         const isC = Math.floor(Math.random() * 10) % 2 === 1;
         console.log("isDev循环时模拟的次数%", isC, currentStep);
         if (isC && currentStep === orderResultStep) {
-          handleSimulateClick({
-            widget: id("gy").findOne(state.widghtFindTime),
-          });
+          goBackClick();
         } else {
           nextClick();
         }
@@ -578,7 +587,7 @@ function patchPlaceOrderFeature({ callback }) {
       if (orderResultErrorFeature) {
         state.isLoopStatus = false;
         callback({ currentStep: orderResultStep });
-
+        
         break;
       }
       // 自动返回时兜底
@@ -590,6 +599,18 @@ function patchPlaceOrderFeature({ callback }) {
         state.isLoopStatus = false;
         callback({ currentStep: rebackBuyMethodPageStep });
 
+        break;
+      }
+
+      let sureMarkOrMailInfo =
+        state.buyMethod === "home"
+          ? checkTextViewWidgetIsExists("确认无误") ||
+            checkTextViewWidgetIsExists("请确认收货信息")
+          : checkTextViewWidgetIsExists("请确认以下信息") ||
+            checkTextViewWidgetIsExists("就是这家");
+      if (sureMarkOrMailInfo && endTime - startTime > 1000) {
+        state.isLoopStatus = false;
+        callback({ currentStep: sureInfoStep });
         break;
       }
     }
@@ -607,22 +628,20 @@ function patchPlaceOrderFeature({ callback }) {
       }
     }
 
-    if (endTime - startTime > maxTime - 500) {
-      // 进入兜底逻辑
-      console.log("进入兜底逻辑!!!!!!!!!!!!!!!!!!!!!!!!!!");
-      let makeSureOrderScreen =
-        state.currentOrcInfo.some((item) => item.includes("确认信息")) ||
-        state.currentOrcInfo.some((item) => item.includes("合计"));
-      if (makeSureOrderScreen) {
-        console.log("点击左上角返回按钮");
-        state.loopPlaceOrderStep = rebackBuyMethodPageStep;
-        handleSimulateClick({
-          widget: id("gy").findOne(state.widghtFindTime),
-        });
-        loopPlaceOrder();
-        break;
-      }
-    }
+    // if (endTime - startTime > maxTime - 500) {
+    //   // 进入兜底逻辑
+    //   console.log(
+    //     "进入兜底逻辑!!!!!!!!!!!!!!!!!!!!!!!!!!",
+    //     state.currentOrcInfo
+    //   );
+    //   console.log("点击左上角返回按钮");
+    //   state.loopPlaceOrderStep = "";
+    //   // goBackClick();
+    //   back();
+    //   // press(59.0, 171.5, 1);
+    //   // loopPlaceOrder();
+    //   break;
+    // }
 
     // 脚本在确认信息页面启动 需要初始化一下loopPlaceOrderStep
     if (!state.loopPlaceOrderStep && endTime - startTime > 10) {
@@ -841,9 +860,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             if (keepTime > state.waitForLoadingMaxTime && keepTime < 99999) {
               console.log("点击左上角返回按钮");
               state.loopPlaceOrderStep = rebackBuyMethodPageStep;
-              handleSimulateClick({
-                widget: id("gy").findOne(state.widghtFindTime),
-              });
+              goBackClick();
               loopPlaceOrder();
             }
           }
@@ -907,10 +924,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             );
             if (keepTime > 1000 && keepTime < 99999) {
               state.markListStartTime = 0;
-              let backBtn = id("gx").findOne(state.widghtFindTime);
-              if (backBtn) {
-                click(backBtn.bounds().centerX(), backBtn.bounds().centerY());
-              }
+              goBackClick();
             }
             if (keepTime > 99999) {
               state.markListStartTime = 0;
