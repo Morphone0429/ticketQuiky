@@ -304,6 +304,9 @@ function handleSureClick() {
   handleSimulateClick({
     widget: findTextViewWidget({ text: "确定" }),
     widgetKey: "sureBtn",
+    callback: () => {
+      state.sureBtnStartTime = 0;
+    },
   });
   console.log(state.loopPlaceOrderCount, "确认订单页面循环次数");
 
@@ -424,15 +427,14 @@ function controlLoopPlaceOrderKeepTime({}) {
       : state.loopPlaceOrderKeepTime - duration,
     0
   );
-  if (state.loopPlaceOrderCount > 3) {
-    sleep(sleepTime);
-  }
+  console.log(sleepTime, "需要补充延迟的时间时长");
+  sleep(sleepTime);
   state.loopPlaceOrderStartTime = Date.now();
 }
 
 // 下单轮询
 function loopPlaceOrder() {
-  if (state.loopPlaceOrderCount > 40) {
+  if (state.loopPlaceOrderCount > 60) {
     state.breakLimit = false;
   }
   state.popLodingstartTime = 0;
@@ -519,6 +521,11 @@ function loopPlaceOrder() {
           callback: () => {
             state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
             if (currentStep === sureInfoStep) {
+              if ([5, 10, 15, 20, 30].includes(state.loopPlaceOrderCount)) {
+                let newKeepTimeWhenBreak =
+                  state.loopPlaceOrderKeepTimeWhenBreak + 80;
+                state.loopPlaceOrderKeepTimeWhenBreak = newKeepTimeWhenBreak;
+              }
               state.loopPlaceOrderCount = state.loopPlaceOrderCount + 1;
             }
             loopPlaceOrder();
@@ -615,7 +622,7 @@ function patchPlaceOrderFeature({ callback }) {
         callback({ currentStep: sureInfoStep });
         break;
       }
-
+      console.log(sureMarkOrMailInfo, "sureMarkOrMailInfo");
       if (!sureMarkOrMailInfo) {
         let POPMARTLoading =
           state.currentOrcInfo.some((item) => item.includes("POP M")) ||
@@ -623,6 +630,10 @@ function patchPlaceOrderFeature({ callback }) {
         let makeSureOrderScreen =
           state.currentOrcInfo.some((item) => item.includes("确认信息")) ||
           state.currentOrcInfo.some((item) => item.includes("合计"));
+        console.log(POPMARTLoading, makeSureOrderScreen, endTime - startTime);
+        if (!makeSureOrderScreen) {
+          console.log("22222222222222222", state.currentOrcInfo);
+        }
         if (
           !POPMARTLoading &&
           makeSureOrderScreen &&
@@ -911,7 +922,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               keepTime,
               state.loopPlaceOrderStep
             );
-            if (keepTime > 600 && keepTime < 99999) {
+            if (keepTime > 1000 && keepTime < 99999) {
               state.sureBtnStartTime = 0;
               state.loopPlaceOrderStep = "";
               loopPlaceOrder();
