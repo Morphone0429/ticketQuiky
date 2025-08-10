@@ -587,7 +587,7 @@ function patchPlaceOrderFeature({ callback }) {
       if (orderResultErrorFeature) {
         state.isLoopStatus = false;
         callback({ currentStep: orderResultStep });
-        
+
         break;
       }
       // 自动返回时兜底
@@ -612,6 +612,30 @@ function patchPlaceOrderFeature({ callback }) {
         state.isLoopStatus = false;
         callback({ currentStep: sureInfoStep });
         break;
+      }
+
+      if (!sureMarkOrMailInfo) {
+        let POPMARTLoading =
+          state.currentOrcInfo.some((item) => item.includes("POP M")) ||
+          state.currentOrcInfo.some((item) => item.includes("MAR"));
+        let makeSureOrderScreen =
+          state.currentOrcInfo.some((item) => item.includes("确认信息")) ||
+          state.currentOrcInfo.some((item) => item.includes("合计"));
+        if (
+          !POPMARTLoading &&
+          makeSureOrderScreen &&
+          endTime - startTime > 1000
+        ) {
+          console.log(
+            "异常情况 点击就是这家后无后续结果 重新点击确认信息并支付"
+          );
+          state.isLoopStatus = false;
+          if (state.loopPlaceOrderCount > 0 && state.loopPlaceOrderCount < 10) {
+            state.loopPlaceOrderCount = 0;
+          }
+          callback({ currentStep: sureAndPayStep });
+          break;
+        }
       }
     }
 
