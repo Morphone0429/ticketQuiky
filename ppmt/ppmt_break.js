@@ -424,7 +424,9 @@ function controlLoopPlaceOrderKeepTime({}) {
       : state.loopPlaceOrderKeepTime - duration,
     0
   );
-  sleep(sleepTime);
+  if (state.loopPlaceOrderCount > 3) {
+    sleep(sleepTime);
+  }
   state.loopPlaceOrderStartTime = Date.now();
 }
 
@@ -499,7 +501,7 @@ function loopPlaceOrder() {
         let errorWidget = findTextViewWidget({ text: "我知道了" });
         let errorInfo = errorWidget.previousSibling().text();
         console.log(errorInfo, "targetWidget  结果信息");
-        if (!errorInfo.match(/订单内商品库存不足/)) {
+        if (!errorInfo.match(/订单内商品库存不足|同一时间下单人数过多/)) {
           targetWidget = id("gy").findOne(state.widghtFindTime);
         }
       }
@@ -870,8 +872,13 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
           let POPMARTLoading =
             currentScreenOcr.some((item) => item.includes("POP M")) ||
             currentScreenOcr.some((item) => item.includes("MAR")); //popmark 红色loading
+
           // 兼容loading 过长 无法点击
-          if (POPMARTLoading && state.loopPlaceOrderStep === orderResultStep) {
+          if (
+            POPMARTLoading &&
+            state.loopPlaceOrderStep === orderResultStep &&
+            !currentScreenOcr.includes("就是这家") // 异常情况处理 勿删！！
+          ) {
             if (state.popLodingstartTime === 0) {
               state.popLodingstartTime = Date.now();
             }
