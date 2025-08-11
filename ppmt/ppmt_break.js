@@ -589,6 +589,16 @@ function patchPlaceOrderFeature({ callback }) {
 
         break;
       }
+
+      if (
+        (checkTextViewWidgetIsExists("确认订单") ||
+          checkTextViewWidgetIsExists("确认信息并支付")) &&
+        endTime - startTime > 1000
+      ) {
+        state.isLoopStatus = false;
+        callback({ currentStep: sureAndPayStep });
+        break;
+      }
     }
 
     if (state.loopPlaceOrderStep === orderResultStep) {
@@ -622,34 +632,17 @@ function patchPlaceOrderFeature({ callback }) {
         callback({ currentStep: sureInfoStep });
         break;
       }
-      console.log(sureMarkOrMailInfo, "sureMarkOrMailInfo");
-      if (!sureMarkOrMailInfo) {
-        let POPMARTLoading =
-          state.currentOrcInfo.some((item) => item.includes("POP M")) ||
-          state.currentOrcInfo.some((item) => item.includes("MAR"));
-        let makeSureOrderScreen =
-          state.currentOrcInfo.some((item) => item.includes("确认信息")) ||
-          state.currentOrcInfo.some((item) => item.includes("合计"));
-        console.log(POPMARTLoading, makeSureOrderScreen, endTime - startTime);
-        if (!makeSureOrderScreen) {
-          console.log("22222222222222222", state.currentOrcInfo);
-        }
-        if (
-          !POPMARTLoading &&
-          makeSureOrderScreen &&
-          endTime - startTime > 1000
-        ) {
-          console.log(
-            "异常情况 点击就是这家后无后续结果 重新点击确认信息并支付"
-          );
-          state.isLoopStatus = false;
-          if (state.loopPlaceOrderCount > 0 && state.loopPlaceOrderCount < 10) {
-            state.loopPlaceOrderCount = 0;
-          }
-          callback({ currentStep: sureAndPayStep });
-          break;
-        }
+
+      if (
+        (checkTextViewWidgetIsExists("确认订单") ||
+          checkTextViewWidgetIsExists("确认信息并支付")) &&
+        endTime - startTime > 1000
+      ) {
+        state.isLoopStatus = false;
+        callback({ currentStep: sureAndPayStep });
+        break;
       }
+      
     }
 
     if (state.loopPlaceOrderStep === rebackBuyMethodPageStep) {
