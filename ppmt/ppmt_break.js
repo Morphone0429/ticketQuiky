@@ -580,7 +580,7 @@ function patchPlaceOrderFeature({ callback }) {
         (checkTextViewWidgetIsExists("购买方式") ||
           checkTextViewWidgetIsExists("确定")) &&
         !checkTextViewWidgetIsExists("确认信息并支付");
-      if (buyMethodFeature && endTime - startTime > 1000) {
+      if (buyMethodFeature && endTime - startTime > 600) {
         state.isLoopStatus = false;
         callback({ currentStep: rebackBuyMethodPageStep });
 
@@ -609,6 +609,17 @@ function patchPlaceOrderFeature({ callback }) {
       ) {
         state.isLoopStatus = false;
         callback({ currentStep: sureAndPayStep });
+        break;
+      }
+
+      let buyMethodFeature =
+        (checkTextViewWidgetIsExists("购买方式") ||
+          checkTextViewWidgetIsExists("确定")) &&
+        !checkTextViewWidgetIsExists("确认信息并支付");
+      if (buyMethodFeature && endTime - startTime > 600) {
+        state.isLoopStatus = false;
+        callback({ currentStep: rebackBuyMethodPageStep });
+
         break;
       }
     }
@@ -671,7 +682,7 @@ function patchPlaceOrderFeature({ callback }) {
       if (
         (checkTextViewWidgetIsExists("确认订单") ||
           checkTextViewWidgetIsExists("确认信息并支付")) &&
-        endTime - startTime > 1000
+        endTime - startTime > 1500
       ) {
         state.isLoopStatus = false;
         callback({ currentStep: sureAndPayStep });
@@ -943,7 +954,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
               keepTime,
               state.loopPlaceOrderStep
             );
-            if (keepTime > 1000 && keepTime < 99999) {
+            if (keepTime > 1500 && keepTime < 99999) {
               state.sureBtnStartTime = 0;
               state.loopPlaceOrderStep = "";
               loopPlaceOrder();
