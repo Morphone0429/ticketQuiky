@@ -337,7 +337,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => {}, 1000);
+  threadKey && setInterval(() => { }, 1000);
   t.waitFor();
   return t;
 }
@@ -409,12 +409,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) {}
+      } catch (error) { }
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({}) {
+function controlLoopPlaceOrderKeepTime({ }) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -579,9 +579,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         controlLoopPlaceOrderKeepTime();
         state.isLoopStatus = false;
@@ -624,9 +624,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo && endTime - startTime > 1000) {
         state.isLoopStatus = false;
         callback({ currentStep: sureInfoStep });
@@ -643,6 +643,7 @@ function patchPlaceOrderFeature({ callback }) {
         break;
       }
       
+
     }
 
     if (state.loopPlaceOrderStep === rebackBuyMethodPageStep) {
@@ -654,6 +655,16 @@ function patchPlaceOrderFeature({ callback }) {
         state.isLoopStatus = false;
         callback({ currentStep: rebackBuyMethodPageStep });
 
+        break;
+      }
+
+      if (
+        (checkTextViewWidgetIsExists("确认订单") ||
+          checkTextViewWidgetIsExists("确认信息并支付")) &&
+        endTime - startTime > 1000
+      ) {
+        state.isLoopStatus = false;
+        callback({ currentStep: sureAndPayStep });
         break;
       }
     }
@@ -673,6 +684,13 @@ function patchPlaceOrderFeature({ callback }) {
     //   break;
     // }
 
+    if (checkTextViewWidgetIsExists("自提门店列表")) {
+      state.isLoopStatus = false;
+      callback({ currentStep: rebackBuyMethodPageStep });
+      goBackClick();
+      break;
+    }
+
     // 脚本在确认信息页面启动 需要初始化一下loopPlaceOrderStep
     if (!state.loopPlaceOrderStep && endTime - startTime > 10) {
       let sureAndPayFeature =
@@ -681,9 +699,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
@@ -846,7 +864,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
     // 如果有正在运行的OCR线程，先停止它
     if (state.orcThread) {
       state.orcThread.interrupt();
-      state.orcThread.join(1000);
+      //state.orcThread.join(1000);
       console.log(threads.currentThread(), state.orcThread, "orcThread线程");
       state.orcThread = null;
     }
@@ -937,7 +955,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             if (keepTime > 300 && keepTime < 99999) {
               state.quickBuyStartTime = 0;
               handleQuickBuyClick({
-                fn: () => {},
+                fn: () => { },
               });
             }
           }
