@@ -656,6 +656,16 @@ function patchPlaceOrderFeature({ callback }) {
 
         break;
       }
+
+      if (
+        (checkTextViewWidgetIsExists("确认订单") ||
+          checkTextViewWidgetIsExists("确认信息并支付")) &&
+        endTime - startTime > 1000
+      ) {
+        state.isLoopStatus = false;
+        callback({ currentStep: sureAndPayStep });
+        break;
+      }
     }
 
     // if (endTime - startTime > maxTime - 500) {
@@ -672,6 +682,13 @@ function patchPlaceOrderFeature({ callback }) {
     //   // loopPlaceOrder();
     //   break;
     // }
+
+    if (checkTextViewWidgetIsExists("自提门店列表")) {
+      state.isLoopStatus = false;
+      callback({ currentStep: rebackBuyMethodPageStep });
+      goBackClick();
+      break;
+    }
 
     // 脚本在确认信息页面启动 需要初始化一下loopPlaceOrderStep
     if (!state.loopPlaceOrderStep && endTime - startTime > 10) {
