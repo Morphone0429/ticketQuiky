@@ -187,19 +187,21 @@ function patchBuyMethodPageBtnStatus() {
       }
     }
   }
-  const btns = ["loading", "已售罄", "去授权", "选择门店", "确定"];
+  // const btns = ["loading", "已售罄", "去授权", "选择门店", "确定"];
   while (endTime - startTime < state.loopBuyMethodTime) {
-    let features = btns.map((b, index) => {
-      let bool = checkTextViewWidgetIsExists(b);
-      if (b === "loading") {
-        bool = className("android.widget.Image").depth(24).exists();
-      }
-      return bool;
-    });
-    if (features[4] && state.currentMethod === state.buyMethod) {
+    // let features = btns.map((b, index) => {
+    //   let bool = checkTextViewWidgetIsExists(b);
+    //   if (b === "loading") {
+    //     bool = className("android.widget.Image").depth(24).exists();
+    //   }
+    //   return bool;
+    // });
+    if (
+      checkTextViewWidgetIsExists("确定") &&
+      state.currentMethod === state.buyMethod
+    ) {
       console.log("匹配确定按钮状态", {
         duration: endTime - startTime,
-        features,
         currentMethod: state.currentMethod,
         buyMethod: state.buyMethod,
       });
@@ -248,7 +250,7 @@ function handleSimulateClick({
     });
     widget.click();
   } else {
-    if (state.point[widgetKey]) {
+    if (state.point[widgetKey] && ![sureInfoStep].includes(widgetKey)) {
       const x = state.point[widgetKey].x;
       const y = state.point[widgetKey].y;
       if (x && y) {
