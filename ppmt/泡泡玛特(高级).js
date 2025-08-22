@@ -26,13 +26,13 @@ let seekbarMap = {
   loopBuyMethodTime: {
     max: 4000,
     min: 100,
-    default: 1150,
+    default: 1200,
     progress: 0,
   },
   loopPlaceOrderKeepTime: {
     max: 10000,
     min: 800,
-    default: 3300,
+    default: 4600,
     progress: 0,
   },
   loopPlaceOrderKeepTimeWhenBreak: {
@@ -545,13 +545,10 @@ function closeContent() {
   let flag = checkHamibot({ prompt: false });
   let infoText = "";
   if (flag) {
-    infoText = `原地刷新(${
-      win.refreshWithoutFeel_true.checked ? "✅" : "❌"
-    })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${
-      win.loopBuyMethodTime.progress
-    }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${
-      win.loopPlaceOrderKeepTime.progress
-    }ms)`;
+    infoText = `原地刷新(${win.refreshWithoutFeel_true.checked ? "✅" : "❌"
+      })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${win.loopBuyMethodTime.progress
+      }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress
+      }ms)`;
   } else {
     infoText = `hamibot无障碍未开启❌,脚本无法执行，请打开无障碍管理器锁定hamibot`;
   }
@@ -587,4 +584,4 @@ function toggleContent({ enforce = false, visible = false } = {}) {
   });
 }
 
-setInterval(() => {}, 1000);
+setInterval(() => { }, 1000);

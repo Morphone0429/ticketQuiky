@@ -340,7 +340,7 @@ function eventTimeControl({ fn, time = 0, endFn }) {
 // 创建子线程
 function startThread({ threadKey, fn } = {}) {
   let t = threads.start(fn);
-  threadKey && setInterval(() => {}, 1000);
+  threadKey && setInterval(() => { }, 1000);
   t.waitFor();
   return t;
 }
@@ -412,12 +412,12 @@ function watchSwipe() {
           device.height * 0.25,
           200
         );
-      } catch (error) {}
+      } catch (error) { }
     }
   });
 }
 
-function controlLoopPlaceOrderKeepTime({}) {
+function controlLoopPlaceOrderKeepTime({ }) {
   if (state.loopPlaceOrderStartTime === 0) {
     state.loopPlaceOrderStartTime = Date.now();
     return;
@@ -430,14 +430,15 @@ function controlLoopPlaceOrderKeepTime({}) {
       : state.loopPlaceOrderKeepTime - duration,
     0
   );
-  console.log(sleepTime, "需要补充延迟的时间时长");
-  sleep(sleepTime);
+  let _sleepTime = random(sleepTime - 100, sleepTime + 100)
+  console.log(_sleepTime, "需要补充延迟的时间时长");
+  sleep(_sleepTime);
   state.loopPlaceOrderStartTime = Date.now();
 }
 
 // 下单轮询
 function loopPlaceOrder() {
-  if (state.loopPlaceOrderCount > 60) {
+  if (state.loopPlaceOrderCount > 10) {
     state.breakLimit = false;
   }
   state.popLodingstartTime = 0;
@@ -593,9 +594,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo || isFirstEnter) {
         controlLoopPlaceOrderKeepTime();
         state.isLoopStatus = false;
@@ -649,9 +650,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       if (sureMarkOrMailInfo && endTime - startTime > 1000) {
         state.isLoopStatus = false;
         callback({ currentStep: sureInfoStep });
@@ -722,9 +723,9 @@ function patchPlaceOrderFeature({ callback }) {
       let sureMarkOrMailInfo =
         state.buyMethod === "home"
           ? checkTextViewWidgetIsExists("确认无误") ||
-            checkTextViewWidgetIsExists("请确认收货信息")
+          checkTextViewWidgetIsExists("请确认收货信息")
           : checkTextViewWidgetIsExists("请确认以下信息") ||
-            checkTextViewWidgetIsExists("就是这家");
+          checkTextViewWidgetIsExists("就是这家");
       let orderResultErrorFeature = checkTextViewWidgetIsExists("我知道了");
       let buyMethodFeature =
         checkTextViewWidgetIsExists("购买方式") ||
@@ -978,7 +979,7 @@ function screenIsLoadedWithOcr({ callback, wait } = {}) {
             if (keepTime > 300 && keepTime < 99999) {
               state.quickBuyStartTime = 0;
               handleQuickBuyClick({
-                fn: () => {},
+                fn: () => { },
               });
             }
           }
