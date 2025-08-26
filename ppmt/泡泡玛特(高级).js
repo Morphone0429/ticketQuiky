@@ -5,7 +5,9 @@ try {
 } catch (e) {
   log("关闭旧窗口异常：" + e);
 }
-
+let state = {
+  method: ''
+}
 const sw = device.width;
 const sh = device.height;
 log("屏幕尺寸: " + sw + " × " + sh);
@@ -28,18 +30,27 @@ let seekbarMap = {
     min: 100,
     default: 1000,
     progress: 0,
+    quick: 800,
+    normal: 1000,
+    slow: 1500,
   },
   loopPlaceOrderKeepTime: {
     max: 10000,
     min: 800,
-    default: 3300,
+    default: 4000,
     progress: 0,
+    quick: 3000,
+    normal: 4000,
+    slow: 5000,
   },
   loopPlaceOrderKeepTimeWhenBreak: {
     max: 3000,
     min: 100,
     default: 1000,
     progress: 0,
+    quick: 750,
+    normal: 1000,
+    slow: 2000,
   },
 };
 
@@ -79,6 +90,41 @@ var win = floaty.window(
       />
       {/* 内容区  '#80000000'*/}
       <vertical bg="#80000000" padding="10 5 10 10">
+        <horizontal>
+          <button
+            id="method_quick"
+            text={"急速模式"}
+            textSize="12sp"
+            w="66"
+            height="32dp"
+            bg="#FF0000"
+            textColor="#FFFFFF"
+            margin="2"
+            padding="2"
+          />
+          <button
+            id="method_normal"
+            text={"正常模式"}
+            textSize="12sp"
+            w="66"
+            height="32dp"
+            bg="#2196F3"
+            textColor="#FFFFFF"
+            margin="2"
+            padding="2"
+          />
+          <button
+            id="method_slow"
+            text={"回流模式"}
+            textSize="12sp"
+            w="66"
+            height="32dp"
+            bg="#556B2F"
+            textColor="#FFFFFF"
+            margin="2"
+            padding="2"
+          />
+        </horizontal>
         <horizontal>
           <button
             id="have_home"
@@ -190,7 +236,6 @@ var win = floaty.window(
                 textColor="#FFFFFF"
                 scaleX="0.85"
                 scaleY="0.85"
-                checked="true"
               />
               <radio
                 id="refreshWithoutFeel_false"
@@ -199,6 +244,7 @@ var win = floaty.window(
                 scaleX="0.85"
                 scaleY="0.85"
                 marginRight="32"
+                 checked="true"
               />
             </radiogroup>
             <text
@@ -253,6 +299,32 @@ var win = floaty.window(
               textSize="10sp"
               padding="2dp"
             />
+          </horizontal>
+          <horizontal>
+            <text
+              text="选择额外模式"
+              textSize="14sp"
+              textColor="#FFFFFF"
+              marginTop="3"
+            />
+            <radiogroup id="norm" orientation="horizontal">
+              <radio
+                id="norm_A"
+                text="A组"
+                textColor="#FFFFFF"
+                scaleX="0.85"
+                scaleY="0.85"
+                checked="true"
+              />
+              <radio
+                id="norm_B"
+                text="B组"
+                textColor="#FFFFFF"
+                scaleX="0.85"
+                scaleY="0.85"
+                marginRight="32"
+              />
+            </radiogroup>
           </horizontal>
           <horizontal>
             <text
@@ -403,6 +475,46 @@ function shortcutBtnClick({ type }) {
   }
 }
 
+function methodClick({ method }) {
+  state.method = method
+  let ppmtState = storage.get("ppmt_state")
+    ? JSON.parse(storage.get("ppmt_state"))
+    : {};
+  Object.keys(seekbarMap).forEach((key) => {
+    win[key].progress = seekbarMap[key][method];
+    win[`${key}Text`].setText(seekbarMap[key][method] + " ms");
+    ppmtState[key] = seekbarMap[key][method];
+  });
+  storage.put("ppmt_state", JSON.stringify(ppmtState));
+  win.infoText.setText(getTipsInfo());
+  Object.keys(btnTextConfig).forEach((key) => {
+    let text = win[key].getText()
+    if (text === "停止") {
+      shortcutBtnClick({ type: key });
+      if (["normal", "slow"].includes(method)) {
+        win.breakLimit_true.checked = false;
+        win.breakLimit_false.checked = true;
+      }
+      setTimeout(() => {
+        shortcutBtnClick({ type: key });
+      }, 2000);
+    }
+  });
+}
+
+win.method_quick.on("long_click", () => {
+  methodClick({ method: "quick" });
+});
+
+win.method_normal.on("long_click", () => {
+  methodClick({ method: "normal" });
+});
+
+win.method_slow.on("long_click", () => {
+  methodClick({ method: "slow" });
+});
+
+
 win.have_home.click(() => {
   shortcutBtnClick({ type: "have_home" });
 });
@@ -442,7 +554,8 @@ win.resetConfig.on("long_click", () => {
   storage.clear();
   seekbarInitSet();
   win.breakLimit_true.checked = true;
-  win.refreshWithoutFeel_true.checked = true;
+  win.refreshWithoutFeel_false.checked = true;
+  win.norm_A.checked = true;
 });
 
 function setConfig({ type }) {
@@ -455,6 +568,7 @@ function setConfig({ type }) {
     addOne,
     refreshWithoutFeel_true: win.refreshWithoutFeel_true.checked,
     refreshWithoutFeel_false: win.refreshWithoutFeel_false.checked,
+    norm: win.norm_B.checked ? "B" : "A",
     breakLimit_true: win.breakLimit_true.checked,
     breakLimit_false: win.breakLimit_false.checked,
     loopBuyMethodTime: win.loopBuyMethodTime.progress,
@@ -464,6 +578,7 @@ function setConfig({ type }) {
   let storageState = {
     hasStandard,
     buyMethod,
+    norm: win.norm_B.checked ? "B" : "A",
     addOne,
     refreshWithoutFeel: win.refreshWithoutFeel_true.checked,
     breakLimit: win.breakLimit_true.checked,
@@ -538,6 +653,13 @@ ui.run(function () {
   closeContent();
 });
 
+function getTipsInfo() {
+  return `无感刷新(${win.refreshWithoutFeel_true.checked ? "✅" : "❌"
+    })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${win.loopBuyMethodTime.progress
+    }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress
+    }ms)${state.method === 'quick' ? '急速模式' : state.method === 'normal' ? '正常模式' : state.method === 'slow' ? '回流模式' : ""}${win.norm_B.checked ? "B组" : ""}`;
+}
+
 function closeContent() {
   // 初始化设置
   win.collapsibleContent.setVisibility(android.view.View.GONE); // 默认隐藏
@@ -545,13 +667,7 @@ function closeContent() {
   let flag = checkHamibot({ prompt: false });
   let infoText = "";
   if (flag) {
-    infoText = `原地刷新(${
-      win.refreshWithoutFeel_true.checked ? "✅" : "❌"
-    })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${
-      win.loopBuyMethodTime.progress
-    }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${
-      win.loopPlaceOrderKeepTime.progress
-    }ms)`;
+    infoText = getTipsInfo();
   } else {
     infoText = `hamibot无障碍未开启❌,脚本无法执行，请打开无障碍管理器锁定hamibot`;
   }
@@ -587,4 +703,4 @@ function toggleContent({ enforce = false, visible = false } = {}) {
   });
 }
 
-setInterval(() => {}, 1000);
+setInterval(() => { }, 1000);

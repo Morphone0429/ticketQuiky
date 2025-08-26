@@ -12,7 +12,6 @@ let state = {
   refreshWithoutFeel: true, // 是否无感刷新
   breakLimit: true,
   buyMethod: "mark", // home | mark  // 选择的购买方式
-  norm: "A", // 额外的规格 如 A/B组
   currentMethod: "", // 当前的购买方式
   addOne: true, //是否数量+1
   currentPage: "", //introduction buyMethod placeOrder
@@ -97,8 +96,6 @@ function initBuyMethod() {
       widget: textContains("整盒含").findOne(state.widghtFindTime * 5),
     });
   }
-  // 匹配额外的规格
-  patchExtraNorm();
   // 初始化 购买方式
   patchBuyMethodPageBtnStatus();
   // 选择预售批次 异步
@@ -190,21 +187,19 @@ function patchBuyMethodPageBtnStatus() {
       }
     }
   }
-  // const btns = ["loading", "已售罄", "去授权", "选择门店", "确定"];
+  const btns = ["loading", "已售罄", "去授权", "选择门店", "确定"];
   while (endTime - startTime < state.loopBuyMethodTime) {
-    // let features = btns.map((b, index) => {
-    //   let bool = checkTextViewWidgetIsExists(b);
-    //   if (b === "loading") {
-    //     bool = className("android.widget.Image").depth(24).exists();
-    //   }
-    //   return bool;
-    // });
-    if (
-      checkTextViewWidgetIsExists("确定") &&
-      state.currentMethod === state.buyMethod
-    ) {
+    let features = btns.map((b, index) => {
+      let bool = checkTextViewWidgetIsExists(b);
+      if (b === "loading") {
+        bool = className("android.widget.Image").depth(24).exists();
+      }
+      return bool;
+    });
+    if (features[4] && state.currentMethod === state.buyMethod) {
       console.log("匹配确定按钮状态", {
         duration: endTime - startTime,
+        features,
         currentMethod: state.currentMethod,
         buyMethod: state.buyMethod,
       });
@@ -253,7 +248,7 @@ function handleSimulateClick({
     });
     widget.click();
   } else {
-    if (state.point[widgetKey] && ![sureInfoStep].includes(widgetKey)) {
+    if (state.point[widgetKey]) {
       const x = state.point[widgetKey].x;
       const y = state.point[widgetKey].y;
       if (x && y) {
@@ -372,14 +367,6 @@ function patchPageFeature({ callback, text, timeOut, sync }) {
   }
 }
 
-// 匹配额外的规格
-function patchExtraNorm() {
-  if (state.norm !== "B") return;
-  handleSimulateClick({
-    widget: findTextViewWidget({ text: "购买方式" }).previousSibling(),
-  });
-}
-
 // 点击立即购买
 function handleQuickBuyClick({ fn, findMaxTime } = {}) {
   handleSimulateClick({
@@ -448,7 +435,7 @@ function controlLoopPlaceOrderKeepTime({ }) {
 
 // 下单轮询
 function loopPlaceOrder() {
-  if (state.loopPlaceOrderCount > 12) {
+  if (state.loopPlaceOrderCount > 60) {
     state.breakLimit = false;
   }
   state.popLodingstartTime = 0;
@@ -535,7 +522,7 @@ function loopPlaceOrder() {
           callback: () => {
             state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
             if (currentStep === sureInfoStep) {
-              if ([2, 4, 6, 10].includes(state.loopPlaceOrderCount)) {
+              if ([5, 10, 15, 20, 30].includes(state.loopPlaceOrderCount)) {
                 let newKeepTimeWhenBreak =
                   state.loopPlaceOrderKeepTimeWhenBreak + 80;
                 state.loopPlaceOrderKeepTimeWhenBreak = newKeepTimeWhenBreak;
@@ -1055,7 +1042,6 @@ function initConfig() {
     "loopBuyMethodTime",
     "loopPlaceOrderKeepTime",
     "loopPlaceOrderKeepTimeWhenBreak",
-    "norm",
   ];
   state_keys.forEach((key) => {
     if (storageState.hasOwnProperty(key)) {
@@ -1066,7 +1052,7 @@ function initConfig() {
     {
       hasStandard: state.hasStandard,
       buyMethod: state.buyMethod,
-      norm: state.norm,
+      addOne: state.addOne,
       addOne: state.addOne,
       breakLimit: state.breakLimit,
       loopBuyMethodTime: state.loopBuyMethodTime,
@@ -1078,42 +1064,55 @@ function initConfig() {
 
   let mockPoints = {
     PDSM00: [
-      { x: [447, 654], y: [1774, 1845] },
-      { x: [447, 654], y: [1774, 1845] },
-      { x: [447, 654], y: [2232, 2307] },
-      { x: [807, 955], y: [1774, 1845] },
-      { x: [447, 654], y: [2232, 2307] },
-      { x: [107, 249], y: [2081, 2153] },
+      { x: [447, 654], y: [1774, 1845] }, //2
+      { x: [447, 654], y: [1774, 1845] }, // 2
+      { x: [447, 654], y: [2232, 2307] }, // 0
+      { x: [807, 955], y: [1774, 1845] }, // 3
+      { x: [447, 654], y: [2232, 2307] }, // 0
+      { x: [107, 249], y: [2081, 2153] }, // 7
     ], // oppoReno5pro
     PJX110: [
-      { x: [927, 1121], y: [2040, 2125] },
-      { x: [927, 1121], y: [2040, 2125] },
-      { x: [520, 763], y: [2592, 2670] },
-      { x: [116, 346], y: [2220, 2320] },
-      { x: [520, 763], y: [2040, 2125] },
-      { x: [927, 1121], y: [2403, 2496] },
+      { x: [927, 1121], y: [2040, 2125] }, //3
+      { x: [927, 1121], y: [2040, 2125] }, //3
+      { x: [520, 763], y: [2592, 2670] }, // 0
+      { x: [116, 346], y: [2220, 2320] }, // 4
+      { x: [520, 763], y: [2040, 2125] }, // 2
+      { x: [927, 1121], y: [2403, 2496] }, // 9
     ], // 1+ 3ace
     GM1915: [
-      { x: [628, 859], y: [2283, 2409] },
-      { x: [628, 859], y: [2283, 2409] },
-      { x: [628, 859], y: [2913, 2991] },
-      { x: [1071, 1171], y: [2283, 2409] },
-      { x: [628, 859], y: [2913, 2991] },
-      { x: [119, 372], y: [2695, 2795] },
+      { x: [628, 859], y: [2283, 2409] }, //2
+      { x: [628, 859], y: [2283, 2409] }, //2
+      { x: [628, 859], y: [2913, 2991] }, // 0
+      { x: [1071, 1171], y: [2283, 2409] }, // 3
+      { x: [628, 859], y: [2913, 2991] }, //0
+      { x: [119, 372], y: [2695, 2795] }, // 7
     ],
     "VOG-AL00": [
-      { x: [430, 660], y: [1765, 1833] },
-      { x: [430, 660], y: [1765, 1833] },
-      { x: [430, 660], y: [2219, 2300] },
-      { x: [810, 1000], y: [1765, 1833] },
-      { x: [430, 660], y: [2219, 2300] },
-      { x: [95, 300], y: [2065, 2150] },
+      { x: [430, 660], y: [1765, 1833] }, //2
+      { x: [430, 660], y: [1765, 1833] }, // 2
+      { x: [430, 660], y: [2219, 2300] }, // 0
+      { x: [810, 1000], y: [1765, 1833] }, // 3
+      { x: [430, 660], y: [2219, 2300] }, // 0
+      { x: [95, 300], y: [2065, 2150] }, // 7
     ],
   };
   state.mockPoints = mockPoints;
 }
 
+// 判断今天是否在有效期内（有效期至2025年8月31日）
+function isWithinValidityPeriod() {
+  const today = new Date();
+  const validityEndDate = new Date('2025-08-31T23:59:59');
+  const isValid = today <= validityEndDate;
+  return isValid;
+}
+
 function main() {
+  // 检查有效期
+  if (!isWithinValidityPeriod()) {
+    exit();
+    return;
+  }
   initConfig();
   patchPage();
   watchPage({
@@ -1123,3 +1122,7 @@ function main() {
   });
 }
 main();
+
+
+
+
