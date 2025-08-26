@@ -449,7 +449,7 @@ function controlLoopPlaceOrderKeepTime({ }) {
 
 // 下单轮询
 function loopPlaceOrder() {
-  if (state.loopPlaceOrderCount > 10) {
+  if (state.loopPlaceOrderCount > 12) {
     state.breakLimit = false;
   }
   state.popLodingstartTime = 0;
@@ -536,7 +536,7 @@ function loopPlaceOrder() {
           callback: () => {
             state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
             if (currentStep === sureInfoStep) {
-              if ([5, 10, 15, 20, 30].includes(state.loopPlaceOrderCount)) {
+              if ([2, 4, 6, 10].includes(state.loopPlaceOrderCount)) {
                 let newKeepTimeWhenBreak =
                   state.loopPlaceOrderKeepTimeWhenBreak + 80;
                 state.loopPlaceOrderKeepTimeWhenBreak = newKeepTimeWhenBreak;
