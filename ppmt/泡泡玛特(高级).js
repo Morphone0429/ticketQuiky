@@ -32,13 +32,13 @@ let seekbarMap = {
   loopPlaceOrderKeepTime: {
     max: 10000,
     min: 800,
-    default: 4600,
+    default: 4200,
     progress: 0,
   },
   loopPlaceOrderKeepTimeWhenBreak: {
     max: 3000,
     min: 100,
-    default: 1200,
+    default: 1000,
     progress: 0,
   },
 };
@@ -256,6 +256,32 @@ var win = floaty.window(
           </horizontal>
           <horizontal>
             <text
+              text="选择额外模式"
+              textSize="14sp"
+              textColor="#FFFFFF"
+              marginTop="3"
+            />
+            <radiogroup id="norm" orientation="horizontal">
+              <radio
+                id="norm_A"
+                text="A组"
+                textColor="#FFFFFF"
+                scaleX="0.85"
+                scaleY="0.85"
+                checked="true"
+              />
+              <radio
+                id="norm_B"
+                text="B组"
+                textColor="#FFFFFF"
+                scaleX="0.85"
+                scaleY="0.85"
+                marginRight="32"
+              />
+            </radiogroup>
+          </horizontal>
+          <horizontal>
+            <text
               text="购买方式刷新速度"
               textSize="14sp"
               textColor="#FFFFFF"
@@ -443,6 +469,7 @@ win.resetConfig.on("long_click", () => {
   seekbarInitSet();
   win.breakLimit_true.checked = true;
   win.refreshWithoutFeel_true.checked = true;
+  win.norm_A.checked = true
 });
 
 function setConfig({ type }) {
@@ -455,6 +482,7 @@ function setConfig({ type }) {
     addOne,
     refreshWithoutFeel_true: win.refreshWithoutFeel_true.checked,
     refreshWithoutFeel_false: win.refreshWithoutFeel_false.checked,
+    norm: win.norm_B.checked ? 'B' : 'A',
     breakLimit_true: win.breakLimit_true.checked,
     breakLimit_false: win.breakLimit_false.checked,
     loopBuyMethodTime: win.loopBuyMethodTime.progress,
@@ -464,6 +492,7 @@ function setConfig({ type }) {
   let storageState = {
     hasStandard,
     buyMethod,
+    norm: win.norm_B.checked ? 'B' : 'A',
     addOne,
     refreshWithoutFeel: win.refreshWithoutFeel_true.checked,
     breakLimit: win.breakLimit_true.checked,
@@ -548,7 +577,7 @@ function closeContent() {
     infoText = `原地刷新(${win.refreshWithoutFeel_true.checked ? "✅" : "❌"
       })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${win.loopBuyMethodTime.progress
       }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress
-      }ms)`;
+      }ms)${win.norm_B.checked ? 'B组' : 'A组'}`;
   } else {
     infoText = `hamibot无障碍未开启❌,脚本无法执行，请打开无障碍管理器锁定hamibot`;
   }
