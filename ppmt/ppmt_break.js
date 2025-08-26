@@ -12,6 +12,7 @@ let state = {
   refreshWithoutFeel: true, // 是否无感刷新
   breakLimit: true,
   buyMethod: "mark", // home | mark  // 选择的购买方式
+  norm: "A", // 额外的规格 如 A/B组
   currentMethod: "", // 当前的购买方式
   addOne: true, //是否数量+1
   currentPage: "", //introduction buyMethod placeOrder
@@ -96,6 +97,8 @@ function initBuyMethod() {
       widget: textContains("整盒含").findOne(state.widghtFindTime * 5),
     });
   }
+  // 匹配额外的规格
+  patchExtraNorm();
   // 初始化 购买方式
   patchBuyMethodPageBtnStatus();
   // 选择预售批次 异步
@@ -369,6 +372,14 @@ function patchPageFeature({ callback, text, timeOut, sync }) {
   }
 }
 
+// 匹配额外的规格
+function patchExtraNorm() {
+  if (state.norm !== "B") return;
+  handleSimulateClick({
+    widget: findTextViewWidget({ text: "购买方式" }).previousSibling(),
+  });
+}
+
 // 点击立即购买
 function handleQuickBuyClick({ fn, findMaxTime } = {}) {
   handleSimulateClick({
@@ -437,7 +448,7 @@ function controlLoopPlaceOrderKeepTime({}) {
 
 // 下单轮询
 function loopPlaceOrder() {
-  if (state.loopPlaceOrderCount > 60) {
+  if (state.loopPlaceOrderCount > 12) {
     state.breakLimit = false;
   }
   state.popLodingstartTime = 0;
@@ -524,7 +535,7 @@ function loopPlaceOrder() {
           callback: () => {
             state.loopPlaceOrderStep = stepMap[currentStep].nextStep;
             if (currentStep === sureInfoStep) {
-              if ([5, 10, 15, 20, 30].includes(state.loopPlaceOrderCount)) {
+              if ([2, 4, 6, 10].includes(state.loopPlaceOrderCount)) {
                 let newKeepTimeWhenBreak =
                   state.loopPlaceOrderKeepTimeWhenBreak + 80;
                 state.loopPlaceOrderKeepTimeWhenBreak = newKeepTimeWhenBreak;
@@ -1044,6 +1055,7 @@ function initConfig() {
     "loopBuyMethodTime",
     "loopPlaceOrderKeepTime",
     "loopPlaceOrderKeepTimeWhenBreak",
+    "norm",
   ];
   state_keys.forEach((key) => {
     if (storageState.hasOwnProperty(key)) {
@@ -1054,7 +1066,7 @@ function initConfig() {
     {
       hasStandard: state.hasStandard,
       buyMethod: state.buyMethod,
-      addOne: state.addOne,
+      norm: state.norm,
       addOne: state.addOne,
       breakLimit: state.breakLimit,
       loopBuyMethodTime: state.loopBuyMethodTime,

@@ -32,7 +32,7 @@ let seekbarMap = {
   loopPlaceOrderKeepTime: {
     max: 10000,
     min: 800,
-    default: 4200,
+    default: 4000,
     progress: 0,
   },
   loopPlaceOrderKeepTimeWhenBreak: {
@@ -469,7 +469,7 @@ win.resetConfig.on("long_click", () => {
   seekbarInitSet();
   win.breakLimit_true.checked = true;
   win.refreshWithoutFeel_true.checked = true;
-  win.norm_A.checked = true
+  win.norm_A.checked = true;
 });
 
 function setConfig({ type }) {
@@ -482,7 +482,7 @@ function setConfig({ type }) {
     addOne,
     refreshWithoutFeel_true: win.refreshWithoutFeel_true.checked,
     refreshWithoutFeel_false: win.refreshWithoutFeel_false.checked,
-    norm: win.norm_B.checked ? 'B' : 'A',
+    norm: win.norm_B.checked ? "B" : "A",
     breakLimit_true: win.breakLimit_true.checked,
     breakLimit_false: win.breakLimit_false.checked,
     loopBuyMethodTime: win.loopBuyMethodTime.progress,
@@ -492,7 +492,7 @@ function setConfig({ type }) {
   let storageState = {
     hasStandard,
     buyMethod,
-    norm: win.norm_B.checked ? 'B' : 'A',
+    norm: win.norm_B.checked ? "B" : "A",
     addOne,
     refreshWithoutFeel: win.refreshWithoutFeel_true.checked,
     breakLimit: win.breakLimit_true.checked,
@@ -574,10 +574,13 @@ function closeContent() {
   let flag = checkHamibot({ prompt: false });
   let infoText = "";
   if (flag) {
-    infoText = `原地刷新(${win.refreshWithoutFeel_true.checked ? "✅" : "❌"
-      })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${win.loopBuyMethodTime.progress
-      }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress
-      }ms)${win.norm_B.checked ? 'B组' : 'A组'}`;
+    infoText = `原地刷新(${
+      win.refreshWithoutFeel_true.checked ? "✅" : "❌"
+    })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${
+      win.loopBuyMethodTime.progress
+    }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${
+      win.loopPlaceOrderKeepTime.progress
+    }ms)${win.norm_B.checked ? "B组" : "A组"}`;
   } else {
     infoText = `hamibot无障碍未开启❌,脚本无法执行，请打开无障碍管理器锁定hamibot`;
   }
@@ -613,4 +616,4 @@ function toggleContent({ enforce = false, visible = false } = {}) {
   });
 }
 
-setInterval(() => { }, 1000);
+setInterval(() => {}, 1000);
