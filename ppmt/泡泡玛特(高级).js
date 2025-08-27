@@ -81,6 +81,42 @@ var win = floaty.window(
       <vertical bg="#80000000" padding="10 5 10 10">
         <horizontal>
           <button
+            id="method_quick"
+            text={'急速模式'}
+            textSize="12sp"
+            w="66"
+            height="22dp"
+            bg="#2196F3"
+            textColor="#FFFFFF"
+            margin="2"
+            padding="2"
+          />
+          <button
+            id="method_normal"
+            text={'正常模式'}
+            textSize="12sp"
+            w="66"
+            height="22dp"
+            bg="#2196F3"
+            textColor="#FFFFFF"
+            margin="2"
+            padding="2"
+          />
+          <button
+            id="method_slow"
+            text={'回流模式'}
+            textSize="12sp"
+            w="66"
+            height="22dp"
+            bg="#2196F3"
+            textColor="#FFFFFF"
+            margin="2"
+            padding="2"
+          />
+
+        </horizontal>
+        <horizontal>
+          <button
             id="have_home"
             text={btnTextConfig.have_home}
             textSize="12sp"
@@ -429,6 +465,20 @@ function shortcutBtnClick({ type }) {
   }
 }
 
+function methodClick({ method }) {
+  console.log(method)
+}
+
+win.method_quick.click(() => {
+  methodClick({ method: 'quick' })
+});
+win.method_normal.click(() => {
+  methodClick({ method: 'normal' })
+});
+win.method_slow.click(() => {
+  methodClick({ method: 'slow' })
+});
+
 win.have_home.click(() => {
   shortcutBtnClick({ type: "have_home" });
 });
@@ -574,13 +624,10 @@ function closeContent() {
   let flag = checkHamibot({ prompt: false });
   let infoText = "";
   if (flag) {
-    infoText = `原地刷新(${
-      win.refreshWithoutFeel_true.checked ? "✅" : "❌"
-    })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${
-      win.loopBuyMethodTime.progress
-    }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${
-      win.loopPlaceOrderKeepTime.progress
-    }ms)${win.norm_B.checked ? "B组" : "A组"}`;
+    infoText = `原地刷新(${win.refreshWithoutFeel_true.checked ? "✅" : "❌"
+      })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${win.loopBuyMethodTime.progress
+      }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress
+      }ms)${win.norm_B.checked ? "B组" : "A组"}`;
   } else {
     infoText = `hamibot无障碍未开启❌,脚本无法执行，请打开无障碍管理器锁定hamibot`;
   }
@@ -616,4 +663,4 @@ function toggleContent({ enforce = false, visible = false } = {}) {
   });
 }
 
-setInterval(() => {}, 1000);
+setInterval(() => { }, 1000);
