@@ -28,18 +28,27 @@ let seekbarMap = {
     min: 100,
     default: 1200,
     progress: 0,
+    quick: 800,
+    normal: 1200,
+    slow: 1500,
   },
   loopPlaceOrderKeepTime: {
     max: 10000,
     min: 800,
     default: 4000,
     progress: 0,
+    quick: 3000,
+    normal: 4000,
+    slow: 5000,
   },
   loopPlaceOrderKeepTimeWhenBreak: {
     max: 3000,
     min: 100,
     default: 1000,
     progress: 0,
+    quick: 750,
+    normal: 1000,
+    slow: 2000,
   },
 };
 
@@ -82,7 +91,7 @@ var win = floaty.window(
         <horizontal>
           <button
             id="method_quick"
-            text={'急速模式'}
+            text={"急速模式"}
             textSize="12sp"
             w="66"
             height="22dp"
@@ -93,7 +102,7 @@ var win = floaty.window(
           />
           <button
             id="method_normal"
-            text={'正常模式'}
+            text={"正常模式"}
             textSize="12sp"
             w="66"
             height="22dp"
@@ -104,7 +113,7 @@ var win = floaty.window(
           />
           <button
             id="method_slow"
-            text={'回流模式'}
+            text={"回流模式"}
             textSize="12sp"
             w="66"
             height="22dp"
@@ -113,7 +122,6 @@ var win = floaty.window(
             margin="2"
             padding="2"
           />
-
         </horizontal>
         <horizontal>
           <button
@@ -466,17 +474,25 @@ function shortcutBtnClick({ type }) {
 }
 
 function methodClick({ method }) {
-  console.log(method)
+  let ppmtState = storage.get("ppmt_state")
+    ? JSON.parse(storage.get("ppmt_state"))
+    : {};
+  Object.keys(seekbarMap).forEach((key) => {
+    win[key].progress = seekbarMap[key][method];
+    win[`${key}Text`].setText(seekbarMap[key][method] + " ms");
+    ppmtState[key] = seekbarMap[key][method];
+  });
+  storage.put("ppmt_state", JSON.stringify(ppmtState));
 }
 
 win.method_quick.click(() => {
-  methodClick({ method: 'quick' })
+  methodClick({ method: "quick" });
 });
 win.method_normal.click(() => {
-  methodClick({ method: 'normal' })
+  methodClick({ method: "normal" });
 });
 win.method_slow.click(() => {
-  methodClick({ method: 'slow' })
+  methodClick({ method: "slow" });
 });
 
 win.have_home.click(() => {
@@ -624,10 +640,13 @@ function closeContent() {
   let flag = checkHamibot({ prompt: false });
   let infoText = "";
   if (flag) {
-    infoText = `原地刷新(${win.refreshWithoutFeel_true.checked ? "✅" : "❌"
-      })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${win.loopBuyMethodTime.progress
-      }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress
-      }ms)${win.norm_B.checked ? "B组" : "A组"}`;
+    infoText = `原地刷新(${
+      win.refreshWithoutFeel_true.checked ? "✅" : "❌"
+    })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${
+      win.loopBuyMethodTime.progress
+    }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${
+      win.loopPlaceOrderKeepTime.progress
+    }ms)${win.norm_B.checked ? "B组" : "A组"}`;
   } else {
     infoText = `hamibot无障碍未开启❌,脚本无法执行，请打开无障碍管理器锁定hamibot`;
   }
@@ -663,4 +682,4 @@ function toggleContent({ enforce = false, visible = false } = {}) {
   });
 }
 
-setInterval(() => { }, 1000);
+setInterval(() => {}, 1000);
