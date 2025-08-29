@@ -94,8 +94,8 @@ var win = floaty.window(
             text={"急速模式"}
             textSize="12sp"
             w="66"
-            height="22dp"
-            bg="#2196F3"
+            height="32dp"
+            bg="#FF0000"
             textColor="#FFFFFF"
             margin="2"
             padding="2"
@@ -105,7 +105,7 @@ var win = floaty.window(
             text={"正常模式"}
             textSize="12sp"
             w="66"
-            height="22dp"
+            height="32dp"
             bg="#2196F3"
             textColor="#FFFFFF"
             margin="2"
@@ -116,8 +116,8 @@ var win = floaty.window(
             text={"回流模式"}
             textSize="12sp"
             w="66"
-            height="22dp"
-            bg="#2196F3"
+            height="32dp"
+            bg="#556B2F"
             textColor="#FFFFFF"
             margin="2"
             padding="2"
@@ -483,17 +483,34 @@ function methodClick({ method }) {
     ppmtState[key] = seekbarMap[key][method];
   });
   storage.put("ppmt_state", JSON.stringify(ppmtState));
+
+  Object.keys(btnTextConfig).forEach((key) => {
+    let text = win[key].getText()
+    if (text === "停止") {
+      shortcutBtnClick({ type: key });
+      if (["normal", "slow"].includes(method)) {
+        win.breakLimit_true.checked = false;
+        win.breakLimit_false.checked = true;
+      }
+      setTimeout(() => {
+        shortcutBtnClick({ type: key });
+      }, 2000);
+    }
+  });
 }
 
-win.method_quick.click(() => {
+win.method_quick.on("long_click", () => {
   methodClick({ method: "quick" });
 });
-win.method_normal.click(() => {
+
+win.method_normal.on("long_click", () => {
   methodClick({ method: "normal" });
 });
-win.method_slow.click(() => {
+
+win.method_slow.on("long_click", () => {
   methodClick({ method: "slow" });
 });
+
 
 win.have_home.click(() => {
   shortcutBtnClick({ type: "have_home" });
@@ -640,13 +657,10 @@ function closeContent() {
   let flag = checkHamibot({ prompt: false });
   let infoText = "";
   if (flag) {
-    infoText = `原地刷新(${
-      win.refreshWithoutFeel_true.checked ? "✅" : "❌"
-    })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${
-      win.loopBuyMethodTime.progress
-    }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${
-      win.loopPlaceOrderKeepTime.progress
-    }ms)${win.norm_B.checked ? "B组" : "A组"}`;
+    infoText = `原地刷新(${win.refreshWithoutFeel_true.checked ? "✅" : "❌"
+      })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${win.loopBuyMethodTime.progress
+      }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress
+      }ms)${win.norm_B.checked ? "B组" : "A组"}`;
   } else {
     infoText = `hamibot无障碍未开启❌,脚本无法执行，请打开无障碍管理器锁定hamibot`;
   }
@@ -682,4 +696,4 @@ function toggleContent({ enforce = false, visible = false } = {}) {
   });
 }
 
-setInterval(() => {}, 1000);
+setInterval(() => { }, 1000);
