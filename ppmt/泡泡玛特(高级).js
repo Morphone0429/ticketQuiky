@@ -5,7 +5,9 @@ try {
 } catch (e) {
   log("关闭旧窗口异常：" + e);
 }
-
+let state = {
+  method: ''
+}
 const sw = device.width;
 const sh = device.height;
 log("屏幕尺寸: " + sw + " × " + sh);
@@ -474,6 +476,7 @@ function shortcutBtnClick({ type }) {
 }
 
 function methodClick({ method }) {
+  state.method = method
   let ppmtState = storage.get("ppmt_state")
     ? JSON.parse(storage.get("ppmt_state"))
     : {};
@@ -483,7 +486,7 @@ function methodClick({ method }) {
     ppmtState[key] = seekbarMap[key][method];
   });
   storage.put("ppmt_state", JSON.stringify(ppmtState));
-
+  win.infoText.setText(getTipsInfo());
   Object.keys(btnTextConfig).forEach((key) => {
     let text = win[key].getText()
     if (text === "停止") {
@@ -650,6 +653,13 @@ ui.run(function () {
   closeContent();
 });
 
+function getTipsInfo() {
+  return `无感刷新(${win.refreshWithoutFeel_true.checked ? "✅" : "❌"
+    })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${win.loopBuyMethodTime.progress
+    }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress
+    }ms)${state.method === 'quick' ? '急速模式' : state.method === 'normal' ? '正常模式' : state.method === 'slow' ? '回流模式' : ""}${win.norm_B.checked ? "B组" : ""}`;
+}
+
 function closeContent() {
   // 初始化设置
   win.collapsibleContent.setVisibility(android.view.View.GONE); // 默认隐藏
@@ -657,10 +667,7 @@ function closeContent() {
   let flag = checkHamibot({ prompt: false });
   let infoText = "";
   if (flag) {
-    infoText = `原地刷新(${win.refreshWithoutFeel_true.checked ? "✅" : "❌"
-      })破盾(${win.breakLimit_true.checked ? "✅" : "❌"})购买方式(${win.loopBuyMethodTime.progress
-      }ms)破盾(${win.loopPlaceOrderKeepTimeWhenBreak.progress}ms)非破盾(${win.loopPlaceOrderKeepTime.progress
-      }ms)${win.norm_B.checked ? "B组" : "A组"}`;
+    infoText = getTipsInfo();
   } else {
     infoText = `hamibot无障碍未开启❌,脚本无法执行，请打开无障碍管理器锁定hamibot`;
   }
