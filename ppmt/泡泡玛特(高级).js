@@ -28,10 +28,10 @@ let seekbarMap = {
   loopBuyMethodTime: {
     max: 4000,
     min: 100,
-    default: 1200,
+    default: 1000,
     progress: 0,
     quick: 800,
-    normal: 1200,
+    normal: 1000,
     slow: 1500,
   },
   loopPlaceOrderKeepTime: {
