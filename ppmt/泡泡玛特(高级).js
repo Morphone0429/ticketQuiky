@@ -236,7 +236,6 @@ var win = floaty.window(
                 textColor="#FFFFFF"
                 scaleX="0.85"
                 scaleY="0.85"
-                checked="true"
               />
               <radio
                 id="refreshWithoutFeel_false"
@@ -245,6 +244,7 @@ var win = floaty.window(
                 scaleX="0.85"
                 scaleY="0.85"
                 marginRight="32"
+                 checked="true"
               />
             </radiogroup>
             <text
@@ -554,7 +554,7 @@ win.resetConfig.on("long_click", () => {
   storage.clear();
   seekbarInitSet();
   win.breakLimit_true.checked = true;
-  win.refreshWithoutFeel_true.checked = true;
+  win.refreshWithoutFeel_false.checked = true;
   win.norm_A.checked = true;
 });
 
